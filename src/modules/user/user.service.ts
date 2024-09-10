@@ -4,6 +4,7 @@ import User from './user.model';
 import ApiError from '../errors/ApiError';
 import { IOptions, QueryResult } from '../paginate/paginate';
 import { NewCreatedUser, UpdateUserBody, IUserDoc, NewRegisteredUser } from './user.interfaces';
+import { Organization } from '../organization';
 
 /**
  * Create a user
@@ -89,3 +90,10 @@ export const deleteUserById = async (userId: mongoose.Types.ObjectId): Promise<I
   await user.deleteOne();
   return user;
 };
+
+
+export const getOrganizationByUserId = async (userId: mongoose.Types.ObjectId): Promise<any> => {
+  return Organization.findOne({
+    userId: userId,
+  }).select('-userId');
+}
