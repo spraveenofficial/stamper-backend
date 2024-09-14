@@ -114,7 +114,7 @@ jobs:
             pm2 delete stamperBackend || true
 
             # Start the Node.js Express API using PM2
-            pm2 start npm --name "stamperBackend" -- run start -- -p $PORT
+            npm run start
 
             # Ensure PM2 restarts the app on reboot
             pm2 save
