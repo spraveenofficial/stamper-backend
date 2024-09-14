@@ -15,7 +15,7 @@
     "node": ">=14.20.1 <19"
   },
   "scripts": {
-    "start": "pm2 start ecosystem.config.json --no-daemon",
+    "start": "pm2 start ecosystem.config.json",
     "start:build": "tsc --build && pm2 start ecosystem.config.json",
     "compile": "tsc --build",
     "compile:watch": "tsc --build --watch",
