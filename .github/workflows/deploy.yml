@@ -115,7 +115,10 @@ jobs:
 
             # Start the Node.js Express API using PM2
             npm run start
-
+            
+            # PM2 List 
+            pm2 list
+            
             # Ensure PM2 restarts the app on reboot
             pm2 save
             pm2 startup | sudo tee /etc/systemd/system/pm2-ubuntu.service
