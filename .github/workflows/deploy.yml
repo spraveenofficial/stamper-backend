@@ -31,7 +31,7 @@ jobs:
       # Archive build files
       - name: Archive Build Artifacts
         run: |
-          tar -czf nodejs-api-build.tar.gz dist package.json ecosystem.config.js
+          tar -czf nodejs-api-build.tar.gz dist package.json ecosystem.config.json
 
       # Install SSH Client for uploading build artifacts to EC2
       - name: Install SSH Client
