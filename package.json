@@ -1,14 +1,14 @@
 {
-  "name": "create-nodejs-ts-app",
-  "version": "3.0.11",
-  "description": "Node express mongoose typescript boilerplate",
+  "name": "stamper-backend",
+  "version": "1.0.0",
+  "description": "Node express mongoose typescript",
   "main": "dist/index.js",
   "bin": "bin/createNodetsApp.cjs",
   "repository": "https://github.com/saisilinus/node-express-mongoose-typescript-boilerplate.git",
   "bugs": {
     "url": "https://github.com/saisilinus/node-express-mongoose-typescript-boilerplate/issues"
   },
-  "author": "linus wafula saisi <saisilinus.work@gmail.com>",
+  "author": "Praveen Kumar Singh",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -19,6 +19,7 @@
     "start:build": "tsc --build && pm2 start ecosystem.config.json --no-daemon",
     "compile": "tsc --build",
     "compile:watch": "tsc --build --watch",
+    "build": "rm -rf dist && tsc --build",
     "pre:dev": "cross-env NODE_ENV=development nodemon --experimental-modules --es-module-specifier-resolution=node dist/index.js",
     "dev": "concurrently --kill-others \"yarn compile:watch\" \"yarn pre:dev\"",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest -i --colors --verbose --detectOpenHandles",

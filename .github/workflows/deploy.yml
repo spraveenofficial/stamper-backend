@@ -1,0 +1,126 @@
+name: Deploy Node.js Express API to EC2 with Nginx
+
+on:
+  push:
+    branches:
+      - develop  # Trigger deployment on push to the develop branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the latest code from the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # Specify the Node.js version
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Build the API (for TypeScript compilation)
+      - name: Build API
+        run: npm run build
+
+      # Archive build files
+      - name: Archive Build Artifacts
+        run: |
+          tar -czf nodejs-api-build.tar.gz dist package.json
+
+      # Install SSH Client for uploading build artifacts to EC2
+      - name: Install SSH Client
+        run: sudo apt-get install -y openssh-client
+
+      # Upload the build artifacts to the EC2 instance
+      - name: Upload Artifacts to EC2
+        env:
+          SCP_USER: ${{ secrets.EC2_USER }}
+          SCP_IP: ${{ secrets.EC2_IP }}
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_PASSWORD }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > /tmp/ec2_key.pem
+          chmod 600 /tmp/ec2_key.pem
+          scp -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no nodejs-api-build.tar.gz $SCP_USER@$SCP_IP:/tmp/
+
+      # Deploy the Node.js Express API on the EC2 instance
+      - name: Deploy to EC2
+        env:
+          SCP_USER: ${{ secrets.EC2_USER }}
+          SCP_IP: ${{ secrets.EC2_IP }}
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_PASSWORD }}
+          PORT: ${{ vars.PORT }}
+          MONGODB_URL: ${{ vars.MONGODB_URL }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          JWT_ACCESS_EXPIRATION_MINUTES: ${{ vars.JWT_ACCESS_EXPIRATION_MINUTES }}
+          JWT_REFRESH_EXPIRATION_DAYS: ${{ vars.JWT_REFRESH_EXPIRATION_DAYS }}
+          JWT_RESET_PASSWORD_EXPIRATION_MINUTES: ${{ vars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES }}
+          JWT_VERIFY_EMAIL_EXPIRATION_MINUTES: ${{ vars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USERNAME: ${{ vars.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ vars.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          COOKIE_SECRET: ${{ vars.COOKIE_SECRET }}
+          CLIENT_URL: ${{ vars.CLIENT_URL }}
+          RESEND_KEY: ${{ vars.RESEND_KEY }}
+        run: |
+          ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $SCP_USER@$SCP_IP << EOF
+            # Navigate to the deployment directory
+            sudo mkdir -p /home/ubuntu/stamperBackend
+            sudo tar -xzf /tmp/nodejs-api-build.tar.gz -C /home/ubuntu/stamperBackend
+
+            # Move to the directory
+            cd /home/ubuntu/stamperBackend
+
+            # Install production dependencies on the server
+            sudo npm install --production
+
+            # Create the .env file with the specified environment variables
+            sudo bash -c 'cat <<EOT > /home/ubuntu/stamperBackend/.env
+            PORT=$PORT
+            MONGODB_URL=$MONGODB_URL
+            JWT_SECRET=$JWT_SECRET
+            JWT_ACCESS_EXPIRATION_MINUTES=$JWT_ACCESS_EXPIRATION_MINUTES
+            JWT_REFRESH_EXPIRATION_DAYS=$JWT_REFRESH_EXPIRATION_DAYS
+            JWT_RESET_PASSWORD_EXPIRATION_MINUTES=$JWT_RESET_PASSWORD_EXPIRATION_MINUTES
+            JWT_VERIFY_EMAIL_EXPIRATION_MINUTES=$JWT_VERIFY_EMAIL_EXPIRATION_MINUTES
+            SMTP_HOST=$SMTP_HOST
+            SMTP_PORT=$SMTP_PORT
+            SMTP_USERNAME=$SMTP_USERNAME
+            SMTP_PASSWORD=$SMTP_PASSWORD
+            EMAIL_FROM=$EMAIL_FROM
+            COOKIE_SECRET=$COOKIE_SECRET
+            CLIENT_URL=$CLIENT_URL
+            RESEND_KEY=$RESEND_KEY
+            NODE_ENV=production
+            EOT'
+
+            # Ensure PM2 is installed
+            if ! command -v pm2 &> /dev/null
+            then
+              sudo npm install -g pm2
+            fi
+
+            # Stop any existing instance of the API
+            pm2 stop stamperBackend || true
+
+            # Remove the process from PM2 (if necessary)
+            pm2 delete stamperBackend || true
+
+            # Start the Node.js Express API using PM2
+            pm2 start npm --name "stamperBackend" -- run start -- -p $PORT
+
+            # Ensure PM2 restarts the app on reboot
+            pm2 save
+            pm2 startup | sudo tee /etc/systemd/system/pm2-ubuntu.service
+            sudo systemctl enable pm2-ubuntu
+            sudo systemctl start pm2-ubuntu
+
+            # Restart Nginx to apply reverse proxy changes
+            sudo systemctl restart nginx

@@ -21,6 +21,7 @@ const envVarsSchema = Joi.object()
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     CLIENT_URL: Joi.string().required().description('Client url'),
+    RESEND_KEY: Joi.string().required().description('Resend key'),
   })
   .unknown();
 
@@ -64,6 +65,7 @@ const config = {
     },
     from: envVars.EMAIL_FROM,
   },
+  resendKey: envVars.RESEND_KEY,
   clientUrl: envVars.CLIENT_URL,
 };
 
