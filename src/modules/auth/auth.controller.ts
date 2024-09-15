@@ -18,13 +18,23 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = await authService.loginUserWithEmailAndPassword(email, password);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.set('Set-Cookie', [
-    tokenService.getCookieWithToken(tokens.access.token, 'token'),
-    tokenService.getCookieWithToken(tokens.refresh.token, 'refreshToken')
-  ]); // Access token as cookie
+  // res.set('Set-Cookie', [
+  //   tokenService.getCookieWithToken(tokens.access.token, 'token'),
+  //   tokenService.getCookieWithToken(tokens.refresh.token, 'refreshToken')
+  // ]); // Access token as cookie
 
-  
-  res.send({ user, tokens });
+  res
+    .cookie('token', tokens.access.token, {
+      httpOnly: true,
+      secure: config.env === DevelopmentOptions.production,
+      expires: tokens.access.expires,
+    })
+    .cookie('refreshToken', tokens.refresh.token, {
+      httpOnly: true,
+      secure: config.env === DevelopmentOptions.production,
+      expires: tokens.refresh.expires,
+    })
+    .send({ user, tokens }); // Access token as cookie
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {
