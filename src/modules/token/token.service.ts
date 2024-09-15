@@ -34,7 +34,7 @@ export const generateToken = (
 };
 
 export const getCookieWithToken = (token: string, tokenName: string): string => {
-  const isProduction = process.env['NODE_ENV'] === 'developement';
+  const isProduction = process.env['NODE_ENV'] === 'production';
   const domain = isProduction ? 'stamper.tech' : 'localhost'; // Use 'localhost' in development, and 'xyz.com' in production
   const secureFlag = isProduction ? 'Secure;' : ''; // Secure flag only for production
 
