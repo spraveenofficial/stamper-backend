@@ -35,7 +35,7 @@ export const generateToken = (
 
 export const getCookieWithToken = (token: string): string => {
   const isProduction = process.env['NODE_ENV'] === 'production';
-  return `token=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; SameSite=Strict; ${
+  return `token=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; SameSite=None; ${
     isProduction ? 'Secure' : ''
   }`;
 };
