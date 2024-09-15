@@ -4,7 +4,7 @@ import Token from '../token/token.model';
 import ApiError from '../errors/ApiError';
 import tokenTypes from '../token/token.types';
 import { getUserByEmail, getUserById, updateUserById } from '../user/user.service';
-import { IUserDoc, IUserWithTokens } from '../user/user.interfaces';
+import { IUserDoc, OnlyTokenResponse } from '../user/user.interfaces';
 import { generateAuthTokens, verifyToken } from '../token/token.service';
 
 /**
@@ -39,7 +39,7 @@ export const logout = async (refreshToken: string): Promise<void> => {
  * @param {string} refreshToken
  * @returns {Promise<IUserWithTokens>}
  */
-export const refreshAuth = async (refreshToken: string): Promise<IUserWithTokens> => {
+export const refreshAuth = async (refreshToken: string): Promise<OnlyTokenResponse> => {
   try {
     const refreshTokenDoc = await verifyToken(refreshToken, tokenTypes.REFRESH);
     const user = await getUserById(new mongoose.Types.ObjectId(refreshTokenDoc.user));
@@ -48,7 +48,7 @@ export const refreshAuth = async (refreshToken: string): Promise<IUserWithTokens
     }
     await refreshTokenDoc.deleteOne();
     const tokens = await generateAuthTokens(user);
-    return { user, tokens };
+    return { tokens };
   } catch (error) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
   }

@@ -29,3 +29,5 @@ export interface IUserWithTokens {
   user: IUserDoc;
   tokens: AccessAndRefreshTokens;
 }
+
+export type OnlyTokenResponse = Omit<IUserWithTokens, 'user'>;

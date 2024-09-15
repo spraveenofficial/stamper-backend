@@ -74,7 +74,6 @@ export const saveToken = async (
  */
 export const verifyToken = async (token: string, type: string): Promise<ITokenDoc> => {
   const payload : any = jwt.verify(token, config.jwt.secret);
-  console.log(payload)
   if (typeof payload.id !== 'string') {
     throw new ApiError(httpStatus.BAD_REQUEST, 'bad user');
   }
