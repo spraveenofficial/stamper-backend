@@ -27,7 +27,7 @@ app.use(helmet());
 
 // enable cors
 app.use(cors({
-  origin: config.clientUrl,
+  origin: [config.clientUrl, 'http://localhost:3000'],
   credentials: true,
 }));
 
