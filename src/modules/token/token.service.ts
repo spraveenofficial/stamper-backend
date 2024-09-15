@@ -34,11 +34,12 @@ export const generateToken = (
 };
 
 export const getCookieWithToken = (token: string, tokenName: string): string => {
-  const isProduction = process.env['NODE_ENV'] === 'production';
-  const domain = isProduction ? 'stamper.tech' : 'localhost'; // Use 'localhost' in development, and 'xyz.com' in production
-  const secureFlag = isProduction ? 'Secure;' : ''; // Secure flag only for production
+  console.log(process.env['NODE_ENV'])
+  // const isProduction = process.env['NODE_ENV'] === 'development';
+  const domain = 'localhost'; // Use 'localhost' in development, and 'xyz.com' in production
+  // const secureFlag = isProduction ? 'Secure;' : ''; // Secure flag only for production
 
-  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; Domain=${domain}; ${secureFlag}`;
+  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; Domain=${domain};`;
 };
 
 
