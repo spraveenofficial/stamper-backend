@@ -34,16 +34,16 @@ export const generateToken = (
 };
 
 export const getCookieWithToken = (token: string, tokenName: string, domainName: string, isSecure: boolean): string => {
-  // const isProduction = process.env['NODE_ENV'] === 'production';
+  const isProduction = process.env['NODE_ENV'] === 'production';
   
   // Determine if it's secure (use Secure only in production)
-  const secureFlag = isSecure ? 'Secure;' : '';
-  const sameSite = 'SameSite=None;'
+  const secureFlag = isSecure ? 'Secure;' : 'Secure;';
+  const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
   
   // Use Domain only in production
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
   
-  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; ${domain} ${sameSite} ${secureFlag}`;
+  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age${config.jwt.accessExpirationMinutes * 60}; ${domain} ${sameSite} ${secureFlag}`;
 };
 
 
