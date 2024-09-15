@@ -34,12 +34,14 @@ export const generateToken = (
 };
 
 export const getCookieWithToken = (token: string, tokenName: string): string => {
-  const isProduction = process.env['NODE_ENV'] === 'development';
-  const domain = isProduction ? 'stamper.tech' : 'localhost'; // Use 'stamper.tech' in production and 'localhost' in development
-  const secureFlag = isProduction ? 'Secure;' : ''; // Only use 'Secure' in production
+  const isProduction = process.env['NODE_ENV'] === 'production';
+  const domain = isProduction ? 'Domain=stamper.tech;' : ''; // Only set domain in production
+  const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;'; // Use SameSite=None in production, SameSite=Lax in development
+  const secureFlag = isProduction ? 'Secure;' : ''; // Secure only in production for HTTPS
 
-  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; Domain=${domain}; SameSite=None; ${secureFlag}`;
+  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; ${domain} ${sameSite} ${secureFlag}`;
 };
+
 
 /**
  * Save a token
@@ -74,7 +76,7 @@ export const saveToken = async (
  * @returns {Promise<ITokenDoc>}
  */
 export const verifyToken = async (token: string, type: string): Promise<ITokenDoc> => {
-  const payload : any = jwt.verify(token, config.jwt.secret);
+  const payload: any = jwt.verify(token, config.jwt.secret);
   if (typeof payload.id !== 'string') {
     throw new ApiError(httpStatus.BAD_REQUEST, 'bad user');
   }
