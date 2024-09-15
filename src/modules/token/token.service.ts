@@ -41,7 +41,7 @@ export const getCookieWithToken = (token: string, tokenName: string, domainName:
   const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
   console.log(domainName)
   // Use Domain only in production
-  const domain = domainName === 'localhost' ? '' : ``;
+  const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
   
   return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age${config.jwt.accessExpirationMinutes * 60}; ${domain} ${sameSite} ${secureFlag}`;
 };

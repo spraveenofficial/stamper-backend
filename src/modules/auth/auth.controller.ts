@@ -41,7 +41,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
 
 export const logout = catchAsync(async (req: Request, res: Response) => {
   await authService.logout(req.body.refreshToken);
-  res.status(httpStatus.NO_CONTENT).send();
+  res.status(httpStatus.OK).json({ message: 'Logged out' });
 });
 
 export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
