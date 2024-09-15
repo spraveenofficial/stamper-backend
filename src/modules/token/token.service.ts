@@ -34,11 +34,11 @@ export const generateToken = (
 };
 
 export const getCookieWithToken = (token: string, tokenName: string, domainName: string, isSecure: boolean): string => {
-  const isProduction = process.env['NODE_ENV'] === 'production';
+  // const isProduction = process.env['NODE_ENV'] === 'production';
   
   // Determine if it's secure (use Secure only in production)
-  const secureFlag = isProduction || isSecure ? 'Secure;' : '';
-  const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
+  const secureFlag = isSecure ? 'Secure;' : '';
+  const sameSite = 'SameSite=Lax;'
   
   // Use Domain only in production
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
