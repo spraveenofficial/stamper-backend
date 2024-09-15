@@ -12,6 +12,14 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
   res.status(httpStatus.CREATED).send(user);
 });
 
+
+export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
+  console.log('req.user', req.user);
+  const user = await userService.getUserById(req.user.id);
+  const organization = await userService.getOrganizationByUserId(req.user.id);
+  res.send({ user, organization });
+});
+
 export const getUsers = catchAsync(async (req: Request, res: Response) => {
   const filter = pick(req.query, ['name', 'role']);
   const options: IOptions = pick(req.query, ['sortBy', 'limit', 'page', 'projectBy']);

@@ -25,12 +25,19 @@ export const generateToken = (
   secret: string = config.jwt.secret
 ): string => {
   const payload = {
-    sub: userId,
+    id: userId,
     iat: moment().unix(),
     exp: expires.unix(),
     type,
   };
   return jwt.sign(payload, secret);
+};
+
+export const getCookieWithToken = (token: string): string => {
+  const isProduction = process.env['NODE_ENV'] === 'production';
+  return `token=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; SameSite=Strict; ${
+    isProduction ? 'Secure' : ''
+  }`;
 };
 
 /**
@@ -115,7 +122,7 @@ export const generateAuthTokens = async (user: IUserDoc): Promise<AccessAndRefre
 export const generateResetPasswordToken = async (email: string): Promise<string> => {
   const user = await userService.getUserByEmail(email);
   if (!user) {
-    throw new ApiError(httpStatus.NO_CONTENT, '');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
   const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD);

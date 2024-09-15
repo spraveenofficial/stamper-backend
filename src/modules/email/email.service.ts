@@ -1,16 +1,8 @@
-import nodemailer from 'nodemailer';
 import config from '../../config/config';
-// import logger from '../logger/logger';
 import { Message } from './email.interfaces';
+import { Resend } from 'resend';
 
-export const transport = nodemailer.createTransport(config.email.smtp);
-/* istanbul ignore next */
-// if (config.env !== 'test') {
-//   transport
-//     .verify()
-//     .then(() => logger.info('Connected to email server'))
-//     .catch(() => logger.warn('Unable to connect to email server. Make sure you have configured the SMTP options in .env'));
-// }
+export const resend = new Resend(config.resendKey);
 
 /**
  * Send an email
@@ -28,7 +20,7 @@ export const sendEmail = async (to: string, subject: string, text: string, html:
     text,
     html,
   };
-  await transport.sendMail(msg);
+  await resend.emails.send(msg);
 };
 
 /**
@@ -40,7 +32,7 @@ export const sendEmail = async (to: string, subject: string, text: string, html:
 export const sendResetPasswordEmail = async (to: string, token: string): Promise<void> => {
   const subject = 'Reset password';
   // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `http://${config.clientUrl}/reset-password?token=${token}`;
+  const resetPasswordUrl = `${config.clientUrl}/reset-password?token=${token}`;
   const text = `Hi,
   To reset your password, click on this link: ${resetPasswordUrl}
   If you did not request any password resets, then ignore this email.`;
@@ -59,6 +51,7 @@ export const sendResetPasswordEmail = async (to: string, token: string): Promise
  * @param {string} name
  * @returns {Promise<void>}
  */
+
 export const sendVerificationEmail = async (to: string, token: string, name: string): Promise<void> => {
   const subject = 'Email Verification';
   // replace this url with the link to the email verification page of your front-end app
