@@ -34,7 +34,7 @@ export const generateToken = (
 };
 
 export const getCookieWithToken = (token: string, tokenName: string): string => {
-  const isProduction = process.env['NODE_ENV'] === 'production';
+  const isProduction = process.env['NODE_ENV'] !== 'production';
   const domain = isProduction ? 'Domain=stamper.tech;' : ''; // Set domain in production
   const sameSite = 'SameSite=None;'; // Allow cross-origin requests with SameSite=None
   const secureFlag = isProduction ? 'Secure;' : ''; // Only use Secure in production
