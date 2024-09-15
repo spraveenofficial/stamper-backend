@@ -35,7 +35,6 @@ const authMiddleware =
       // Extract the token from cookies
       const token = req.cookies['token'];
 
-      console.log('token', token);
       if (!token) {
         return reject(res.status(httpStatus.UNAUTHORIZED).json({ message: 'Please authenticate' }));
       }

@@ -18,7 +18,12 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = await authService.loginUserWithEmailAndPassword(email, password);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.set('Set-Cookie', tokenService.getCookieWithToken(tokens.access.token));
+  res.set('Set-Cookie', [
+    tokenService.getCookieWithToken(tokens.access.token, 'token'),
+    tokenService.getCookieWithToken(tokens.refresh.token, 'refreshToken')
+  ]); // Access token as cookie
+
+  
   res.send({ user, tokens });
 });
 

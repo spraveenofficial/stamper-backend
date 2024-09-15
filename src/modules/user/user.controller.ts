@@ -14,7 +14,6 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 
 
 export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
-  console.log('req.user', req.user);
   const user = await userService.getUserById(req.user.id);
   const organization = await userService.getOrganizationByUserId(req.user.id);
   res.send({ user, organization });
