@@ -7,6 +7,7 @@ import * as authService from './auth.service';
 import { emailService } from '../email';
 import config from '../../config/config';
 import { DevelopmentOptions } from '../../config/roles';
+import { ApiError } from '../errors';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.registerUser(req.body);
@@ -15,15 +16,27 @@ export const register = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const login = catchAsync(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  const user = await authService.loginUserWithEmailAndPassword(email, password);
-  const tokens = await tokenService.generateAuthTokens(user);
-  res.set('Set-Cookie', [
-    tokenService.getCookieWithToken(tokens.access.token, 'token'),
-    tokenService.getCookieWithToken(tokens.refresh.token, 'refreshToken'),
-  ]); // Access token as cookie
+  try {
+    // Determine the domain based on the request host
+    const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
+    const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
 
-  res.status(httpStatus.OK).send({ user, tokens }); // Access token as cookie
+    const { email, password } = req.body;
+    const user = await authService.loginUserWithEmailAndPassword(email, password);
+    const tokens = await tokenService.generateAuthTokens(user);
+
+    // Set cookies for access and refresh tokens
+    res.setHeader('Set-Cookie', [
+      tokenService.getCookieWithToken(tokens.access.token, 'token', domain, req.secure),
+      tokenService.getCookieWithToken(tokens.refresh.token, 'refreshToken', domain, req.secure),
+    ]);
+
+    // Send response after setting the cookies
+    return res.status(httpStatus.OK).json({ user, tokens });
+  } catch (err) {
+    // Pass errors to error-handling middleware
+    return new ApiError(411, 'Incorrect email or password');
+  }
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {
