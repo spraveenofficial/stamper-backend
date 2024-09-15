@@ -28,11 +28,13 @@ export const login = catchAsync(async (req: Request, res: Response) => {
       httpOnly: true,
       secure: config.env === DevelopmentOptions.production,
       expires: tokens.access.expires,
+      sameSite: 'none',
     })
     .cookie('refreshToken', tokens.refresh.token, {
       httpOnly: true,
       secure: config.env === DevelopmentOptions.production,
       expires: tokens.refresh.expires,
+      sameSite: 'none',
     })
     .send({ user, tokens }); // Access token as cookie
 });
