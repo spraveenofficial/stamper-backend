@@ -37,9 +37,9 @@ export const getCookieWithToken = (token: string, tokenName: string): string => 
   const isProduction = process.env['NODE_ENV'] !== 'production';
   const domain = isProduction ? 'Domain=stamper.tech;' : ''; // Set domain in production
   const sameSite = 'SameSite=None;'; // Allow cross-origin requests with SameSite=None
-  const secureFlag = isProduction ? 'Secure;' : ''; // Only use Secure in production
+  // const secureFlag = isProduction ? 'Secure;' : ''; // Only use Secure in production
 
-  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; ${domain} ${sameSite} ${secureFlag}`;
+  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=${config.jwt.accessExpirationMinutes * 60}; ${domain} ${sameSite} Secure;`;
 };
 
 /**
