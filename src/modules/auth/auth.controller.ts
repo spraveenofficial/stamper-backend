@@ -34,20 +34,20 @@ export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
 
 export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   const resetPasswordToken = await tokenService.generateResetPasswordToken(req.body.email);
-  if(config.env == DevelopmentOptions.production) {
+  if (config.env == DevelopmentOptions.production) {
     await emailService.sendResetPasswordEmail(req.body.email, resetPasswordToken);
   }
-  res.send(httpStatus[200, 'Password reset email sent']);
+  res.status(httpStatus.OK).send({ message: 'Password reset email sent' });
 });
 
 export const resetPassword = catchAsync(async (req: Request, res: Response) => {
   await authService.resetPassword(req.query['token'], req.body.password);
-  res.status(httpStatus.NO_CONTENT).send();
+  res.status(httpStatus.OK).json({ message: 'Password reset successful' });
 });
 
 export const sendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
   const verifyEmailToken = await tokenService.generateVerifyEmailToken(req.user);
-  if(config.env == DevelopmentOptions.production) {
+  if (config.env == DevelopmentOptions.production) {
     await emailService.sendVerificationEmail(req.user.email, verifyEmailToken, req.user.name);
   }
   res.status(httpStatus.NO_CONTENT).send();

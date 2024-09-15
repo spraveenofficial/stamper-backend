@@ -65,11 +65,12 @@ export const resetPassword = async (resetPasswordToken: any, newPassword: string
     const resetPasswordTokenDoc = await verifyToken(resetPasswordToken, tokenTypes.RESET_PASSWORD);
     const user = await getUserById(new mongoose.Types.ObjectId(resetPasswordTokenDoc.user));
     if (!user) {
-      throw new Error();
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Password reset faileds');
     }
     await updateUserById(user.id, { password: newPassword });
     await Token.deleteMany({ user: user.id, type: tokenTypes.RESET_PASSWORD });
   } catch (error) {
+    console.log(error);
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Password reset failed');
   }
 };

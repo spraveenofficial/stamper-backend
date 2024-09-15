@@ -73,14 +73,15 @@ export const saveToken = async (
  * @returns {Promise<ITokenDoc>}
  */
 export const verifyToken = async (token: string, type: string): Promise<ITokenDoc> => {
-  const payload = jwt.verify(token, config.jwt.secret);
-  if (typeof payload.sub !== 'string') {
+  const payload : any = jwt.verify(token, config.jwt.secret);
+  console.log(payload)
+  if (typeof payload.id !== 'string') {
     throw new ApiError(httpStatus.BAD_REQUEST, 'bad user');
   }
   const tokenDoc = await Token.findOne({
     token,
     type,
-    user: payload.sub,
+    user: payload.id,
     blacklisted: false,
   });
   if (!tokenDoc) {
