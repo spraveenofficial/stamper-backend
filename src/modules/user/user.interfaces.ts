@@ -1,12 +1,13 @@
 import mongoose, { Model, Document } from 'mongoose';
 import { QueryResult } from '../paginate/paginate';
 import { AccessAndRefreshTokens } from '../token/token.interfaces';
+import { roles } from 'src/config/roles';
 
 export interface IUser {
   name: string;
   email: string;
   password: string;
-  role: string;
+  role: typeof roles[number];
   isEmailVerified: boolean;
 }
 

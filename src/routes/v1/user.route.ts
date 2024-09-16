@@ -10,7 +10,7 @@ const router: Router = express.Router();
 //   .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
 //   .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
 
-router.route('/profile').get(auth(), userController.getSelfUser);
+router.route('/profile').get(auth('profile'), userController.getSelfUser);
 
 router
   .route('/:userId')

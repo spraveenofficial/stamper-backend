@@ -1,5 +1,7 @@
 import Joi from 'joi';
 import { NewCreateOrganization } from './organization.interfaces';
+import { employeeValidation } from '../employee';
+import { registerBody } from '../auth/auth.validation';
 
 export const organizationRegisterBody: Record<keyof NewCreateOrganization, any> = {
   companyDomainName: Joi.string().required(),
@@ -8,4 +10,13 @@ export const organizationRegisterBody: Record<keyof NewCreateOrganization, any> 
   industryType: Joi.string().required(),
   companyRole: Joi.string().required(),
   needs: Joi.string().required(),
+};
+
+export const addEmployeeBody = {
+  user: registerBody,
+  employeeInformation: employeeValidation.employeeRegisterBody,
+};
+
+export const addEmployee = {
+  body: Joi.object().keys(addEmployeeBody),
 };

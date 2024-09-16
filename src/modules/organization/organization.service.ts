@@ -7,11 +7,17 @@ export const createOrganization = async (organizationBody: any, userId: string):
   if (await Organization.isOrganizationDomainNameTaken(organizationBody.companyDomainName)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Company domain name already taken');
   }
-  return Organization.create({ ...organizationBody, userId: userId });
+  return await Organization.create({ ...organizationBody, userId: userId });
 };
 
 export const getOrganizationByUserId = async (userId: mongoose.Types.ObjectId): Promise<any> => {
   return Organization.findOne({
     userId: userId,
   }).select('-userId');
+};
+
+export const checkIfOrganizationAddedByUser = async (userId: mongoose.Types.ObjectId): Promise<any> => {
+  return Organization.findOne({
+    userId: userId,
+  });
 };

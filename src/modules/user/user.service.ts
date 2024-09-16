@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import User from './user.model';
 import ApiError from '../errors/ApiError';
 import { IOptions, QueryResult } from '../paginate/paginate';
-import { NewCreatedUser, UpdateUserBody, IUserDoc, NewRegisteredUser } from './user.interfaces';
+import { NewCreatedUser, UpdateUserBody, IUserDoc} from './user.interfaces';
 import { Organization } from '../organization';
 
 /**
@@ -11,11 +11,20 @@ import { Organization } from '../organization';
  * @param {NewCreatedUser} userBody
  * @returns {Promise<IUserDoc>}
  */
-export const createUser = async (userBody: NewCreatedUser): Promise<IUserDoc> => {
+
+export const createUserAsOrganization = async (userBody: NewCreatedUser): Promise<IUserDoc> => {
   if (await User.isEmailTaken(userBody.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   return User.create(userBody);
+};
+
+
+export const createUserAsEmployee = async (userBody: NewCreatedUser): Promise<IUserDoc> => {
+  if (await User.isEmailTaken(userBody.email)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
+  return User.create({...userBody, role: 'employee'});
 };
 
 /**
@@ -23,12 +32,12 @@ export const createUser = async (userBody: NewCreatedUser): Promise<IUserDoc> =>
  * @param {NewRegisteredUser} userBody
  * @returns {Promise<IUserDoc>}
  */
-export const registerUser = async (userBody: NewRegisteredUser): Promise<IUserDoc> => {
-  if (await User.isEmailTaken(userBody.email)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
-  }
-  return User.create(userBody);
-};
+// export const registerUser = async (userBody: NewRegisteredUser): Promise<IUserDoc> => {
+//   if (await User.isEmailTaken(userBody.email)) {
+//     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+//   }
+//   return User.create(userBody);
+// };
 
 /**
  * Query for users

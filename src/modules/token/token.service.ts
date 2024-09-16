@@ -22,13 +22,15 @@ export const generateToken = (
   userId: mongoose.Types.ObjectId,
   expires: Moment,
   type: string,
-  secret: string = config.jwt.secret
+  secret: string = config.jwt.secret,
+  role: string,
 ): string => {
   const payload = {
     id: userId,
     iat: moment().unix(),
     exp: expires.unix(),
     type,
+    role: role,
   };
   return jwt.sign(payload, secret);
 };
@@ -39,7 +41,6 @@ export const getCookieWithToken = (token: string, tokenName: string, domainName:
   // Determine if it's secure (use Secure only in production)
   const secureFlag = isSecure ? 'Secure;' : 'Secure;';
   const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
-  console.log(domainName)
   // Use Domain only in production
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
   
@@ -59,6 +60,7 @@ export const getCookieWithToken = (token: string, tokenName: string, domainName:
 export const saveToken = async (
   token: string,
   userId: mongoose.Types.ObjectId,
+  role: string,
   expires: Moment,
   type: string,
   blacklisted: boolean = false
@@ -66,6 +68,7 @@ export const saveToken = async (
   const tokenDoc = await Token.create({
     token,
     user: userId,
+    role: role,
     expires: expires.toDate(),
     type,
     blacklisted,
@@ -103,11 +106,11 @@ export const verifyToken = async (token: string, type: string): Promise<ITokenDo
  */
 export const generateAuthTokens = async (user: IUserDoc): Promise<AccessAndRefreshTokens> => {
   const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
-  const accessToken = generateToken(user.id, accessTokenExpires, tokenTypes.ACCESS);
+  const accessToken = generateToken(user.id, accessTokenExpires, tokenTypes.ACCESS, config.jwt.secret, user.role);
 
   const refreshTokenExpires = moment().add(config.jwt.refreshExpirationDays, 'days');
-  const refreshToken = generateToken(user.id, refreshTokenExpires, tokenTypes.REFRESH);
-  await saveToken(refreshToken, user.id, refreshTokenExpires, tokenTypes.REFRESH);
+  const refreshToken = generateToken(user.id, refreshTokenExpires, tokenTypes.REFRESH, config.jwt.secret, user.role);
+  await saveToken(refreshToken, user.id, user.role, refreshTokenExpires, tokenTypes.REFRESH);
 
   return {
     access: {
@@ -132,8 +135,8 @@ export const generateResetPasswordToken = async (email: string): Promise<string>
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-  const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD);
-  await saveToken(resetPasswordToken, user.id, expires, tokenTypes.RESET_PASSWORD);
+  const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD, config.jwt.secret, user.role);
+  await saveToken(resetPasswordToken, user.id, user.role, expires, tokenTypes.RESET_PASSWORD);
   return resetPasswordToken;
 };
 
@@ -144,7 +147,7 @@ export const generateResetPasswordToken = async (email: string): Promise<string>
  */
 export const generateVerifyEmailToken = async (user: IUserDoc): Promise<string> => {
   const expires = moment().add(config.jwt.verifyEmailExpirationMinutes, 'minutes');
-  const verifyEmailToken = generateToken(user.id, expires, tokenTypes.VERIFY_EMAIL);
-  await saveToken(verifyEmailToken, user.id, expires, tokenTypes.VERIFY_EMAIL);
+  const verifyEmailToken = generateToken(user.id, expires, tokenTypes.VERIFY_EMAIL, config.jwt.secret, user.role);
+  await saveToken(verifyEmailToken, user.id, user.role, expires, tokenTypes.VERIFY_EMAIL);
   return verifyEmailToken;
 };

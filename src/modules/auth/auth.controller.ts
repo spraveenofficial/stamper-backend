@@ -7,36 +7,30 @@ import * as authService from './auth.service';
 import { emailService } from '../email';
 import config from '../../config/config';
 import { DevelopmentOptions } from '../../config/roles';
-import { ApiError } from '../errors';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.registerUser(req.body);
+  const user = await userService.createUserAsOrganization(req.body);
   const tokens = await tokenService.generateAuthTokens(user);
   res.status(httpStatus.CREATED).send({ user, tokens });
 });
 
 export const login = catchAsync(async (req: Request, res: Response) => {
-  try {
-    // Determine the domain based on the request host
-    const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
-    const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
+  // Determine the domain based on the request host
+  const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
+  const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
 
-    const { email, password } = req.body;
-    const user = await authService.loginUserWithEmailAndPassword(email, password);
-    const tokens = await tokenService.generateAuthTokens(user);
+  const { email, password } = req.body;
+  const user = await authService.loginUserWithEmailAndPassword(email, password);
+  const tokens = await tokenService.generateAuthTokens(user);
 
-    // Set cookies for access and refresh tokens
-    res.setHeader('Set-Cookie', [
-      tokenService.getCookieWithToken(tokens.access.token, 'token', domain, req.secure),
-      tokenService.getCookieWithToken(tokens.refresh.token, 'refreshToken', domain, req.secure),
-    ]);
+  // Set cookies for access and refresh tokens
+  res.setHeader('Set-Cookie', [
+    tokenService.getCookieWithToken(tokens.access.token, 'token', domain, req.secure),
+    tokenService.getCookieWithToken(tokens.refresh.token, 'refreshToken', domain, req.secure),
+  ]);
 
-    // Send response after setting the cookies
-    return res.status(httpStatus.OK).json({ user, tokens });
-  } catch (err) {
-    // Pass errors to error-handling middleware
-    return new ApiError(411, 'Incorrect email or password');
-  }
+  // Send response after setting the cookies
+  return res.status(httpStatus.OK).json({ user, tokens });
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {

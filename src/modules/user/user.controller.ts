@@ -6,17 +6,23 @@ import ApiError from '../errors/ApiError';
 import pick from '../utils/pick';
 import { IOptions } from '../paginate/paginate';
 import * as userService from './user.service';
+import { employeeService } from '../employee';
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.createUser(req.body);
+  const user = await userService.createUserAsOrganization(req.body);
   res.status(httpStatus.CREATED).send(user);
 });
 
-
 export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.getUserById(req.user.id);
-  const organization = await userService.getOrganizationByUserId(req.user.id);
-  res.send({ user, organization });
+  if (req.user.role === 'organization') {
+    const organization = await userService.getOrganizationByUserId(req.user.id);
+    res.send({ user, organization });
+  } else {
+    const employeeInformation = await employeeService.getEmployeeByUserId(req.user.id);
+    const organization = await userService.getOrganizationByUserId(employeeInformation.managerId);
+    res.send({ user, employeeInformation, organization });
+  }
 });
 
 export const getUsers = catchAsync(async (req: Request, res: Response) => {
