@@ -8,16 +8,32 @@ import { ApiError } from '../errors';
 
 export const createOrganization = catchAsync(async (req: Request, res: Response) => {
   const organization = await organizationService.createOrganization(req.body, req.user.id);
-  res.status(httpStatus.CREATED).send(organization);
+  res.status(httpStatus.CREATED).json({ message: 'Organization created successfully', organization });
 });
 
 export const addEmployee = catchAsync(async (req: Request, res: Response) => {
-  // check if organization is added by user
-  const organization = await organizationService.checkIfOrganizationAddedByUser(req.user.id);
-  if(!organization) {
+  const organization = await organizationService.getOrganizationByUserId(req.user.id);
+  if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   }
+
   const employee = await userService.createUserAsEmployee(req.body.user);
-  const employeeInformation = await employeeService.addEmployee({ ...req.body.employeeInformation, userId: employee.id, managerId: req.user.id });
+  const employeeInformation = await employeeService.addEmployee({
+    ...req.body.employeeInformation,
+    userId: employee.id,
+    managerId: req.user.id,
+  });
   res.status(httpStatus.CREATED).json({ employee, employeeInformation });
+});
+
+export const getOrganizationEmployees = catchAsync(async (req: Request, res: Response) => {
+  const organization = await organizationService.getOrganizationByUserId(req.user.id);
+  if (!organization) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+  }
+
+  const employees = await employeeService.getEmployeesByManagerId(req.user.id);
+
+  // const employees = await employeeService.getEmployeesByOrganizationId(organization.id);
+  res.status(httpStatus.OK).json({ employees: employees });
 });

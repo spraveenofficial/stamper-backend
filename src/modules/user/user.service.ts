@@ -4,10 +4,9 @@ import User from './user.model';
 import ApiError from '../errors/ApiError';
 import { IOptions, QueryResult } from '../paginate/paginate';
 import { NewCreatedUser, UpdateUserBody, IUserDoc} from './user.interfaces';
-import { Organization } from '../organization';
 
 /**
- * Create a user
+ * Register a user as an organization
  * @param {NewCreatedUser} userBody
  * @returns {Promise<IUserDoc>}
  */
@@ -19,6 +18,11 @@ export const createUserAsOrganization = async (userBody: NewCreatedUser): Promis
   return User.create(userBody);
 };
 
+/**
+ * Register a user as an employee
+ * @param {NewRegisteredUser} userBody
+ * @returns {Promise<IUserDoc>}
+ */
 
 export const createUserAsEmployee = async (userBody: NewCreatedUser): Promise<IUserDoc> => {
   if (await User.isEmailTaken(userBody.email)) {
@@ -27,17 +31,6 @@ export const createUserAsEmployee = async (userBody: NewCreatedUser): Promise<IU
   return User.create({...userBody, role: 'employee'});
 };
 
-/**
- * Register a user
- * @param {NewRegisteredUser} userBody
- * @returns {Promise<IUserDoc>}
- */
-// export const registerUser = async (userBody: NewRegisteredUser): Promise<IUserDoc> => {
-//   if (await User.isEmailTaken(userBody.email)) {
-//     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
-//   }
-//   return User.create(userBody);
-// };
 
 /**
  * Query for users
@@ -99,10 +92,3 @@ export const deleteUserById = async (userId: mongoose.Types.ObjectId): Promise<I
   await user.deleteOne();
   return user;
 };
-
-
-export const getOrganizationByUserId = async (userId: mongoose.Types.ObjectId): Promise<any> => {
-  return Organization.findOne({
-    userId: userId,
-  }).select('-userId');
-}

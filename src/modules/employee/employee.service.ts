@@ -1,6 +1,8 @@
+import mongoose from 'mongoose';
+import { NewEmployee } from './employee.interfaces';
 import Employee from './employee.model';
 
-export const addEmployee = async (employeeBody: any): Promise<any> => {
+export const addEmployee = async (employeeBody: NewEmployee): Promise<any> => {
   // if (await Employee.isEmployeeExist(employeeBody.userId)) {
   //     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee already exist');
   // }
@@ -10,3 +12,49 @@ export const addEmployee = async (employeeBody: any): Promise<any> => {
 export const getEmployeeById = async (id: string): Promise<any> => Employee.findById(id);
 
 export const getEmployeeByUserId = async (userId: string): Promise<any> => Employee.findOne({ userId });
+
+// Function to get employees by manager ID with modified response structure
+export const getEmployeesByManagerId = async (managerId: string): Promise<any> => {
+  const managerID = new mongoose.Types.ObjectId(managerId);
+  const employees = await Employee.aggregate([
+    {
+      $match: { managerId: managerID }, // Stage 1: Match employees with the given managerId
+    },
+    {
+      $lookup: {
+        from: 'users', // Collection to join with
+        localField: 'userId', // Field from the Employee collection
+        foreignField: '_id', // Field from the User collection
+        as: 'userDetails', // Output array field
+      },
+    },
+    {
+      $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true }, // Unwind the userDetails array
+    },
+    {
+      $addFields: {
+        employeeId: '$userDetails._id',
+        employeeName: '$userDetails.name',
+        employeeEmail: '$userDetails.email',
+        jobTitle: '$jobTitle',
+        joiningDate: '$joiningDate',
+        department: '$department',
+        office: '$office',
+        employeeStatus: '$employeeStatus',
+        accountStatus: '$accountStatus',
+        createdAt: '$createdAt',
+        // Exclude original userDetails
+      },
+    },
+    {
+      $project: {
+        userDetails: 0, // Exclude the original userDetails field
+        managerId: 0, // Exclude managerId field
+        _id: 0, // Exclude _id field
+        updatedAt: 0, // Exclude updatedAt field
+      },
+    },
+  ]);
+
+  return employees;
+};

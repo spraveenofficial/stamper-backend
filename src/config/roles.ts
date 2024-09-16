@@ -1,7 +1,7 @@
 const allRoles = {
-  organization: ['profile', 'addEmployee', 'addOrganization'],
-  admin: ['profile'],
+  organization: ['profile', 'addEmployee', 'addOrganization', 'getEmployees'],
   employee: ['profile'],
+  admin: ['profile'],
 };
 
 export enum DevelopmentOptions {

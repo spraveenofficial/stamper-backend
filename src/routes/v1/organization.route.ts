@@ -18,4 +18,6 @@ router.post(
   organizationController.addEmployee
 );
 
+router.get('/employees', auth('getEmployees'), organizationController.getOrganizationEmployees);
+
 export default router;

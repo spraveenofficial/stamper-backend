@@ -1,4 +1,4 @@
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Document } from 'mongoose';
 
 export enum industryType {
   Agriculture = 'Agriculture',
@@ -47,10 +47,9 @@ export interface IOrganization {
 
 export interface IOrganizationModel extends Model<IOrganization> {
   isOrganizationDomainNameTaken(companyDomainName: string, excludeOrganizationId?: string): Promise<boolean>;
+  isOrganizationExist(userId: mongoose.Types.ObjectId): Promise<boolean>;
 }
 
 export type NewCreateOrganization = Omit<IOrganization, 'userId'>;
 
-export interface IOrganizationDoc extends IOrganization, Document {
-    _id: mongoose.Schema.Types.ObjectId;
-}
+export interface IOrganizationDoc extends IOrganization, Document {}

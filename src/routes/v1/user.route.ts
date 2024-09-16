@@ -11,10 +11,10 @@ const router: Router = express.Router();
 //   .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
 
 router.route('/profile').get(auth('profile'), userController.getSelfUser);
-
+router.route('/edit-profile').patch(auth('profile'), userController.updateSelfUser);
 router
   .route('/:userId')
-  .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
+  .get(auth('getUsers'), validate(userValidation.getUser), userController.getUsers)
   // .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
   // .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 

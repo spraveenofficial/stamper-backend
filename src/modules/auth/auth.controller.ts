@@ -48,6 +48,7 @@ export const forgotPassword = catchAsync(async (req: Request, res: Response) => 
   if (config.env == DevelopmentOptions.production) {
     await emailService.sendResetPasswordEmail(req.body.email, resetPasswordToken);
   }
+  console.log("Reset password token: ", resetPasswordToken);
   res.status(httpStatus.OK).send({ message: 'Password reset email sent' });
 });
 

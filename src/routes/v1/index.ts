@@ -3,6 +3,7 @@ import authRoute from './auth.route';
 import docsRoute from './swagger.route';
 import userRoute from './user.route';
 import organizationRoute from './organization.route';
+import leaveRoute from './leave.route';
 import config from '../../config/config';
 
 const router : Router = express.Router();
@@ -24,6 +25,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/organizations',
     route: organizationRoute,
+  },
+  {
+    path: '/leave',
+    route: leaveRoute,
   }
 ];
 

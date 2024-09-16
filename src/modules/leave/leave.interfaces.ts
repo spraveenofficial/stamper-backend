@@ -1,0 +1,26 @@
+import mongoose, { Model, Document } from 'mongoose';
+
+export enum LeaveStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export interface ILeave {
+  employeeId: mongoose.Schema.Types.ObjectId;
+  leaveType: string;
+  total: number;
+  attachment: string;
+  startDate: Date;
+  endDate: Date;
+  status: LeaveStatus;
+  note: string;
+}
+
+export interface ILeaveModel extends Model<ILeave> {
+  isLeaveExist(employeeId: mongoose.Types.ObjectId, startDate: Date, endDate: Date): Promise<boolean>;
+}
+
+export interface ILeaveDoc extends ILeave, Document {}
+
+export type NewLeave = Omit<ILeave, 'employeeId' | 'status'>;

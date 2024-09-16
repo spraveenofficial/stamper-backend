@@ -56,6 +56,12 @@ export const organizationSchema = new mongoose.Schema<IOrganization, IOrganizati
 
 organizationSchema.plugin(toJSON);
 
+// check if user have already added an organization
+organizationSchema.static('isOrganizationExist', async function (userId: string) {
+  const organization = await this.findOne({ userId });
+  return !!organization;
+});
+
 organizationSchema.static(
   'isOrganizationDomainNameTaken',
   async function (companyDomainName: string, excludeOrganizationId?: string) {
