@@ -20,7 +20,9 @@ export const sendEmail = async (to: string, subject: string, text: string, html:
     text,
     html,
   };
-  await resend.emails.send(msg);
+  const emailResponse =await resend.emails.send(msg);
+
+  console.log('Email sent successfully:', emailResponse);
 };
 
 /**
