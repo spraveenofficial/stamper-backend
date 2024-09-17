@@ -47,7 +47,7 @@ export const refreshAuth = async (refreshToken: string): Promise<OnlyTokenRespon
     const refreshTokenDoc = await verifyToken(refreshToken, tokenTypes.REFRESH);
     const user = await getUserById(new mongoose.Types.ObjectId(refreshTokenDoc.user));
     if (!user) {
-      throw new Error();
+      throw new Error("User not found");
     }
     await refreshTokenDoc.deleteOne();
     const tokens = await generateAuthTokens(user);

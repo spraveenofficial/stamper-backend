@@ -23,7 +23,7 @@ export const generateToken = (
   expires: Moment,
   type: string,
   secret: string = config.jwt.secret,
-  role: string,
+  role: string
 ): string => {
   const payload = {
     id: userId,
@@ -37,14 +37,31 @@ export const generateToken = (
 
 export const getCookieWithToken = (token: string, tokenName: string, domainName: string, isSecure: boolean): string => {
   const isProduction = process.env['NODE_ENV'] === 'production';
-  
+
   // Determine if it's secure (use Secure only in production)
   const secureFlag = isSecure ? 'Secure;' : 'Secure;';
   const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
   // Use Domain only in production
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
-  
-  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age${config.jwt.accessExpirationMinutes * 60}; ${domain} ${sameSite} ${secureFlag}`;
+
+  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age${
+    config.jwt.accessExpirationMinutes * 60
+  }; ${domain} ${sameSite} ${secureFlag}`;
+};
+
+export const getCookieForLogout = (tokenName: string, domainName: string, isSecure: boolean): string => {
+  const isProduction = process.env['NODE_ENV'] === 'production';
+
+  // Determine if it's secure (use Secure only in production)
+  const secureFlag = isSecure ? 'Secure;' : '';
+  const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
+  // Use Domain only in production
+  const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
+
+  // Set expiration to a past date to invalidate the cookie
+  const expires = 'Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+
+  return `${tokenName}=; HttpOnly; Path=/; ${expires} ${domain} ${sameSite} ${secureFlag}`;
 };
 
 
@@ -131,7 +148,7 @@ export const generateAuthTokens = async (user: IUserDoc): Promise<AccessAndRefre
  */
 export const generateResetPasswordToken = async (email: string): Promise<string> => {
   const user = await userService.getUserByEmail(email);
-  console.log("User: ", user);
+  console.log('User: ', user);
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }

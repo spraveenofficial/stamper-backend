@@ -34,7 +34,13 @@ export const login = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {
+  const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
+  const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
   await authService.logout(req.body.refreshToken);
+  res.setHeader('Set-Cookie', [
+    tokenService.getCookieForLogout('token', domain, req.secure),
+    tokenService.getCookieForLogout('refreshToken', domain, req.secure),
+  ]);
   res.status(httpStatus.OK).json({ message: 'Logged out' });
 });
 
