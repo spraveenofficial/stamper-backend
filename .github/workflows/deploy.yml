@@ -98,7 +98,7 @@ jobs:
             COOKIE_SECRET=$COOKIE_SECRET
             CLIENT_URL=$CLIENT_URL
             RESEND_KEY=$RESEND_KEY
-            NODE_ENV=development
+            NODE_ENV=production
             EOT'
 
             # Ensure PM2 is installed

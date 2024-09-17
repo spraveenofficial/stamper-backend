@@ -148,7 +148,6 @@ export const generateAuthTokens = async (user: IUserDoc): Promise<AccessAndRefre
  */
 export const generateResetPasswordToken = async (email: string): Promise<string> => {
   const user = await userService.getUserByEmail(email);
-  console.log('User: ', user);
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }
