@@ -40,6 +40,14 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
 
 export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
   const userWithTokens = await authService.refreshAuth(req.body.refreshToken);
+  const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
+  const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
+  // Set cookies for access and refresh tokens
+  res.setHeader('Set-Cookie', [
+    tokenService.getCookieWithToken(userWithTokens.tokens.access.token, 'token', domain, req.secure),
+    tokenService.getCookieWithToken(userWithTokens.tokens.refresh.token, 'refreshToken', domain, req.secure),
+  ]);
+
   res.send({ ...userWithTokens });
 });
 
@@ -48,7 +56,7 @@ export const forgotPassword = catchAsync(async (req: Request, res: Response) => 
   if (config.env == DevelopmentOptions.production) {
     await emailService.sendResetPasswordEmail(req.body.email, resetPasswordToken);
   }
-  console.log("Reset password token: ", resetPasswordToken);
+  console.log('Reset password token: ', resetPasswordToken);
   res.status(httpStatus.OK).send({ message: 'Password reset email sent' });
 });
 
