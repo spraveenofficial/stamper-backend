@@ -32,7 +32,7 @@ export const sendEmail = async (to: string, subject: string, text: string, html:
 export const sendResetPasswordEmail = async (to: string, token: string): Promise<void> => {
   const subject = 'Reset password';
   // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `${config.clientUrl}/reset-password?token=${token}`;
+  const resetPasswordUrl = `${config.clientUrl}/update-password?token=${token}`;
   const text = `Hi,
   To reset your password, click on this link: ${resetPasswordUrl}
   If you did not request any password resets, then ignore this email.`;
