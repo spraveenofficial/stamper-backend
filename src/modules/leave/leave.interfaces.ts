@@ -15,6 +15,7 @@ export interface ILeave {
   endDate: Date;
   status: LeaveStatus;
   note: string;
+  cancellationReason: string;
 }
 
 export interface ILeaveModel extends Model<ILeave> {
@@ -23,4 +24,4 @@ export interface ILeaveModel extends Model<ILeave> {
 
 export interface ILeaveDoc extends ILeave, Document {}
 
-export type NewLeave = Omit<ILeave, 'employeeId' | 'status'>;
+export type NewLeave = Omit<ILeave, 'employeeId' | 'status' | 'cancellationReason'>;

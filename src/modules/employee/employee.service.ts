@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { employeeAccountStatus, NewEmployee } from './employee.interfaces';
+import { employeeAccountStatus, IEmployee, IEmployeeDoc, NewEmployee } from './employee.interfaces';
 import Employee from './employee.model';
 
 export const addEmployee = async (employeeBody: NewEmployee): Promise<any> => {
@@ -9,13 +9,21 @@ export const addEmployee = async (employeeBody: NewEmployee): Promise<any> => {
   return Employee.create(employeeBody);
 };
 
-export const getEmployeeById = async (id: string): Promise<any> => Employee.findById(id);
+export const getEmployeeById = async (id: string): Promise<IEmployee | null> => Employee.findById(id);
 
-export const getEmployeeByUserId = async (userId: string): Promise<any> => Employee.findOne({ userId });
+export const getEmployeeByUserId = async (userId: string): Promise<IEmployeeDoc | null> => Employee.findOne({ userId });
 
 // Function to get employees by manager ID with modified response structure
-export const getEmployeesByManagerId = async (managerId: string): Promise<any> => {
+export const getEmployeesByManagerId = async (
+  managerId: string,
+  page: number = 1, // Default page number
+  limit: number = 10 // Default limit
+): Promise<any> => {
   const managerID = new mongoose.Types.ObjectId(managerId);
+
+  // Calculate skip and limit
+  const skip = (page - 1) * limit;
+
   const employees = await Employee.aggregate([
     {
       $match: { managerId: managerID }, // Stage 1: Match employees with the given managerId
@@ -56,10 +64,38 @@ export const getEmployeesByManagerId = async (managerId: string): Promise<any> =
         userId: 0, // Exclude userId field
       },
     },
+    {
+      $facet: {
+        metadata: [
+          { $count: 'totalCount' }, // Count total documents
+          { $addFields: { page, limit } } // Include page and limit in metadata
+        ],
+        data: [
+          { $skip: skip }, // Skip for pagination
+          { $limit: limit }, // Limit the number of results
+        ],
+      },
+    },
+    {
+      $unwind: '$metadata' // Unwind the metadata array
+    },
+    {
+      $project: {
+        employees: '$data', // Rename data to employees
+        totalCount: '$metadata.totalCount',
+        page: '$metadata.page',
+        limit: '$metadata.limit',
+        totalPages: {
+          $ceil: { $divide: ['$metadata.totalCount', limit] } // Calculate totalPages
+        },
+      },
+    },
   ]);
 
-  return employees;
+  return employees[0] || { totalCount: 0, page, limit, totalPages: 0, employees: [] }; // Return formatted response
 };
+
+
 
 /**
  * Function to update employee account status

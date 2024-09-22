@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync } from '../utils';
+import { catchAsync, pick } from '../utils';
 import * as organizationService from './organization.service';
 import { userService } from '../user';
 import { employeeService } from '../employee';
@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { tokenService } from '../token';
 import { DevelopmentOptions } from '../../config/roles';
 import { emailService } from '../email';
+import { IOptions } from '../paginate/paginate';
 
 export const createOrganization = catchAsync(async (req: Request, res: Response) => {
   const organization = await organizationService.createOrganization(req.body, req.user.id);
@@ -44,12 +45,13 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getOrganizationEmployees = catchAsync(async (req: Request, res: Response) => {
+  const options: IOptions = pick(req.query, ['limit', 'page']);
   const organization = await organizationService.getOrganizationByUserId(req.user.id);
   if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   }
 
-  const employees = await employeeService.getEmployeesByManagerId(req.user.id);
+  const employees = await employeeService.getEmployeesByManagerId(req.user.id, +options.page!, +options.limit!);
 
   // const employees = await employeeService.getEmployeesByOrganizationId(organization.id);
   res.status(httpStatus.OK).json({ employees: employees });

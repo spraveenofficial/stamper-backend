@@ -38,6 +38,10 @@ const leaveSchema = new mongoose.Schema<ILeaveDoc, ILeaveModel>(
       enum: LeaveStatus,
       default: LeaveStatus.PENDING,
     },
+    cancellationReason: {
+      type: String,
+      default: null,
+    }
   },
   {
     timestamps: true,

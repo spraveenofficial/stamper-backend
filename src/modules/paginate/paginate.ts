@@ -59,8 +59,9 @@ const paginate = <T extends Document>(schema: Schema<T>): void => {
       });
       project = projectionCriteria.join(' ');
     } else {
-      project = '-createdAt -updatedAt';
+      project = '-updatedAt';
     }
+    console.log("Project---------->", project);
 
     const limit = options.limit && parseInt(options.limit.toString(), 10) > 0 ? parseInt(options.limit.toString(), 10) : 10;
     const page = options.page && parseInt(options.page.toString(), 10) > 0 ? parseInt(options.page.toString(), 10) : 1;

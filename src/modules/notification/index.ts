@@ -2,5 +2,6 @@ import * as notificationInterfaces from './notification.interfaces';
 import Notification from './notification.model';
 import * as notificationServices from './notification.services';
 import * as notificationControllers from './notification.controller';
+import * as notificationConstants from './constants';
 
-export { notificationInterfaces, Notification, notificationServices, notificationControllers };
+export { notificationInterfaces, Notification, notificationServices, notificationControllers, notificationConstants };

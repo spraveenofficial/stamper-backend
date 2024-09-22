@@ -1,8 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
-import { INotification, INotificationModel } from './notification.interfaces';
+import { INotificationDoc, INotificationModel, NotificationTypes } from './notification.interfaces';
 import { toJSON } from '../toJSON';
+import { paginate } from '../paginate';
 
-const NotificationSchema = new Schema<INotification, INotificationModel>(
+const NotificationSchema = new Schema<INotificationDoc, INotificationModel>(
   {
     to: {
       type: Schema.Types.ObjectId,
@@ -28,6 +29,7 @@ const NotificationSchema = new Schema<INotification, INotificationModel>(
     },
     type: {
       type: String,
+      enum: NotificationTypes,
       required: true,
     },
   },
@@ -37,7 +39,8 @@ const NotificationSchema = new Schema<INotification, INotificationModel>(
 );
 
 NotificationSchema.plugin(toJSON);
+NotificationSchema.plugin(paginate);
 
-const Notification = mongoose.model<INotification, INotificationModel>('Notification', NotificationSchema);
+const Notification = mongoose.model<INotificationDoc, INotificationModel>('Notification', NotificationSchema);
 
 export default Notification;
