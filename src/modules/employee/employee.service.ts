@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { NewEmployee } from './employee.interfaces';
+import { employeeAccountStatus, NewEmployee } from './employee.interfaces';
 import Employee from './employee.model';
 
 export const addEmployee = async (employeeBody: NewEmployee): Promise<any> => {
@@ -52,9 +52,28 @@ export const getEmployeesByManagerId = async (managerId: string): Promise<any> =
         managerId: 0, // Exclude managerId field
         _id: 0, // Exclude _id field
         updatedAt: 0, // Exclude updatedAt field
+        __v: 0, // Exclude __v field
+        userId: 0, // Exclude userId field
       },
     },
   ]);
 
   return employees;
+};
+
+/**
+ * Function to update employee account status
+ * @param {userId} string
+ * @param {accountStatus} employeeAccountStatus
+ * @returns {Promise<any>}
+ */
+export const updateEmployeeAccountStatus = async (userId: string, accountStatus: employeeAccountStatus): Promise<any> => {
+  const employee = await Employee.findOneAndUpdate(
+    { userId },
+    {
+      accountStatus,
+    },
+    { new: true }
+  );
+  return employee;
 };

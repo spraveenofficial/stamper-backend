@@ -64,7 +64,6 @@ export const getCookieForLogout = (tokenName: string, domainName: string, isSecu
   return `${tokenName}=; HttpOnly; Path=/; ${expires} ${domain} ${sameSite} ${secureFlag}`;
 };
 
-
 /**
  * Save a token
  * @param {string} token
@@ -146,7 +145,7 @@ export const generateAuthTokens = async (user: IUserDoc): Promise<AccessAndRefre
  * @param {string} email
  * @returns {Promise<string>}
  */
-export const generateResetPasswordToken = async (email: string): Promise<string> => {
+export const generateResetPasswordToken = async (email: string): Promise<any> => {
   const user = await userService.getUserByEmail(email);
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
@@ -154,7 +153,7 @@ export const generateResetPasswordToken = async (email: string): Promise<string>
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
   const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD, config.jwt.secret, user.role);
   await saveToken(resetPasswordToken, user.id, user.role, expires, tokenTypes.RESET_PASSWORD);
-  return resetPasswordToken;
+  return { name: user.name, token: resetPasswordToken };
 };
 
 /**
@@ -167,4 +166,26 @@ export const generateVerifyEmailToken = async (user: IUserDoc): Promise<string> 
   const verifyEmailToken = generateToken(user.id, expires, tokenTypes.VERIFY_EMAIL, config.jwt.secret, user.role);
   await saveToken(verifyEmailToken, user.id, user.role, expires, tokenTypes.VERIFY_EMAIL);
   return verifyEmailToken;
+};
+
+/**
+ * Generate invitation token
+ * @param {IUserDoc} user
+ * @returns {Promise<string>}
+ */
+export const generateOrganizationInvitationToken = async (user: IUserDoc): Promise<string> => {
+  const expires = moment().add(config.jwt.inviteExpirationInDays, 'days');
+  const invitationToken = generateToken(user.id, expires, tokenTypes.INVITATION, config.jwt.secret, user.role);
+  await saveToken(invitationToken, user.id, user.role, expires, tokenTypes.INVITATION);
+  return invitationToken;
+};
+
+/**
+ * Delete Token by token
+ * @param {string} token
+ * @returns {Promise<string>}
+ */
+
+export const deleteToken = async (token: string): Promise<void> => {
+  await Token.findOneAndDelete({ token });
 };

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { toJSON } from '../toJSON';
 import { employeeAccountStatus, employeeStatus, IEmployeeDoc, IEmployeeModel } from './employee.interfaces';
+import paginate from '../paginate/paginate';
 
 const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
   {
@@ -21,6 +22,11 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
     managerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+    },
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Organization',
+      required: true,
     },
     department: {
       type: String,
@@ -47,6 +53,7 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
 );
 
 employeeSchema.plugin(toJSON);
+employeeSchema.plugin(paginate);
 
 const Employee = mongoose.model('Employee', employeeSchema);
 export default Employee;

@@ -4,9 +4,12 @@ import docsRoute from './swagger.route';
 import userRoute from './user.route';
 import organizationRoute from './organization.route';
 import leaveRoute from './leave.route';
+import notificationRoute from './notification.route';
+import employeeRoute from './employee.route';
+
 import config from '../../config/config';
 
-const router : Router = express.Router();
+const router: Router = express.Router();
 
 interface IRoute {
   path: string;
@@ -29,6 +32,14 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/leave',
     route: leaveRoute,
+  },
+  {
+    path: '/notification',
+    route: notificationRoute,
+  },
+  {
+    path: '/employee',
+    route: employeeRoute,
   }
 ];
 

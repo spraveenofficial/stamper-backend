@@ -58,11 +58,11 @@ export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
-  const resetPasswordToken = await tokenService.generateResetPasswordToken(req.body.email);
-  if (config.env == DevelopmentOptions.production) {
-    await emailService.sendResetPasswordEmail(req.body.email, resetPasswordToken);
-  }
-  console.log('Reset password token: ', resetPasswordToken);
+  const { name, token } = await tokenService.generateResetPasswordToken(req.body.email);
+  // if (config.env == DevelopmentOptions.production) {
+  await emailService.sendForgotPasswordEmail(req.body.email, token, name);
+  // }
+  console.log('Reset password token: ', token);
   res.status(httpStatus.OK).send({ message: 'Password reset email sent' });
 });
 

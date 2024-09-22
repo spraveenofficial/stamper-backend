@@ -18,7 +18,10 @@ export const loginUserWithEmailAndPassword = async (email: string, password: str
   if (!user) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Email Not Found');
   }
-  if(!(await user.isPasswordMatch(password))) {
+  if (!user.password) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please accept the invitation first');
+  }
+  if (!(await user.isPasswordMatch(password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect Password');
   }
   return user;
@@ -47,7 +50,7 @@ export const refreshAuth = async (refreshToken: string): Promise<OnlyTokenRespon
     const refreshTokenDoc = await verifyToken(refreshToken, tokenTypes.REFRESH);
     const user = await getUserById(new mongoose.Types.ObjectId(refreshTokenDoc.user));
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
     await refreshTokenDoc.deleteOne();
     const tokens = await generateAuthTokens(user);

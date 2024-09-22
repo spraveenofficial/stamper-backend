@@ -22,6 +22,9 @@ const envVarsSchema = Joi.object()
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     CLIENT_URL: Joi.string().required().description('Client url'),
     RESEND_KEY: Joi.string().required().description('Resend key'),
+    AWS_S3_ACCESS_KEY: Joi.string().required().description('AWS S3 access key'),
+    AWS_S3_KEY_SECRET: Joi.string().required().description('AWS S3 secret key'),
+    AWS_S3_PUBLIC_BUCKET: Joi.string().required().description('AWS S3 public bucket name'),
   })
   .unknown();
 
@@ -48,6 +51,7 @@ const config = {
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
     resetPasswordExpirationMinutes: envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
+    inviteExpirationInDays: envVars.JWT_INVITE_EXPIRATION_DAYS,
     cookieOptions: {
       httpOnly: true,
       secure: envVars.NODE_ENV === 'production',
@@ -67,6 +71,9 @@ const config = {
   },
   resendKey: envVars.RESEND_KEY,
   clientUrl: envVars.CLIENT_URL,
+  AWS_S3_ACCESS_KEY: envVars.AWS_S3_ACCESS_KEY,
+  AWS_S3_KEY_SECRET: envVars.AWS_S3_KEY_SECRET,
+  AWS_S3_PUBLIC_BUCKET: envVars.AWS_S3_PUBLIC_BUCKET,
 };
 
 export default config;

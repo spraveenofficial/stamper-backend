@@ -1,4 +1,5 @@
 import mongoose, { Model, Document } from 'mongoose';
+import { QueryResult } from '../paginate/paginate';
 
 export enum industryType {
   Agriculture = 'Agriculture',
@@ -45,11 +46,13 @@ export interface IOrganization {
   needs: string;
 }
 
-export interface IOrganizationModel extends Model<IOrganization> {
-  isOrganizationDomainNameTaken(companyDomainName: string, excludeOrganizationId?: string): Promise<boolean>;
+export interface IOrganizationDoc extends IOrganization, Document {
+}
+export interface IOrganizationModel extends Model<IOrganizationDoc> {
   isOrganizationExist(userId: mongoose.Types.ObjectId): Promise<boolean>;
+  isOrganizationDomainNameTaken(companyDomainName: string, excludeOrganizationId?: string): Promise<boolean>;
+  paginate(filter: Record<string, any>, options: Record<string, any>): Promise<QueryResult>;
 }
 
 export type NewCreateOrganization = Omit<IOrganization, 'userId'>;
 
-export interface IOrganizationDoc extends IOrganization, Document {}

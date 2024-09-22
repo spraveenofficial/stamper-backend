@@ -1,4 +1,4 @@
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Document } from 'mongoose';
 import { QueryResult } from '../paginate/paginate';
 
 export interface IEmployee {
@@ -10,6 +10,7 @@ export interface IEmployee {
   jobTitle: string;
   department: string;
   office: string;
+  organizationId: mongoose.Types.ObjectId;
 }
 
 export interface IEmployeeDoc extends IEmployee, Document {}
@@ -31,4 +32,4 @@ export enum employeeAccountStatus {
 }
 
 
-export type NewEmployee = Omit<IEmployee, 'userId' | 'accountStatus' | 'managerId'>;
+export type NewEmployee = Omit<IEmployee, 'userId' | 'accountStatus' | 'managerId' | 'organizationId' | 'role'>;

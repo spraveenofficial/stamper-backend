@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 import User from './user.model';
 import ApiError from '../errors/ApiError';
 import { IOptions, QueryResult } from '../paginate/paginate';
-import { NewCreatedUser, UpdateUserBody, IUserDoc} from './user.interfaces';
+import { NewCreatedUser, UpdateUserBody, IUserDoc } from './user.interfaces';
+import { rolesEnum } from '../../config/roles';
 
 /**
  * Register a user as an organization
@@ -28,9 +29,8 @@ export const createUserAsEmployee = async (userBody: NewCreatedUser): Promise<IU
   if (await User.isEmailTaken(userBody.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
-  return User.create({...userBody, role: 'employee'});
+  return User.create({ ...userBody, role: rolesEnum.employee });
 };
-
 
 /**
  * Query for users
@@ -90,5 +90,22 @@ export const deleteUserById = async (userId: mongoose.Types.ObjectId): Promise<I
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
   await user.deleteOne();
+  return user;
+};
+
+/**
+ * Update user password
+ * @param {string} userId
+ * @param {string} password
+ * @returns {Promise<IUserDoc>}
+ */
+
+export const updatePassword = async (userId: string, password: string): Promise<IUserDoc> => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  user.password = password;
+  await user.save();
   return user;
 };

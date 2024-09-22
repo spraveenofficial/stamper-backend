@@ -3,7 +3,7 @@ import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import toJSON from '../toJSON/toJSON';
 import paginate from '../paginate/paginate';
-import { roles } from '../../config/roles';
+import { rolesEnum } from '../../config/roles';
 import { IUserDoc, IUserModel } from './user.interfaces';
 
 const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       minlength: 8,
       validate(value: string) {
@@ -37,9 +37,14 @@ const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
       },
       private: true, // used by the toJSON plugin
     },
+    profilePic: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     role: {
       type: String,
-      enum: roles,
+      enum: rolesEnum,
       default: 'organization',
     },
     isEmailVerified: {
@@ -62,8 +67,9 @@ userSchema.plugin(paginate);
  * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
  * @returns {Promise<boolean>}
  */
-userSchema.static('isEmailTaken', async function (email: string, excludeUserId: mongoose.ObjectId): Promise<boolean> {
+userSchema.static('isEmailTaken', async function (email: string, excludeUserId?: mongoose.ObjectId): Promise<boolean> {
   const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
+  console.log(user);
   return !!user;
 });
 
