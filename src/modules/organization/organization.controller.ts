@@ -31,13 +31,13 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
     managerId: req.user.id as mongoose.Types.ObjectId,
     organizationId: organization.id as mongoose.Types.ObjectId,
   });
-   
+
   //TODO: Create token and send invitation email
 
   const token = await tokenService.generateOrganizationInvitationToken(employee);
 
-  if(DevelopmentOptions.production){
-    await emailService.inviteEmployee(employee.email, employee.name, employee?.name,  token);
+  if (DevelopmentOptions.production) {
+    await emailService.inviteEmployee(employee.email, employee.name, employee?.name, token);
   }
 
   console.log('token for invite user -------> ', token);
@@ -50,9 +50,12 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
   if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   }
+  
+  // Set default values for pagination
+  const page = Math.max(1, +options.page! || 1); // Default to page 1
+  const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
 
-  const employees = await employeeService.getEmployeesByManagerId(req.user.id, +options.page!, +options.limit!);
-
-  // const employees = await employeeService.getEmployeesByOrganizationId(organization.id);
+  console.log('page', page, 'limit', limit);
+  const employees = await employeeService.getEmployeesByManagerId(req.user.id, page, limit);
   res.status(httpStatus.OK).json({ employees: employees });
 });
