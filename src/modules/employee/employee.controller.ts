@@ -9,7 +9,7 @@ import { employeeAccountStatus } from './employee.interfaces';
 
 export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: Response) => {
   const { body } = req;
-  const { token } = req.params;
+  const { token } = req.query;
   const isTokenValid = await tokenService.verifyToken(token as string, tokenTypes.INVITATION);
 
   if (!isTokenValid) {
