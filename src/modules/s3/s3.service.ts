@@ -1,10 +1,13 @@
-import * as AWS from 'aws-sdk';
-import config from 'src/config/config';
+// import * as AWS from 'aws-sdk';
+// import * as AWS from 'aws-sdk';
+import config from '../../config/config';
 import { logger } from '../logger';
+import S3 from 'aws-sdk/clients/s3.js'; 
 
-const s3 = new AWS.S3({
+const s3 = new S3({
   accessKeyId: config.AWS_S3_ACCESS_KEY,
   secretAccessKey: config.AWS_S3_KEY_SECRET,
+  region: 'ap-south-1'
 });
 
 /**

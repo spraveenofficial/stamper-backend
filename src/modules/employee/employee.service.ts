@@ -81,18 +81,18 @@ export const getEmployeesByManagerId = async (
     },
     {
       $project: {
-        employees: '$data', // Rename data to employees
-        totalCount: '$metadata.totalCount',
+        results: '$data', // Include data field
         page: '$metadata.page',
         limit: '$metadata.limit',
         totalPages: {
           $ceil: { $divide: ['$metadata.totalCount', limit] } // Calculate totalPages
         },
+        totalResults: '$metadata.totalCount',
       },
     },
   ]);
 
-  return employees[0] || { totalCount: 0, page, limit, totalPages: 0, employees: [] }; // Return formatted response
+  return employees[0] || { data: {results: []}, page, limit, totalPages: 0, totalResults: 0 }; // Return formatted response
 };
 
 

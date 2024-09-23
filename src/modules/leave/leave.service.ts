@@ -4,6 +4,7 @@ import Leave from './leave.model';
 import { ApiError } from '../errors';
 import httpStatus from 'http-status';
 import { organizationService } from '../organization';
+import { s3Services } from '../s3';
 
 /**
  * Create a leave
@@ -12,9 +13,17 @@ import { organizationService } from '../organization';
  * @returns {Promise<any>}
  */
 
-export const createLeave = async (leaveBody: NewLeave, employeeId: mongoose.Types.ObjectId): Promise<ILeaveDoc> => {
+export const createLeave = async (
+  leaveBody: NewLeave,
+  employeeId: mongoose.Types.ObjectId,
+  attachment?: Express.Multer.File
+): Promise<ILeaveDoc> => {
   if (await Leave.isLeaveExist(employeeId, leaveBody.startDate, leaveBody.endDate)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Leave already exist');
+  }
+  if (attachment) {
+    const fileUrl = await s3Services.uploadLeaveRequestFile(attachment, employeeId.toString());
+    leaveBody.attachment = fileUrl;
   }
   return Leave.create({ ...leaveBody, employeeId: employeeId });
 };

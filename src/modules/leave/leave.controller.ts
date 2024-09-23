@@ -30,8 +30,7 @@ export const createLeave = catchAsync(async (req: Request, res: Response) => {
   //     message: 'Start date cannot be more than 3 months',
   //   });
   // }
-
-  const leave = await leaveService.createLeave(req.body, req.user.id);
+  const leave = await leaveService.createLeave(req.body, req.user.id, req.file);
   const user = await userService.getUserById(req.user.id);
   const managerId = await employeeService.getEmployeeByUserId(req.user.id);
   if (req.user?.role === rolesEnum.employee) {

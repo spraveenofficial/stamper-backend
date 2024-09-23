@@ -54,8 +54,6 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
   // Set default values for pagination
   const page = Math.max(1, +options.page! || 1); // Default to page 1
   const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
-
-  console.log('page', page, 'limit', limit);
   const employees = await employeeService.getEmployeesByManagerId(req.user.id, page, limit);
-  res.status(httpStatus.OK).json({ employees: employees });
+  res.status(httpStatus.OK).json({ data: employees });
 });
