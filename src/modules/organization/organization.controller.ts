@@ -41,7 +41,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
   }
 
   console.log('token for invite user -------> ', token);
-  res.status(httpStatus.CREATED).json({ sucess: true, message: 'Employee added successfully', employeeInformation });
+  res.status(httpStatus.CREATED).json({ success: true, message: 'Employee added successfully', employeeInformation });
 });
 
 export const getOrganizationEmployees = catchAsync(async (req: Request, res: Response) => {
