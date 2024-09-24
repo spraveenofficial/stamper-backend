@@ -16,8 +16,8 @@ export const getNotifications = catchAsync(async (req: Request, res: Response) =
   try {
     const filter = { to: id };
     const options: IOptions = pick(req.query, ['limit', 'page']);
-    options.projectBy = "createdAt,message,seen,url,type,from";
-    options.sortBy = "createdAt:desc";
+    options.projectBy = 'createdAt,message,seen,url,type,from';
+    options.sortBy = 'createdAt:desc';
 
     const notifications = await Notification.paginate(filter, options);
     res.status(httpStatus.OK).json({ data: notifications });
@@ -55,11 +55,29 @@ export const deleteNotification = catchAsync(async (req: Request, res: Response)
   const { id } = req.params;
   try {
     await notificationServices.deleteNotificationById(id as string);
-    res.status(httpStatus.NO_CONTENT).end();
+    res.status(httpStatus.OK).json({ message: 'Notification deleted successfully' });
   } catch (error) {
     res.status(httpStatus.BAD_REQUEST).json({ error: 'Something went wrong' });
   }
 });
+
+/**
+ * Delete All Notifications
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+
+export const deleteAllNotifications = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  try {
+    await Notification.deleteMany({ to: id });
+    res.status(httpStatus.OK).json({ message: 'All notifications deleted successfully' });
+  } catch (error) {
+    res.status(httpStatus.BAD_REQUEST).json({ error: 'Something went wrong' });
+  }
+});
+
 
 /**
  * Mark All Notifications As Seen
@@ -72,7 +90,7 @@ export const markAllNotificationsAsSeen = catchAsync(async (req: Request, res: R
   const { id } = req.user;
   try {
     await notificationServices.markAllNotificationsAsSeen(id as string);
-    res.status(httpStatus.NO_CONTENT).end();
+    res.status(httpStatus.OK).json({ message: 'All notifications marked as seen' });
   } catch (error) {
     res.status(httpStatus.BAD_REQUEST).json({ error: 'Something went wrong' });
   }

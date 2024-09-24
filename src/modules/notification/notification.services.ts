@@ -8,8 +8,8 @@ export const createNotification = async (notification: any): Promise<INotificati
   return Notification.create(notification);
 };
 
-export const markNotoificationAsSeen = async (notificationId: string): Promise<INotificationDoc | null> => {
-  return Notification.findByIdAndUpdate(notificationId, { seen: true });
+export const markNotoificationAsSeen = async (notificationId: string): Promise<INotificationDoc> => {
+  return Notification.findByIdAndUpdate(notificationId, { seen: true }, { new: true }).select("-from -to");
 };
 
 export const getNotifications = async (userId: string): Promise<INotificationDoc[]> => {
@@ -43,5 +43,5 @@ export const createLeaveApprovedNotification = async (to: mongoose.Types.ObjectI
 };
 
 export const markAllNotificationsAsSeen = async (userId: string) => {
-  return Notification.updateMany({ to: userId }, { seen: true });
+  return Notification.updateMany({ to: userId }, { seen: true }, { multi: true });
 };

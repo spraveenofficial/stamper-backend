@@ -1,5 +1,5 @@
 const allRoles = {
-  organization: ['profile', 'addEmployee', 'addOrganization', 'getEmployees', 'editLeaveStatus'],
+  organization: ['profile', 'addEmployee', 'addOrganization', 'getEmployees', 'editLeaveStatus', 'addOffice'],
   employee: ['profile'],
   admin: ['profile'],
 };

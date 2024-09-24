@@ -16,12 +16,11 @@ export const getEmployeeByUserId = async (userId: string): Promise<IEmployeeDoc 
 // Function to get employees by manager ID with modified response structure
 export const getEmployeesByManagerId = async (
   managerId: string,
-  page: number = 1, // Default page number
-  limit: number = 10 // Default limit
+  page: number = 1,
+  limit: number = 10
 ): Promise<any> => {
   const managerID = new mongoose.Types.ObjectId(managerId);
 
-  // Calculate skip and limit
   const skip = (page - 1) * limit;
 
   const employees = await Employee.aggregate([

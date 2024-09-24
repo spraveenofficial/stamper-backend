@@ -6,6 +6,7 @@ import organizationRoute from './organization.route';
 import leaveRoute from './leave.route';
 import notificationRoute from './notification.route';
 import employeeRoute from './employee.route';
+import officeRoute from './office.route';
 
 import config from '../../config/config';
 
@@ -40,6 +41,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/employee',
     route: employeeRoute,
+  },
+  {
+    path: '/office',
+    route: officeRoute,
   }
 ];
 
