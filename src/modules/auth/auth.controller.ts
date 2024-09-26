@@ -1,12 +1,13 @@
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
-import { tokenService } from '../token';
+import { tokenService, tokenTypes } from '../token';
 import { userService } from '../user';
 import * as authService from './auth.service';
 import { emailService } from '../email';
 import config from '../../config/config';
 import { DevelopmentOptions } from '../../config/roles';
+import { ApiError } from '../errors';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.createUserAsOrganization(req.body);
@@ -72,7 +73,15 @@ export const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const sendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
-  const verifyEmailToken = await tokenService.generateVerifyEmailToken(req.user);
+  const user = await userService.getUserById(req.user.id);
+  if (user!.isEmailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already verified');
+  }
+  const isTokenAlreadySent = await tokenService.isTokenExists(req.user.id, tokenTypes.VERIFY_EMAIL);
+  if (isTokenAlreadySent) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Verification email already sent');
+  }
+  const verifyEmailToken = await tokenService.generateVerifyEmailToken(user!);
   if (config.env == DevelopmentOptions.production) {
     await emailService.sendVerificationEmail(req.user.email, verifyEmailToken, req.user.name);
   }
@@ -81,5 +90,5 @@ export const sendVerificationEmail = catchAsync(async (req: Request, res: Respon
 
 export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   await authService.verifyEmail(req.query['token']);
-  res.status(httpStatus.NO_CONTENT).send();
+  res.status(httpStatus.OK).json({ success: true, message: 'Email verified successfully' });
 });

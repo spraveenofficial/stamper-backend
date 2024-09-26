@@ -12,7 +12,8 @@ export const errorConverter = (err: any, _req: Request, _res: Response, next: Ne
     const statusCode =
       error.statusCode || error instanceof mongoose.Error ? httpStatus.BAD_REQUEST : httpStatus.INTERNAL_SERVER_ERROR;
     const message: string = error.message || `${httpStatus[statusCode]}`;
-    error = new ApiError(statusCode, message, false, err.stack);
+    const isSuccessful = error.statusCode === httpStatus.OK || error.statusCode === httpStatus.CREATED;
+    error = new ApiError(statusCode, message, false, err.stack, isSuccessful);
   }
   next(error);
 };
@@ -28,6 +29,7 @@ export const errorHandler = (err: ApiError, _req: Request, res: Response, _next:
   res.locals['errorMessage'] = err.message;
 
   const response = {
+    success: err.success,
     code: statusCode,
     message,
     ...(config.env === 'development' && { stack: err.stack }),

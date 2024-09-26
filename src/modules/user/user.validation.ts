@@ -32,3 +32,9 @@ export const deleteUser = {
     userId: Joi.string().custom(objectId),
   }),
 };
+
+export const updateProfilePicture = {
+  // body: Joi.object().keys({
+  //   file: Joi.string().required(),
+  // }),
+};

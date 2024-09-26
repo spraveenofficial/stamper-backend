@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { validate } from '../../modules/validate';
 import { auth } from '../../modules/auth';
 import { userController, userValidation } from '../../modules/user';
+import { upload } from '../../modules/utils/multer';
 
 const router: Router = express.Router();
 
@@ -12,11 +13,12 @@ const router: Router = express.Router();
 
 router.route('/profile').get(auth('profile'), userController.getSelfUser);
 router.route('/edit-profile').patch(auth('profile'), userController.updateSelfUser);
+router.route('/:userId').get(auth('getUsers'), validate(userValidation.getUser), userController.getUsers);
+// .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
+// .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 router
-  .route('/:userId')
-  .get(auth('getUsers'), validate(userValidation.getUser), userController.getUsers)
-  // .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
-  // .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+  .route('/profile-picture')
+  .patch(auth('profile'), upload.single('file'), validate(userValidation.updateProfilePicture), userController.updateProfilePicture);
 
 export default router;
 

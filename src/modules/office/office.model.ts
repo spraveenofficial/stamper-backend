@@ -3,7 +3,7 @@ import { IOfficeDoc, IOfficeModel } from './office.interfaces';
 import { toJSON } from '../toJSON';
 import { paginate } from '../paginate';
 
-const officeModel = new Schema<IOfficeDoc, IOfficeModel>(
+const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
   {
     name: {
       type: String,
@@ -22,6 +22,10 @@ const officeModel = new Schema<IOfficeDoc, IOfficeModel>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
     },
     managerId: {
       type: Schema.Types.ObjectId,
@@ -60,7 +64,19 @@ const officeModel = new Schema<IOfficeDoc, IOfficeModel>(
   }
 );
 
-officeModel.plugin(toJSON);
-officeModel.plugin(paginate);
+// Add a pre-save hook that check if the office is already added by the user
+officeSchema.static('isOfficeAddedByUser', async function (organizationId: mongoose.Types.ObjectId, name: string): Promise<boolean> {
+  const office = await this.findOne({ organizationId, name });
+  return !!office;
+});
 
-export default mongoose.model<IOfficeDoc, IOfficeModel>('Office', officeModel);
+// Check if this organization has already a headquarter
+officeSchema.static('isHeadQuarterAdded', async function (organizationId: mongoose.Types.ObjectId): Promise<boolean> {
+  const office = await this.findOne({ organizationId, isHeadQuarter: true });
+  return !!office;
+});
+
+officeSchema.plugin(toJSON);
+officeSchema.plugin(paginate);
+
+export default mongoose.model<IOfficeDoc, IOfficeModel>('Office', officeSchema);

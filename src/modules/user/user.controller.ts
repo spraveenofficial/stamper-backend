@@ -6,6 +6,7 @@ import { IOptions } from '../paginate/paginate';
 import * as userService from './user.service';
 import { employeeService } from '../employee';
 import { organizationService } from '../organization';
+import { s3Services } from '../s3';
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.createUserAsOrganization(req.body);
@@ -46,4 +47,12 @@ export const updateSelfUser = catchAsync(async (req: Request, res: Response) => 
   const { id } = req.user;
   const user = await userService.updateUserById(id, req.body);
   res.status(httpStatus.OK).json({ message: 'User updated successfully', user });
+});
+
+
+export const updateProfilePicture = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const uploadedUrl = await s3Services.uploadUserProfilePicture(req.file!, id);
+  const user = await userService.updateProfilePicture(id, uploadedUrl);
+  res.status(httpStatus.OK).json({ message: 'Profile picture updated successfully', user });
 });

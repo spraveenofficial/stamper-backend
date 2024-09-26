@@ -109,3 +109,13 @@ export const updatePassword = async (userId: string, password: string): Promise<
   await user.save();
   return user;
 };
+
+export const updateProfilePicture = async (userId: string, url:string): Promise<IUserDoc> => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  user.profilePic = url;
+  await user.save();
+  return user;
+};

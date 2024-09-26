@@ -189,3 +189,19 @@ export const generateOrganizationInvitationToken = async (user: IUserDoc): Promi
 export const deleteToken = async (token: string): Promise<void> => {
   await Token.findOneAndDelete({ token });
 };
+
+/**
+ * Check if user have already generated token
+ * @param {string} userId
+ * @param {string} type
+ * @returns {Promise<boolean>}
+ */
+
+export const isTokenExists = async (userId: string, type: string): Promise<boolean> => {
+  const token = await Token.findOne({ user: userId, type });
+  // check if token is valid
+  if (token && token.expires > new Date()) {
+    return true;
+  }
+  return !!token;
+};
