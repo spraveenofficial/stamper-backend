@@ -28,6 +28,10 @@ const officeModel = new Schema<IOfficeDoc, IOfficeModel>(
       ref: 'User',
       required: true,
     },
+    isOperational: {
+        type: Boolean,
+        default: true,
+    },
     isHeadQuarter: {
       type: Boolean,
       default: false,

@@ -8,6 +8,7 @@ export interface IOffice {
     addedBy: mongoose.Types.ObjectId;
     managerId: mongoose.Types.ObjectId;
     isHeadQuarter: boolean;
+    isOperational: boolean;
     contactNumber: string;
     contactEmail: string;
     companyOverview: string;
@@ -21,4 +22,4 @@ export interface IOfficeModel extends Model<IOfficeDoc> {
 }
 
 
-export type NewAddOffice = Omit<IOffice, 'addedBy' | 'managerId'>;
+export type NewAddOffice = Omit<IOffice, 'addedBy' | 'managerId' | 'isOperational'>;

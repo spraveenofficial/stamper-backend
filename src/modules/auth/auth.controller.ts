@@ -76,7 +76,7 @@ export const sendVerificationEmail = catchAsync(async (req: Request, res: Respon
   if (config.env == DevelopmentOptions.production) {
     await emailService.sendVerificationEmail(req.user.email, verifyEmailToken, req.user.name);
   }
-  res.status(httpStatus.NO_CONTENT).send();
+  res.status(httpStatus.OK).json({ success: true, message: 'Verification email sent' });
 });
 
 export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
