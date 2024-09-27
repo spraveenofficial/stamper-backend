@@ -28,7 +28,7 @@ export const getOffices = catchAsync(async (req: Request, res: Response) => {
   const page = Math.max(1, +options.page! || 1); // Default to page 1
   const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
   const response = await officeServices.getOffices(organization.id, page, limit);
-  res.status(httpStatus.OK).json({ data: response });
+  res.status(httpStatus.OK).json({ success: true, data: response });
 });
 
 export const editOffice = catchAsync(async (req: Request, res: Response) => {

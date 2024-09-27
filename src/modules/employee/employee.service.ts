@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { employeeAccountStatus, IEmployee, IEmployeeDoc, NewEmployee } from './employee.interfaces';
 import Employee from './employee.model';
 
-export const addEmployee = async (employeeBody: NewEmployee): Promise<any> => {
+export const addEmployee = async (employeeBody: NewEmployee): Promise<IEmployee> => {
   // if (await Employee.isEmployeeExist(employeeBody.userId)) {
   //     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee already exist');
   // }

@@ -7,7 +7,8 @@ import leaveRoute from './leave.route';
 import notificationRoute from './notification.route';
 import employeeRoute from './employee.route';
 import officeRoute from './office.route';
-
+import departmentRoute from './department.route';
+import jobTitlesRoute from './jobTitles.route';
 import config from '../../config/config';
 
 const router: Router = express.Router();
@@ -45,6 +46,14 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/office',
     route: officeRoute,
+  },
+  {
+    path: '/department',
+    route: departmentRoute,
+  },
+  {
+    path: '/job-titles',
+    route: jobTitlesRoute,
   }
 ];
 

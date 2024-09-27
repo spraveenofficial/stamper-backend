@@ -17,8 +17,6 @@ export const createOrganization = catchAsync(async (req: Request, res: Response)
 });
 
 export const addEmployee = catchAsync(async (req: Request, res: Response) => {
-  // console.log(req.body);
-  // const user = await userService.createUserAsEmployee(req.body.user);
   const organization = await organizationService.getOrganizationByUserId(req.user.id);
   if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');

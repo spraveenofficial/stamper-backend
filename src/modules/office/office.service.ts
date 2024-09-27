@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Office } from '.';
-import { IOffice, NewAddOffice } from './office.interfaces';
+import { IOffice, IOfficeDoc, NewAddOffice } from './office.interfaces';
 import { ApiError } from '../errors';
 import httpStatus from 'http-status';
 
@@ -92,6 +92,6 @@ export const editOffice = async (officeId: mongoose.Types.ObjectId, payload: Par
   return office;
 };
 
-export const getOfficeById = async (officeId: mongoose.Types.ObjectId): Promise<IOffice | null> => {
+export const getOfficeById = async (officeId: mongoose.Types.ObjectId): Promise<IOfficeDoc | null> => {
   return await Office.findById(officeId);
 };
