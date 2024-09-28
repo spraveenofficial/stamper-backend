@@ -49,20 +49,22 @@ export const getCookieWithToken = (token: string, tokenName: string, domainName:
   }; ${domain} ${sameSite} ${secureFlag}`;
 };
 
-export const getCookieForLogout = (tokenName: string, domainName: string, isSecure: boolean): string => {
+export const getCookieForLogout = (token: string, tokenName: string, domainName: string, isSecure: boolean): string => {
   const isProduction = process.env['NODE_ENV'] === 'production';
 
-  // Determine if it's secure (use Secure only in production)
-  const secureFlag = isSecure ? 'Secure;' : '';
+  // Secure flag is added only if secure mode is enabled
+  const secureFlag = isSecure ? 'Secure;' : 'Secure;';
+  
+  // SameSite attribute based on environment
   const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
-  // Use Domain only in production
+  
+  // Domain is included only if it's not localhost
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
 
-  // Set expiration to a past date to invalidate the cookie
-  const expires = 'Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
-
-  return `${tokenName}=; HttpOnly; Path=/; ${expires} ${domain} ${sameSite} ${secureFlag}`;
+  // Max-Age=0 is used to immediately expire the cookie
+  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age=-1; ${domain} ${sameSite} ${secureFlag}`;
 };
+
 
 /**
  * Save a token
