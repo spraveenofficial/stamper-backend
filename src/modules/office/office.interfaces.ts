@@ -4,6 +4,7 @@ import { QueryResult } from '../paginate/paginate';
 export interface IOffice {
   name: string;
   location: string;
+  timezone: string;
   capacity: string;
   addedBy: mongoose.Types.ObjectId;
   managerId: mongoose.Types.ObjectId;

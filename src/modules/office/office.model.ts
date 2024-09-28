@@ -9,6 +9,10 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
       type: String,
       required: true,
     },
+    timezone: {
+      type: String,
+      required: true,
+    },
     location: {
       type: String,
       required: true,
