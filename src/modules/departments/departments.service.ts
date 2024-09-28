@@ -95,3 +95,8 @@ export const getDepartments = async (
 
   return departments[0] || { success: true, data: { results: [] }, page, limit, totalPages: 0, totalResults: 0 };
 };
+
+
+export const getDeparmentById = async (departmentId: mongoose.Types.ObjectId): Promise<IDepartmentDoc | null> => {
+  return await Department.findById(departmentId);
+}

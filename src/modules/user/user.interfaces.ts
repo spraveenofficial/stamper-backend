@@ -9,7 +9,8 @@ export interface IUser {
   password: string;
   role: typeof roles[number];
   isEmailVerified: boolean;
-  profilePic: string;
+  profilePic: string | null;
+  phoneNumber: string | null;
 }
 
 export interface IUserDoc extends IUser, Document {
@@ -23,11 +24,11 @@ export interface IUserModel extends Model<IUserDoc> {
 
 export type UpdateUserBody = Partial<IUser>;
 
-export type NewRegisteredUser = Omit<IUser, 'role' | 'isEmailVerified' | 'profilePic'>;
+export type NewRegisteredUser = Omit<IUser, 'role' | 'isEmailVerified' | 'profilePic' | 'phoneNumber'>;
 
-export type NewUserAsEmployee = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'password' | 'role'>;
+export type NewUserAsEmployee = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'password' | 'role' | 'phoneNumber'>;
 
-export type NewCreatedUser = Omit<IUser, 'isEmailVerified' | 'profilePic'>;
+export type NewCreatedUser = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'phoneNumber'>;
 
 export interface IUserWithTokens {
   user: IUserDoc;

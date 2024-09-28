@@ -51,6 +51,18 @@ const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
       type: Boolean,
       default: false,
     },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: null,
+      validate: {
+        validator: function (value : any) {
+          // Allow null or string values
+          return value === null || typeof value === 'string';
+        },
+        message: 'Expected a string or null for phoneNumber',
+      },
+    },
   },
   {
     timestamps: true,
@@ -69,7 +81,6 @@ userSchema.plugin(paginate);
  */
 userSchema.static('isEmailTaken', async function (email: string, excludeUserId?: mongoose.ObjectId): Promise<boolean> {
   const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
-  console.log(user);
   return !!user;
 });
 

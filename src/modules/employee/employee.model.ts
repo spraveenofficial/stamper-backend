@@ -10,14 +10,15 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
       ref: 'User',
       required: true,
     },
-    jobTitle: {
-      type: String,
+    jobTitleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'JobTitle',
       required: true,
     },
     joiningDate: {
-        type: Date,
-        required: true,
-        default: Date.now,
+      type: Date,
+      required: true,
+      default: Date.now,
     },
     managerId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,12 +29,14 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
       ref: 'Organization',
       required: true,
     },
-    department: {
-      type: String,
+    departmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Department',
       required: true,
     },
-    office: {
-      type: String,
+    officeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Office',
       required: true,
     },
     employeeStatus: {

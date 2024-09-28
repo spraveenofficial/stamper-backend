@@ -7,9 +7,9 @@ export interface IEmployee {
   employeeStatus: employeeStatus;
   accountStatus: employeeAccountStatus;
   joiningDate: Date;
-  jobTitle: string;
-  department: string;
-  office: string;
+  jobTitleId: mongoose.Types.ObjectId;
+  departmentId: mongoose.Types.ObjectId;
+  officeId: mongoose.Types.ObjectId;
   organizationId: mongoose.Types.ObjectId;
 }
 
@@ -31,5 +31,7 @@ export enum employeeAccountStatus {
   Invited = 'Invited',
 }
 
-
-export type NewEmployee = Omit<IEmployee, 'userId' | 'accountStatus' | 'managerId' | 'organizationId' | 'role'>;
+export type NewEmployee = Omit<
+  IEmployee,
+  'userId' | 'accountStatus' | 'employeeStatus' | 'managerId' | 'organizationId'
+>;

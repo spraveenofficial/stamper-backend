@@ -42,7 +42,11 @@ export const getJobTitles = async (
     },
     {
       $project: {
+        departmentId: 0,
+        organizationId: 0,
+        officeId: 0,
         department: 0,
+        managerId: 0,
         manager: 0,
         _id: 0,
         __v: 0,
@@ -80,4 +84,9 @@ export const getJobTitles = async (
     },
   ]);
   return jobTitles[0] || { success: true, data: { results: [] }, page, limit, totalPages: 0, totalResults: 0 };
+}
+
+
+export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Promise<IJobTitleDoc | null> => {
+  return await JobTitle.findById(jobTitleId);
 }

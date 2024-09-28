@@ -10,6 +10,9 @@ import { tokenService } from '../token';
 import { DevelopmentOptions } from '../../config/roles';
 import { emailService } from '../email';
 import { IOptions } from '../paginate/paginate';
+import { departmentService } from '../departments';
+import { officeServices } from '../office';
+import { jobTitleService } from '../jobTitles';
 
 export const createOrganization = catchAsync(async (req: Request, res: Response) => {
   const organization = await organizationService.createOrganization(req.body, req.user.id);
@@ -17,17 +20,46 @@ export const createOrganization = catchAsync(async (req: Request, res: Response)
 });
 
 export const addEmployee = catchAsync(async (req: Request, res: Response) => {
-  const organization = await organizationService.getOrganizationByUserId(req.user.id);
+  const { id } = req.user;
+  const { user, employeeInformation } = req.body;
+  const organization = await organizationService.getOrganizationByUserId(id);
   if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   }
 
-  const employee = await userService.createUserAsEmployee(req.body.user);
-  const employeeInformation = await employeeService.addEmployee({
-    ...req.body.employeeInformation,
-    userId: employee.id,
+  // Check if department is exist in organization
+  const department = await departmentService.getDeparmentById(employeeInformation.departmentId);
+
+  if (!department) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Department not found');
+  }
+
+  if (department.organizationId.toString() !== organization.id.toString()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "You can't add employee to another organization");
+  }
+
+  // Check if office is exist in organization
+  const office = await officeServices.getOfficeById(employeeInformation.officeId);
+  if (!office) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Office not found');
+  }
+
+  const jobTitle = await jobTitleService.getJobTitleById(employeeInformation.jobTitleId);
+
+  if (!jobTitle) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Job title not found');
+  }
+
+  const employee = await userService.createUserAsEmployee(user);
+  // TODO: Check if employee already exists
+  const employeeInformations = await employeeService.addEmployee({
+    ...employeeInformation,
+    userId: employee.id as mongoose.Types.ObjectId,
     managerId: req.user.id as mongoose.Types.ObjectId,
+    jobTitleId: jobTitle.id as mongoose.Types.ObjectId,
     organizationId: organization.id as mongoose.Types.ObjectId,
+    officeId: office.id as mongoose.Types.ObjectId,
+    departmentId: department.id as mongoose.Types.ObjectId,
   });
 
   //TODO: Create token and send invitation email
@@ -39,7 +71,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
   }
 
   console.log('token for invite user -------> ', token);
-  res.status(httpStatus.CREATED).json({ success: true, message: 'Employee added successfully', employeeInformation });
+  res.status(httpStatus.CREATED).json({ success: true, message: 'Employee added successfully', employeeInformations });
 });
 
 export const getOrganizationEmployees = catchAsync(async (req: Request, res: Response) => {
@@ -48,7 +80,7 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
   if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   }
-  
+
   // Set default values for pagination
   const page = Math.max(1, +options.page! || 1); // Default to page 1
   const limit = Math.max(1, +options.limit! || 10); // Default to limit 10

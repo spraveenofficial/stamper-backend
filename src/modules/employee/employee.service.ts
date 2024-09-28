@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
-import { employeeAccountStatus, IEmployee, IEmployeeDoc, NewEmployee } from './employee.interfaces';
+import { employeeAccountStatus, IEmployee, IEmployeeDoc } from './employee.interfaces';
 import Employee from './employee.model';
 
-export const addEmployee = async (employeeBody: NewEmployee): Promise<IEmployee> => {
+export const addEmployee = async (employeeBody: IEmployee): Promise<IEmployeeDoc> => {
+  console.log('employeeBody', employeeBody);
   // if (await Employee.isEmployeeExist(employeeBody.userId)) {
   //     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee already exist');
   // }
@@ -44,10 +45,32 @@ export const getEmployeesByManagerId = async (
       }
     },
     {
+      $lookup: {
+         from: 'jobtitles', // Collection to join with
+          localField: 'jobTitleId', // Field from the Employee collection
+          foreignField: '_id', // Field from the JobTitle collection
+          as: 'jobTitleDetails', // Output array field
+      }
+    },
+    {
+      $lookup: {
+        from: 'departments', // Collection to join with
+        localField: 'departmentId', // Field from the Employee collection
+        foreignField: '_id', // Field from the Department collection
+        as: 'departmentDetails', // Output array field
+      }
+    },
+    {
       $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true }, // Unwind the userDetails array
     },
     {
       $unwind: { path: '$managerDetails', preserveNullAndEmptyArrays: true }, // Unwind the managerDetails array
+    },
+    {
+      $unwind: {path: '$jobTitleDetails', preserveNullAndEmptyArrays: true}, // Unwind the jobTitleDetails array
+    },
+    {
+      $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true }, // Unwind the departmentDetails array
     },
     {
       $addFields: {
@@ -55,9 +78,9 @@ export const getEmployeesByManagerId = async (
         employeeName: '$userDetails.name',
         employeeEmail: '$userDetails.email',
         employeeProfilePicture: '$userDetails.profilePic',
-        jobTitle: '$jobTitle',
+        jobTitle: '$jobTitleDetails.jobTitle',
         joiningDate: '$joiningDate',
-        department: '$department',
+        department: '$departmentDetails.title',
         office: '$office',
         employeeStatus: '$employeeStatus',
         accountStatus: '$accountStatus',
@@ -69,6 +92,10 @@ export const getEmployeesByManagerId = async (
     },
     {
       $project: {
+        jobTitleId: 0, // Exclude the original jobTitleId field
+        deparmentId: 0, // Exclude the original departmentId field
+        officeId: 0, // Exclude the original officeId field
+        organizationId: 0, // Exclude the original organizationId field
         userDetails: 0, // Exclude the original userDetails field
         managerDetails: 0, // Exclude the original managerDetails field
         managerId: 0, // Exclude managerId field
@@ -76,6 +103,8 @@ export const getEmployeesByManagerId = async (
         updatedAt: 0, // Exclude updatedAt field
         __v: 0, // Exclude __v field
         userId: 0, // Exclude userId field
+        jobTitleDetails: 0, // Exclude jobTitleDetails field
+        departmentDetails: 0,
       },
     },
     {

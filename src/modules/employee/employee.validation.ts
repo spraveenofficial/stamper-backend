@@ -1,10 +1,11 @@
 import Joi from 'joi';
-import { password } from '../validate';
+import { objectId, password } from '../validate';
+import { NewEmployee } from './employee.interfaces';
 
-export const employeeRegisterBody = {
-  jobTitle: Joi.string().required(),
-  department: Joi.string().required(),
-  office: Joi.string().required(),
+export const employeeRegisterBody : Record<keyof NewEmployee, any> = {
+  jobTitleId: Joi.string().required().custom(objectId),
+  departmentId: Joi.string().required().custom(objectId),
+  officeId: Joi.string().required().custom(objectId),
   joiningDate: Joi.date().required(),
 };
 
