@@ -9,6 +9,7 @@ import employeeRoute from './employee.route';
 import officeRoute from './office.route';
 import departmentRoute from './department.route';
 import jobTitlesRoute from './jobTitles.route';
+import documentsRoute from './documents.route';
 import config from '../../config/config';
 
 const router: Router = express.Router();
@@ -54,6 +55,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/job-titles',
     route: jobTitlesRoute,
+  },
+  {
+    path: '/documents',
+    route: documentsRoute,
   }
 ];
 

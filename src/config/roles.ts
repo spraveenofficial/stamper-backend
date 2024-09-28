@@ -12,8 +12,9 @@ const allRoles = {
     'getDepartments',
     'addJobTitle',
     'getJobTitles',
+    'createDocumentFolder'
   ],
-  employee: ['profile'],
+  employee: ['profile', 'createDocumentFolder'],
   admin: ['profile'],
 };
 
