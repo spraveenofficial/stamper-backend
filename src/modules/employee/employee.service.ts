@@ -60,6 +60,14 @@ export const getEmployeesByManagerId = async (
       }
     },
     {
+      $lookup:{
+        from: 'offices', // Collection to join with
+        localField: 'officeId', // Field from the Employee collection
+        foreignField: '_id', // Field from the Office collection
+        as: 'officeDetails', // Output array field
+      }
+    },
+    {
       $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true }, // Unwind the userDetails array
     },
     {
@@ -72,6 +80,9 @@ export const getEmployeesByManagerId = async (
       $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true }, // Unwind the departmentDetails array
     },
     {
+      $unwind: { path: '$officeDetails', preserveNullAndEmptyArrays: true }, // Unwind the officeDetails array
+    },
+    {
       $addFields: {
         employeeId: '$userDetails._id',
         employeeName: '$userDetails.name',
@@ -80,17 +91,17 @@ export const getEmployeesByManagerId = async (
         jobTitle: '$jobTitleDetails.jobTitle',
         joiningDate: '$joiningDate',
         department: '$departmentDetails.title',
-        office: '$office',
+        office: '$officeDetails.location',
         employeeStatus: '$employeeStatus',
         accountStatus: '$accountStatus',
         createdAt: '$createdAt',
         managerName: '$managerDetails.name',
         managerEmail: '$managerDetails.email',
-        // Exclude original userDetails
       },
     },
     {
       $project: {
+        officeDetails: 0, // Exclude the original officeDetails field
         jobTitleId: 0, // Exclude the original jobTitleId field
         deparmentId: 0, // Exclude the original departmentId field
         officeId: 0, // Exclude the original officeId field
