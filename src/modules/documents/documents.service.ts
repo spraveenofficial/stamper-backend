@@ -26,6 +26,7 @@ export const getFolders = async (organizationId: mongoose.Types.ObjectId, role: 
     {
       $addFields: {
         createdBy: '$createdByInfo.name',
+        createdByProfilePic: '$createdByInfo.profilePic',
         folderId: '$_id',
         filesCount: { $cond: { if: { $isArray: '$documents' }, then: { $size: '$documents' }, else: 0 } },
       },
