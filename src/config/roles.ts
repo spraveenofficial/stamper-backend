@@ -14,7 +14,7 @@ const allRoles = {
     'getJobTitles',
     'createDocumentFolder'
   ],
-  employee: ['profile', 'createDocumentFolder'],
+  employee: ['profile'],
   admin: ['profile'],
 };
 

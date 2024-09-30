@@ -7,6 +7,5 @@ import { employeeController, employeeValidation } from '../../modules/employee';
 const router: Router = express.Router();
 
 router.route('/activate').post(auth(), validate(employeeValidation.acceptInvitation),employeeController.updateEmploeeAccountStatus);
-
-
+router.route('/reinvite').post(auth(), validate(employeeValidation.reinviteEmployee),employeeController.reinviteEmployee);
 export default router;

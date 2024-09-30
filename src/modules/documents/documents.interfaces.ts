@@ -21,6 +21,7 @@ export interface IDocumentDoc extends IDocument, Document {}
 
 export interface IDocumentModel extends Model<IDocumentDoc> {
   paginate(filter: Record<string, any>, options: Record<string, any>): Promise<QueryResult>;
+  isFolderAlreadyAdded(folderName: string, organizationId: mongoose.Types.ObjectId): Promise<boolean>;
 }
 
 export type NewDocumentType = Omit<IDocument, 'createdBy' | 'organizationId' | 'documents'>;

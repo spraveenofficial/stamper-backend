@@ -9,4 +9,9 @@ router
   .route('/create-folder')
   .post(auth('createDocumentFolder'), validate(documentValidations.createNewFolderRequest), documentController.createFolder);
 
+router
+  .route('/folders')
+  .get(auth(), documentController.getFolders);
+
+
 export default router;

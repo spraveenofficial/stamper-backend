@@ -43,6 +43,14 @@ const documentsSchema = new Schema<IDocumentDoc, IDocumentModel>(
   { timestamps: true }
 );
 
+documentsSchema.statics['isFolderAlreadyAdded'] = async function (
+  folderName: string,
+  organizationId: mongoose.Types.ObjectId
+) {
+  const folder = await this.findOne({ folderName, organizationId });
+  return !!folder;
+};
+
 documentsSchema.plugin(toJSON);
 
 const Document = mongoose.model<IDocumentDoc, IDocumentModel>('Document', documentsSchema);

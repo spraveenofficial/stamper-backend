@@ -3,7 +3,6 @@ import { employeeAccountStatus, IEmployee, IEmployeeDoc } from './employee.inter
 import Employee from './employee.model';
 
 export const addEmployee = async (employeeBody: IEmployee): Promise<IEmployeeDoc> => {
-  console.log('employeeBody', employeeBody);
   // if (await Employee.isEmployeeExist(employeeBody.userId)) {
   //     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee already exist');
   // }
