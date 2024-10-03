@@ -38,3 +38,12 @@ export const updateProfilePicture = {
   //   file: Joi.string().required(),
   // }),
 };
+
+const changePasswordBody = {
+  oldPassword: Joi.string().required(),
+  newPassword: Joi.string().required().custom(password),
+};
+
+export const changePassword = {
+  body: Joi.object().keys(changePasswordBody),
+};

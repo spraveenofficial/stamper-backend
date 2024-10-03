@@ -20,6 +20,9 @@ router
   .route('/profile-picture')
   .patch(auth('profile'), upload.single('file'), validate(userValidation.updateProfilePicture), userController.updateProfilePicture);
 
+
+router.route('/change-password').patch(auth('profile'), validate(userValidation.changePassword), userController.changePassword);
+  
 export default router;
 
 /**

@@ -68,14 +68,11 @@ export const updateUserById = async (
   updateBody: UpdateUserBody
 ): Promise<IUserDoc | null> => {
   const user = await getUserById(userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
-  Object.assign(user, updateBody);
-  await user.save();
+  Object.assign(user!, updateBody);
+  await user!.save();
   return user;
 };
 
@@ -110,7 +107,7 @@ export const updatePassword = async (userId: string, password: string): Promise<
   return user;
 };
 
-export const updateProfilePicture = async (userId: string, url:string): Promise<IUserDoc> => {
+export const updateProfilePicture = async (userId: string, url: string): Promise<IUserDoc> => {
   const user = await User.findById(userId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');

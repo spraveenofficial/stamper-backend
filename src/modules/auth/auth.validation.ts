@@ -8,6 +8,7 @@ export const registerBody: Record<keyof NewRegisteredUser, any> = {
   name: Joi.string().required(),
 };
 
+
 export const register = {
   body: Joi.object().keys(registerBody),
 };

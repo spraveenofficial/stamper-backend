@@ -92,3 +92,4 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   await authService.verifyEmail(req.query['token']);
   res.status(httpStatus.OK).json({ success: true, message: 'Email verified successfully' });
 });
+

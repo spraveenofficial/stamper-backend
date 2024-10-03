@@ -7,6 +7,7 @@ import * as userService from './user.service';
 import { employeeService } from '../employee';
 import { organizationService } from '../organization';
 import { s3Services } from '../s3';
+import { ApiError } from '../errors';
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.createUserAsOrganization(req.body);
@@ -49,10 +50,27 @@ export const updateSelfUser = catchAsync(async (req: Request, res: Response) => 
   res.status(httpStatus.OK).json({ message: 'User updated successfully', user });
 });
 
-
 export const updateProfilePicture = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const uploadedUrl = await s3Services.uploadUserProfilePicture(req.file!, id);
   const user = await userService.updateProfilePicture(id, uploadedUrl);
   res.status(httpStatus.OK).json({ message: 'Profile picture updated successfully', user });
+});
+
+export const changePassword = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const user = await userService.getUserById(id);
+
+  if (req.body.oldPassword === req.body.newPassword) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'New password must be different from old password');
+  }
+
+  if (!(await user?.isPasswordMatch(req.body.oldPassword))) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Incorrect password');
+  }
+
+  await userService.updateUserById(id, { password: req.body.newPassword });
+
+  res.status(httpStatus.OK).json({ success: true, message: 'Password changed successfully' });
 });
