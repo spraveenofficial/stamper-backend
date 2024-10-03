@@ -6,5 +6,5 @@ import { newsController, newsValidation } from '../../modules/news';
 const router: Router = express.Router();
 
 router.route('/create').post(auth('createNews'), validate(newsValidation.createNewNewsBody), newsController.createNews);
-
+router.route('/latest').get(auth(), newsController.getLatestNews);
 export default router;

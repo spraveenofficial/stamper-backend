@@ -31,6 +31,10 @@ const newsSchema = new Schema<INewsDoc, INewsModel>(
     scheduledAt: {
       type: Date,
     },
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
+    },
   },
   { timestamps: true }
 );

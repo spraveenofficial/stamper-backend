@@ -13,7 +13,7 @@ export const addOffice = catchAsync(async (req: Request, res: Response) => {
     throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Please add organization first' });
   }
   const response = await officeServices.addOffice(req.body, id, organization.id);
-  res.status(httpStatus.OK).json({ message: 'Office added successfully', data: response });
+  res.status(httpStatus.CREATED).json({ message: 'Office added successfully', data: response });
 });
 
 export const getOffices = catchAsync(async (req: Request, res: Response) => {

@@ -13,6 +13,7 @@ export interface INews {
   title: string;
   content: string;
   createdBy: mongoose.Types.ObjectId;
+  organizationId: mongoose.Types.ObjectId;
   status: NewsStatus;
   access: rolesEnum[];
   scheduledAt?: Date;
@@ -25,4 +26,4 @@ export interface INewsModel extends Model<INewsDoc> {
 }
 
 
-export type NewNewsType = Omit<INews, 'createdBy'>;
+export type NewNewsType = Omit<INews, 'createdBy' | 'organizationId'>;
