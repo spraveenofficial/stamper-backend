@@ -8,6 +8,7 @@ import { employeeService } from '../employee';
 import { organizationService } from '../organization';
 import { s3Services } from '../s3';
 import { ApiError } from '../errors';
+import { rolesEnum } from '../../config/roles';
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.createUserAsOrganization(req.body);
@@ -16,7 +17,7 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 
 export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.getUserById(req.user.id);
-  if (req.user.role === 'organization') {
+  if (req.user.role === rolesEnum.organization) {
     const organization = await organizationService.getOrganizationByUserId(req.user.id);
     res.send({ user, organization });
   } else {
@@ -59,9 +60,9 @@ export const updateProfilePicture = catchAsync(async (req: Request, res: Respons
 
 export const changePassword = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-
+  
   const user = await userService.getUserById(id);
-
+  
   if (req.body.oldPassword === req.body.newPassword) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'New password must be different from old password');
   }
