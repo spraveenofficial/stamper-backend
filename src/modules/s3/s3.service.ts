@@ -1,5 +1,3 @@
-// import * as AWS from 'aws-sdk';
-// import * as AWS from 'aws-sdk';
 import config from '../../config/config';
 import { logger } from '../logger';
 import S3 from 'aws-sdk/clients/s3.js'; 
