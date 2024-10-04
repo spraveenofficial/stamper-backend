@@ -87,3 +87,20 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
   const employees = await employeeService.getEmployeesByManagerId(req.user.id, page, limit);
   res.status(httpStatus.OK).json({ data: employees });
 });
+
+export const getOrganizationChart = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  // TODO: Make this for employess as well
+
+  const organization = await organizationService.getOrganizationByUserId(id);
+
+  if (!organization) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+  }
+
+  console.log('organization id -------> ', organization);
+  const data = await organizationService.getOrgChartById(organization.id as mongoose.Types.ObjectId);
+
+  return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data });
+});
