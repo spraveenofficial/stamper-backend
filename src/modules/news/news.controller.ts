@@ -15,8 +15,9 @@ export const createNews = catchAsync(async (req: Request, res: Response) => {
   if (!organization) {
     return res.status(httpStatus.NOT_FOUND).json({ success: false, message: 'Organization not found' });
   }
+
   const news = await newsService.createNews(req.body, id, organization._id);
-  return res.status(httpStatus.CREATED).json({ success: true, data: news });
+  return res.status(httpStatus.CREATED).json({ success: true, message: 'New Added Successfully', data: news });
 });
 
 export const getLatestNews = catchAsync(async (req: Request, res: Response) => {
