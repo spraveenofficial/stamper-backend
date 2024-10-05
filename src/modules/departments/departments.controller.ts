@@ -12,24 +12,27 @@ export const addDepartment = catchAsync(async (req: Request, res: Response) => {
 
   const office = await officeServices.getOfficeById(req.body.officeId);
   if (!office) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Office does not exist');
+    throw new ApiError(httpStatus.BAD_REQUEST, req.t('Departments.officeDoesNotExist'));
   }
   if (!office.isOperational) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Office is not operational');
+    throw new ApiError(httpStatus.BAD_REQUEST, req.t('Departments.officeDoesNotOperational'));
   }
   const organization = await organizationService.getOrganizationByUserId(id);
   if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+    throw new ApiError(httpStatus.BAD_REQUEST, req.t('Departments.addOrganizationFirst'));
   }
   const department = await departmentService.createDepartment(req.body, id, office.id, organization.id);
-  res.status(httpStatus.CREATED).json(department);
+
+  res
+    .status(httpStatus.CREATED)
+    .json({ success: true, message: req.t('Departments.deparmentAddSuccess'), data: department });
 });
 
 export const getDepartments = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const organization = await organizationService.getOrganizationByUserId(id);
   if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+    throw new ApiError(httpStatus.BAD_REQUEST, req.t('Departments.addOrganizationFirst'));
   }
   const options: IOptions = pick(req.query, ['limit', 'page']);
   const page = Math.max(1, +options.page! || 1); // Default to page 1

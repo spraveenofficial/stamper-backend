@@ -17,5 +17,11 @@
     "tokenNotFound": "Token not found",
     "passwordResetFailed": "Password reset failed",
     "authenticationRequired": "Authentication required"
+  },
+  "Departments": {
+    "officeDoesNotExist": "Office does not exist",
+    "officeDoesNotOperational": "Office does not operational",
+    "addOrganizationFirst": "Please add organization first",
+    "deparmentAddSuccess": "Department added successfully"
   }
 }
