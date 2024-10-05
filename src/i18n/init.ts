@@ -10,9 +10,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export const i18nConfig = {
-  preload: ['en', 'cy'],
+  preload: ['en', 'fr', 'hi'],
   fallbackLng: 'en',
-  supportedLngs: ['en', 'cy'],
+  supportedLngs: ['en', 'fr', 'hi'],
   ns: ['messages'],
   saveMissing: true,
   debug: true,
@@ -29,10 +29,7 @@ export const i18nConfig = {
 // Async middleware for i18n initialization and handling
 export const i18n = async (req: Request, res: Response, next: NextFunction) => {
   if (!i18next.isInitialized) {
-    await i18next
-      .use(Backend)
-      .use(i18nextMiddleware.LanguageDetector)
-      .init(i18nConfig);
+    await i18next.use(Backend).use(i18nextMiddleware.LanguageDetector).init(i18nConfig);
   }
   // Use i18next middleware for Express
   i18nextMiddleware.handle(i18next)(req, res, next);

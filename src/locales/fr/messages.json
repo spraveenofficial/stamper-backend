@@ -1,0 +1,21 @@
+{
+  "Auth": {
+    "loginSuccess": "Connexion réussie.",
+    "invalidCredentials": "Identifiants invalides.",
+    "signupSuccess": "Inscription réussie.",
+    "emailVerificationSuccess": "Vérification de l'email réussie.",
+    "emailAlreadyExists": "L'email existe déjà.",
+    "logoutSuccess": "Déconnexion réussie.",
+    "passwordResetEmailSent": "Email de réinitialisation du mot de passe envoyé.",
+    "passwordResetSuccess": "Réinitialisation du mot de passe réussie.",
+    "userNotFound": "Utilisateur non trouvé.",
+    "acceptInvitationFirst": "Veuillez accepter l'invitation d'abord.",
+    "emailAlreadyVerified": "Email déjà vérifié.",
+    "emailVerificationEmailSent": "Email de vérification envoyé.",
+    "emailVerificationAlreadySent": "Email de vérification déjà envoyé, réessayez après 24 heures.",
+    "emailVerificationFailed": "Échec de la vérification de l'email.",
+    "tokenNotFound": "Jeton non trouvé.",
+    "passwordResetFailed": "Échec de la réinitialisation du mot de passe.",
+    "authenticationRequired": "Authentification requise."
+  }
+}

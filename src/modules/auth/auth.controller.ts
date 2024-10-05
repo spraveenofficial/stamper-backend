@@ -10,9 +10,9 @@ import { DevelopmentOptions } from '../../config/roles';
 import { ApiError } from '../errors';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.createUserAsOrganization(req.body);
+  const user = await userService.createUserAsOrganization(req.body, req.t);
   const tokens = await tokenService.generateAuthTokens(user);
-  res.status(httpStatus.CREATED).send({ user, tokens });
+  res.status(httpStatus.CREATED).send({ success: true, message: req.t('Auth.signupSuccess'), user, tokens });
 });
 
 export const login = catchAsync(async (req: Request, res: Response) => {
@@ -21,7 +21,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
 
   const { email, password } = req.body;
-  const user = await authService.loginUserWithEmailAndPassword(email, password);
+  const user = await authService.loginUserWithEmailAndPassword(email, password, req.t);
   const tokens = await tokenService.generateAuthTokens(user);
 
   // Set cookies for access and refresh tokens
@@ -31,22 +31,25 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   ]);
 
   // Send response after setting the cookies
-  return res.status(httpStatus.OK).json({ user, tokens });
+  return res.status(httpStatus.OK).json({ success: true, message: req.t('Auth.loginSuccess'), user, tokens });
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {
   const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
   const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
-  await authService.logout(req.body.refreshToken);
+  
+  await authService.logout(req.body.refreshToken, req.t);
+  
   res.setHeader('Set-Cookie', [
     tokenService.getCookieForLogout(req.body.accessToken, 'token', domain, req.secure),
     tokenService.getCookieForLogout(req.body.refreshToken, 'refreshToken', domain, req.secure),
   ]);
-  res.status(httpStatus.OK).json({ success: true, message: 'Logged out' });
+
+  res.status(httpStatus.OK).json({ success: true, message: req.t('Auth.logoutSuccess') });
 });
 
 export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
-  const userWithTokens = await authService.refreshAuth(req.body.refreshToken);
+  const userWithTokens = await authService.refreshAuth(req.body.refreshToken, req.t);
   const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
   const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
   // Set cookies for access and refresh tokens
@@ -59,39 +62,36 @@ export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
-  const { name, token } = await tokenService.generateResetPasswordToken(req.body.email);
-  // if (config.env == DevelopmentOptions.production) {
-  await emailService.sendForgotPasswordEmail(req.body.email, token, name);
-  // }
+  const { name, token } = await tokenService.generateResetPasswordToken(req.body.email, req.t);
+  if (config.env == DevelopmentOptions.production) {
+    await emailService.sendForgotPasswordEmail(req.body.email, token, name);
+  }
   console.log('Reset password token: ', token);
-  res.status(httpStatus.OK).send({ message: 'Password reset email sent' });
+  res.status(httpStatus.OK).send({ success: true, message: req.t('Auth.resetPasswordEmailSent') });
 });
 
 export const resetPassword = catchAsync(async (req: Request, res: Response) => {
-  await authService.resetPassword(req.query['token'], req.body.password);
-  res.status(httpStatus.OK).json({ message: 'Password reset successful' });
+  await authService.resetPassword(req.query['token'], req.body.password, req.t);
+  res.status(httpStatus.OK).json({ success: true, message: req.t('Auth.passwordResetSuccess') });
 });
 
 export const sendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.getUserById(req.user.id);
-  const translation = req.t('emailAlreadyVerified');
-  console.log('Translation: ', translation);
   if (user!.isEmailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `${req.t('emailAlreadyVerified')}`);
+    throw new ApiError(httpStatus.BAD_REQUEST, req.t('Auth.emailAlreadyVerified'));
   }
   const isTokenAlreadySent = await tokenService.isTokenExists(req.user.id as string, tokenTypes.VERIFY_EMAIL);
   if (isTokenAlreadySent) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `${req.t('verificationEmailAlreadySent')}`);
+    throw new ApiError(httpStatus.BAD_REQUEST, req.t('Auth.emailVerificationAlreadySent'));
   }
   const verifyEmailToken = await tokenService.generateVerifyEmailToken(user!);
   if (config.env == DevelopmentOptions.production) {
     await emailService.sendVerificationEmail(req.user.email, verifyEmailToken, req.user.name);
   }
-  res.status(httpStatus.OK).json({ success: true, message: 'Verification email sent' });
+  res.status(httpStatus.OK).json({ success: true, message: req.t('Auth.emailVerificationEmailSent') });
 });
 
 export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
-  await authService.verifyEmail(req.query['token']);
-  res.status(httpStatus.OK).json({ success: true, message: 'Email verified successfully' });
+  await authService.verifyEmail(req.query['token'], req.t);
+  res.status(httpStatus.OK).json({ success: true, message: req.t('Auth.emailVerificationSuccess') });
 });
-

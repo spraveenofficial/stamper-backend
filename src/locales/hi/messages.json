@@ -1,0 +1,21 @@
+{
+  "Auth": {
+    "loginSuccess": "लॉगिन सफल हुआ।",
+    "invalidCredentials": "अमान्य प्रमाण-पत्र।",
+    "signupSuccess": "साइनअप सफल हुआ।",
+    "emailVerificationSuccess": "ईमेल सत्यापन सफल हुआ।",
+    "emailAlreadyExists": "ईमेल पहले से मौजूद है।",
+    "logoutSuccess": "लॉगआउट सफल हुआ।",
+    "passwordResetEmailSent": "पासवर्ड रीसेट ईमेल भेजा गया।",
+    "passwordResetSuccess": "पासवर्ड रीसेट सफल हुआ।",
+    "userNotFound": "उपयोगकर्ता नहीं मिला।",
+    "acceptInvitationFirst": "कृपया पहले निमंत्रण स्वीकार करें।",
+    "emailAlreadyVerified": "ईमेल पहले से सत्यापित है।",
+    "emailVerificationEmailSent": "ईमेल सत्यापन ईमेल भेजा गया।",
+    "emailVerificationAlreadySent": "ईमेल सत्यापन पहले से भेजा गया है, 24 घंटे बाद पुनः प्रयास करें।",
+    "emailVerificationFailed": "ईमेल सत्यापन विफल हुआ।",
+    "tokenNotFound": "टोकन नहीं मिला।",
+    "passwordResetFailed": "पासवर्ड रीसेट विफल हुआ।",
+    "authenticationRequired": "प्रमाणीकरण आवश्यक है।"
+  }
+}

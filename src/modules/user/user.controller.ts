@@ -11,7 +11,7 @@ import { ApiError } from '../errors';
 import { rolesEnum } from '../../config/roles';
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.createUserAsOrganization(req.body);
+  const user = await userService.createUserAsOrganization(req.body, req.t);
   res.status(httpStatus.CREATED).send(user);
 });
 

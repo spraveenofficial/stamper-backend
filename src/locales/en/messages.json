@@ -1,5 +1,21 @@
 {
-  "title": "English title",
-  "emailAlreadyVerified": "This email has already been verified.",
-  "verificationEmailAlreadySent": "A verification email has already been sent to this email address."
+  "Auth": {
+    "loginSuccess": "Login successful.",
+    "invalidCredentials": "Invalid credentials.",
+    "signupSuccess": "Signup successful.",
+    "emailVerificationSuccess": "Email verification successful.",
+    "emailAlreadyExists": "Email already exists.",
+    "logoutSuccess": "Logout successful",
+    "passwordResetEmailSent": "Password reset email sent",
+    "passwordResetSuccess": "Password reset successful",
+    "userNotFound": "User not found",
+    "acceptInvitationFirst": "Please accept the invitation first.",
+    "emailAlreadyVerified": "Email already verified",
+    "emailVerificationEmailSent": "Email verification email sent",
+    "emailVerificationAlreadySent": "Email verification already sent, Try again after 24 hours.",
+    "emailVerificationFailed": "Email verification failed",
+    "tokenNotFound": "Token not found",
+    "passwordResetFailed": "Password reset failed",
+    "authenticationRequired": "Authentication required"
+  }
 }

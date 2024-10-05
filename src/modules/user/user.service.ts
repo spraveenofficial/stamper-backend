@@ -12,9 +12,9 @@ import { rolesEnum } from '../../config/roles';
  * @returns {Promise<IUserDoc>}
  */
 
-export const createUserAsOrganization = async (userBody: NewCreatedUser): Promise<IUserDoc> => {
+export const createUserAsOrganization = async (userBody: NewCreatedUser, t: (key: string) => string): Promise<IUserDoc> => {
   if (await User.isEmailTaken(userBody.email)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+    throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.emailAlreadyExists'));
   }
   return User.create(userBody);
 };

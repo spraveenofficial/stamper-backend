@@ -147,10 +147,10 @@ export const generateAuthTokens = async (user: IUserDoc): Promise<AccessAndRefre
  * @param {string} email
  * @returns {Promise<string>}
  */
-export const generateResetPasswordToken = async (email: string): Promise<any> => {
+export const generateResetPasswordToken = async (email: string, t: (key:string) => string): Promise<any> => {
   const user = await userService.getUserByEmail(email);
   if (!user) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
+    throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.userNotFound'));
   }
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
   const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD, config.jwt.secret, user.role);
