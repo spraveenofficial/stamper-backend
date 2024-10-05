@@ -11,6 +11,7 @@ import { authLimiter } from './modules/utils';
 import { ApiError, errorConverter, errorHandler } from './modules/errors';
 import routes from './routes/v1';
 import cookieParser from 'cookie-parser';
+import { i18n } from './i18n/init';
 
 const app: Express = express();
 
@@ -22,48 +23,54 @@ if (config.env !== 'test') {
 // Parse cookies
 app.use(cookieParser());
 
-// set security HTTP headers
+// Set security HTTP headers
 app.use(helmet());
 
-// enable cors
-app.use(cors({
-  origin: [`https://${config.clientUrl}`, "http://localhost:3000"],
-  credentials: true,
-}));
+// Enable CORS
+app.use(
+  cors({
+    origin: [`https://${config.clientUrl}`, 'http://localhost:3000'],
+    credentials: true,
+  })
+);
 
-
+// Enable CORS preflight
 app.options('*', cors());
 
-// parse json request body
+// Parse JSON request body
 app.use(express.json());
 
-// parse urlencoded request body
+// Initialize i18next middleware
+app.use(i18n)
+
+// Parse URL-encoded request body
 app.use(express.urlencoded({ extended: true }));
 
-// sanitize request data
+// Sanitize request data
 app.use(xss());
 app.use(ExpressMongoSanitize());
 
-// gzip compression
+// Gzip compression
 app.use(compression());
 
-// limit repeated failed requests to auth endpoints
+// Limit repeated failed requests to auth endpoints
 if (config.env === 'production') {
   app.use('/api/v1/auth', authLimiter);
 }
 
-// v1 api routes
+
+// v1 API routes
 app.use('/api/v1', routes);
 
-// send back a 404 error for any unknown api request
+// Send back a 404 error for any unknown API request
 app.use((_req, _res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
 });
 
-// convert error to ApiError, if needed
+// Convert error to ApiError, if needed
 app.use(errorConverter);
 
-// handle error
+// Handle errors
 app.use(errorHandler);
 
 export default app;

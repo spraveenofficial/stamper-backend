@@ -63,8 +63,6 @@ export const isEmployeeAndManagerInSameOrganization = async (
 
 export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<any> => {
   const organizationId = new mongoose.Types.ObjectId(orgId);
-  console.log('org Id=............', organizationId);
-
   const orgChart = await Office.aggregate([
     {
       $match: {

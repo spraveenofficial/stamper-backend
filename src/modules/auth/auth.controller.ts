@@ -74,12 +74,14 @@ export const resetPassword = catchAsync(async (req: Request, res: Response) => {
 
 export const sendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.getUserById(req.user.id);
+  const translation = req.t('emailAlreadyVerified');
+  console.log('Translation: ', translation);
   if (user!.isEmailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already verified');
+    throw new ApiError(httpStatus.BAD_REQUEST, `${req.t('emailAlreadyVerified')}`);
   }
-  const isTokenAlreadySent = await tokenService.isTokenExists(req.user.id, tokenTypes.VERIFY_EMAIL);
+  const isTokenAlreadySent = await tokenService.isTokenExists(req.user.id as string, tokenTypes.VERIFY_EMAIL);
   if (isTokenAlreadySent) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Verification email already sent');
+    throw new ApiError(httpStatus.BAD_REQUEST, `${req.t('verificationEmailAlreadySent')}`);
   }
   const verifyEmailToken = await tokenService.generateVerifyEmailToken(user!);
   if (config.env == DevelopmentOptions.production) {
