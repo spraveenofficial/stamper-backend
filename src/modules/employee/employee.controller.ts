@@ -15,9 +15,7 @@ export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: R
   const { body } = req;
   const { token } = req.query;
   const isTokenValid = await tokenService.verifyToken(token as string, tokenTypes.INVITATION);
-  if (!isTokenValid) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Token is invalid');
-  }
+
   const employeeid = new mongoose.Types.ObjectId(isTokenValid.user);
   const user = await userService.getUserById(employeeid);
   
@@ -27,7 +25,7 @@ export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: R
   const updatePassword = await userService.updateUserById(user.id, body);
   await employeeService.updateEmployeeAccountStatus(user.id, employeeAccountStatus.Active);
   await tokenService.deleteToken(token as string);
-  res.status(httpStatus.OK).json({ message: 'Employee account status updated successfully', updatePassword });
+  res.status(httpStatus.OK).json({ success: true, message: 'Employee account status updated successfully', updatePassword });
 });
 
 export const reinviteEmployee = catchAsync(async (req: Request, res: Response) => {
