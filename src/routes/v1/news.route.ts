@@ -7,4 +7,6 @@ const router: Router = express.Router();
 
 router.route('/create').post(auth('createNews'), validate(newsValidation.createNewNewsBody), newsController.createNews);
 router.route('/latest').get(auth(), newsController.getLatestNews);
+router.route('/:id').get(auth(), newsController.getNewsById);
+
 export default router;

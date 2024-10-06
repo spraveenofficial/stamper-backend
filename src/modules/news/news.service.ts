@@ -8,7 +8,6 @@ export const createNews = async (
   userId: mongoose.Types.ObjectId,
   organizationId: mongoose.Types.ObjectId
 ): Promise<INewsDoc> => {
-
   // TODO: Create notification for all users in the organization and email notification
   return await News.create({
     ...payload,
@@ -33,6 +32,7 @@ export const getLatestNews = async (
     { $sort: { createdAt: -1 } },
     {
       $addFields: {
+        id: '$_id',
         createdByName: '$createdByInfo.name',
         createdByEmail: '$createdByInfo.email',
         createdByProfilePic: '$createdByInfo.profilePic',
@@ -41,9 +41,9 @@ export const getLatestNews = async (
     {
       $project: {
         createdByInfo: 0,
+        _id: 0,
         __v: 0,
         updatedAt: 0,
-        createdAt: 0,
         organizationId: 0,
         createdBy: 0,
       },
@@ -77,4 +77,34 @@ export const getLatestNews = async (
   ]);
 
   return news[0] || { success: true, data: { results: [] }, page, limit, totalPages: 0, totalResults: 0 };
+};
+
+export const getNewsById = async (id: string): Promise<INewsDoc> => {
+  const pipeline = [
+    { $match: { _id: new mongoose.Types.ObjectId(id) } },
+    { $lookup: { from: 'users', localField: 'createdBy', foreignField: '_id', as: 'createdByInfo' } },
+    { $unwind: { path: '$createdByInfo', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        id: '$_id',
+        createdByName: '$createdByInfo.name',
+        createdByEmail: '$createdByInfo.email',
+        createdByProfilePic: '$createdByInfo.profilePic',
+      },
+    },
+    {
+      $project: {
+        createdByInfo: 0,
+        _id: 0,
+        __v: 0,
+        updatedAt: 0,
+        organizationId: 0,
+        createdBy: 0,
+      },
+    },
+  ];
+
+  const news = await News.aggregate(pipeline);
+
+  return news[0] || { success: false, message: 'News not found' };
 };

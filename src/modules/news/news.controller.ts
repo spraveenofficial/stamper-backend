@@ -17,7 +17,7 @@ export const createNews = catchAsync(async (req: Request, res: Response) => {
   }
 
   const news = await newsService.createNews(req.body, id, organization._id);
-  return res.status(httpStatus.CREATED).json({ success: true, message: 'New Added Successfully', data: news });
+  return res.status(httpStatus.CREATED).json({ success: true, message: 'News Added Successfully', data: news });
 });
 
 export const getLatestNews = catchAsync(async (req: Request, res: Response) => {
@@ -40,4 +40,13 @@ export const getLatestNews = catchAsync(async (req: Request, res: Response) => {
 
   const news = await newsService.getLatestNews(organizationId as mongoose.Types.ObjectId, role as rolesEnum, page, limit);
   return res.status(httpStatus.OK).json({ success: true, data: news });
+});
+
+export const getNewsById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id as string)) {
+    return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'Invalid news id' });
+  }
+  const news = await newsService.getNewsById(id as string);
+  return res.status(httpStatus.OK).json({ success: true, data: news, message: 'News found' });
 });
