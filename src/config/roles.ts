@@ -13,7 +13,9 @@ const allRoles = {
     'addJobTitle',
     'getJobTitles',
     'createDocumentFolder',
-    'createNews'
+    'createNews',
+    'deleteNews',
+    'updateNews'
   ],
   employee: ['profile'],
   admin: ['profile'],

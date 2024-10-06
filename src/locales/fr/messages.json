@@ -17,5 +17,18 @@
     "tokenNotFound": "Jeton non trouvé.",
     "passwordResetFailed": "Échec de la réinitialisation du mot de passe.",
     "authenticationRequired": "Authentification requise."
+  },
+  "Departments": {
+    "officeDoesNotExist": "Le bureau n'existe pas",
+    "officeDoesNotOperational": "Le bureau n'est pas opérationnel",
+    "addOrganizationFirst": "Veuillez d'abord ajouter l'organisation",
+    "deparmentAddSuccess": "Département ajouté avec succès"
+  },
+  "News": {
+    "newsNotFound": "Actualité non trouvée",
+    "newsAddSuccess": "Actualité ajoutée avec succès",
+    "newsUpdateSuccess": "Actualité mise à jour avec succès",
+    "newsDeleteSuccess": "Actualité supprimée avec succès",
+    "newsFetchSuccess": "Actualité récupérée avec succès"
   }
 }

@@ -17,5 +17,18 @@
     "tokenNotFound": "टोकन नहीं मिला।",
     "passwordResetFailed": "पासवर्ड रीसेट विफल हुआ।",
     "authenticationRequired": "प्रमाणीकरण आवश्यक है।"
+  },
+  "Departments": {
+    "officeDoesNotExist": "कार्यालय मौजूद नहीं है",
+    "officeDoesNotOperational": "कार्यालय परिचालन में नहीं है",
+    "addOrganizationFirst": "कृपया पहले संगठन जोड़ें",
+    "deparmentAddSuccess": "विभाग सफलतापूर्वक जोड़ा गया"
+  },
+  "News": {
+    "newsNotFound": "समाचार नहीं मिला",
+    "newsAddSuccess": "समाचार सफलतापूर्वक जोड़ा गया",
+    "newsUpdateSuccess": "समाचार सफलतापूर्वक अपडेट किया गया",
+    "newsDeleteSuccess": "समाचार सफलतापूर्वक हटाया गया",
+    "newsFetchSuccess": "समाचार सफलतापूर्वक प्राप्त किया गया"
   }
 }

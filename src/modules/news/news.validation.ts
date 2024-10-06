@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import { NewNewsType } from './news.interfaces';
+import { objectId } from '../validate';
 
 const createNewNews: Record<keyof NewNewsType, any> = {
   title: Joi.string().required(),
@@ -10,5 +11,19 @@ const createNewNews: Record<keyof NewNewsType, any> = {
 };
 
 export const createNewNewsBody = {
+  body: Joi.object().keys(createNewNews),
+};
+
+
+export const getNewsByIdParams = {
+  params: Joi.object().keys({
+    id: Joi.string().custom(objectId).required(),
+  }),
+}
+
+export const updateNewsByIdParams = {
+  params: Joi.object().keys({
+    id: Joi.required(),
+  }),
   body: Joi.object().keys(createNewNews),
 };

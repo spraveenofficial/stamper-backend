@@ -23,5 +23,13 @@
     "officeDoesNotOperational": "Office does not operational",
     "addOrganizationFirst": "Please add organization first",
     "deparmentAddSuccess": "Department added successfully"
+  },
+  "News": {
+    "newsNotFound": "News not found",
+    "newsAddSuccess": "News added successfully",
+    "newsUpdateSuccess": "News updated successfully",
+    "newsDeleteSuccess": "News deleted successfully",
+    "newsFetchSuccess": "News fetched successfully",
+    "notAuthorizedToPerformAction": "You are not authorized to perform this action"
   }
 }

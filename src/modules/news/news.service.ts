@@ -88,7 +88,7 @@ export const getNewsById = async (id: string): Promise<INewsDoc> => {
       $addFields: {
         id: '$_id',
         createdByName: '$createdByInfo.name',
-        createdByEmail: '$createdByInfo.email',
+        createdById: '$createdByInfo._id',
         createdByProfilePic: '$createdByInfo.profilePic',
       },
     },
@@ -106,5 +106,17 @@ export const getNewsById = async (id: string): Promise<INewsDoc> => {
 
   const news = await News.aggregate(pipeline);
 
-  return news[0] || { success: false, message: 'News not found' };
+  return news[0];
+};
+
+export const findNewsById = async (id: string): Promise<INewsDoc | null> => {
+  return await News.findById(id);
+};
+
+export const deleteNewsById = async (id: string): Promise<INewsDoc | null> => {
+  return await News.findByIdAndDelete(id);
+};
+
+export const updateNewsById = async (id: string, payload: NewNewsType): Promise<INewsDoc | null> => {
+  return await News.findByIdAndUpdate(id, payload, { new: true });
 };
