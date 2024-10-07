@@ -15,7 +15,6 @@ export const createJobTitle = async (
   return await JobTitle.create({ ...jobTitleBody, managerId, officeId, organizationId });
 };
 
-
 export const getJobTitles = async (
   organizationId: mongoose.Types.ObjectId,
   page: number = 1,
@@ -31,6 +30,24 @@ export const getJobTitles = async (
     { $unwind: { path: '$manager', preserveNullAndEmptyArrays: true } },
     { $lookup: { from: 'offices', localField: 'officeId', foreignField: '_id', as: 'office' } },
     { $unwind: { path: '$office', preserveNullAndEmptyArrays: true } },
+    // Find number of employees in each job title
+    {
+      $lookup: {
+        from: 'employees',
+        let: { jobTitleId: '$_id' },
+        pipeline: [{ $match: { $expr: { $eq: ['$jobTitleId', '$$jobTitleId'] } } }, { $count: 'count' }],
+        as: 'employees',
+      },
+    },
+    // Check if employees array is empty if so set count to 0
+    {
+      $addFields: {
+        employees: {
+          $cond: [{ $eq: [{ $size: '$employees' }, 0] }, [{ count: 0 }], '$employees'],
+        },
+      },
+    },
+    { $addFields: { employeeCount: { $arrayElemAt: ['$employees.count', 0] } } },
     { $addFields: { officeName: '$office.name', officeLocation: '$office.location' } },
     {
       $addFields: {
@@ -52,7 +69,8 @@ export const getJobTitles = async (
         __v: 0,
         updatedAt: 0,
         createdAt: 0,
-        office:0,
+        office: 0,
+        employees: 0,
       },
     },
     { $sort: { createdAt: -1 } },
@@ -83,11 +101,10 @@ export const getJobTitles = async (
       },
     },
   ]);
-  
-  return jobTitles[0] || {  results: [] , page, limit, totalPages: 0, totalResults: 0 };
-}
 
+  return jobTitles[0] || { results: [], page, limit, totalPages: 0, totalResults: 0 };
+};
 
 export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Promise<IJobTitleDoc | null> => {
   return await JobTitle.findById(jobTitleId);
-}
+};
