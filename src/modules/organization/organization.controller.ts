@@ -104,3 +104,18 @@ export const getOrganizationChart = catchAsync(async (req: Request, res: Respons
 
   return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data });
 });
+
+
+export const getOrganizationData = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const organization = await organizationService.getOrganizationByUserId(id);
+
+  if (!organization) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+  }
+
+  const data = await organizationService.getOrgConfig(organization.id as mongoose.Types.ObjectId);
+
+  return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data });
+});

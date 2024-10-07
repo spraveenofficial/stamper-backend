@@ -20,5 +20,6 @@ router.post(
 
 router.get('/employees', auth('getEmployees'), organizationController.getOrganizationEmployees);
 router.get('/org-chart', auth(), organizationController.getOrganizationChart);
+router.get('/data', auth(), organizationController.getOrganizationData);
 
 export default router;

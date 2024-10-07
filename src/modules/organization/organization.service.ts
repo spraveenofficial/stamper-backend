@@ -144,8 +144,96 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
       },
     },
   ]);
-  
-  
 
   return orgChart;
+};
+
+export const getOrgConfig = async (orgId: mongoose.Types.ObjectId): Promise<any> => {
+  // Get all the offices of this organization
+  // Get all the departments of each office
+  // Get all the jobTitles of each department
+  const organizationId = new mongoose.Types.ObjectId(orgId);
+  const organizationConfig = await Office.aggregate([
+    {
+      $match: {
+        organizationId: organizationId,
+      },
+    },
+    {
+      $lookup: {
+        from: 'departments',
+        localField: '_id',
+        foreignField: 'officeId',
+        as: 'departments',
+      },
+    },
+    {
+      $unwind: {
+        path: '$departments',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'jobtitles',
+        localField: 'departments._id',
+        foreignField: 'departmentId',
+        as: 'departments.jobTitles',
+      },
+    },
+    {
+      $group: {
+        _id: '$_id', // Group by office ID
+        name: { $first: '$name' }, // Office name
+        location: { $first: '$location' }, // Any other office fields
+        departments: {
+          $push: {
+            id: '$departments._id', // Department ID
+            name: '$departments.title', // Department name
+            jobtitles: {
+              $map: {
+                input: '$departments.jobTitles',
+                as: 'jobTitle',
+                in: {
+                  id: '$$jobTitle._id',
+                  name: '$$jobTitle.jobTitle',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      // Filter out departments where `jobtitles` is empty
+      $project: {
+        _id: 1,
+        name: 1,
+        location: 1,
+        departments: {
+          $filter: {
+            input: '$departments',
+            as: 'department',
+            cond: {
+              $and: [
+                { $ne: ['$$department.id', null] },
+                { $gt: [{ $size: '$$department.jobtitles' }, 0] }, // Only include departments with jobtitles > 0
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        id: '$_id',
+        name: 1,
+        location: 1,
+        departments: 1, // Departments are renamed, with jobtitles nested within departments
+        _id: 0,
+      },
+    },
+  ]);
+
+  return organizationConfig;
 };
