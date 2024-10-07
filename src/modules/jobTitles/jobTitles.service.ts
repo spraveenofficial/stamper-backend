@@ -83,7 +83,8 @@ export const getJobTitles = async (
       },
     },
   ]);
-  return jobTitles[0] || { success: true, data: { results: [] }, page, limit, totalPages: 0, totalResults: 0 };
+  
+  return jobTitles[0] || {  results: [] , page, limit, totalPages: 0, totalResults: 0 };
 }
 
 
