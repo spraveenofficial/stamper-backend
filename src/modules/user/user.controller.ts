@@ -61,9 +61,9 @@ export const updateProfilePicture = catchAsync(async (req: Request, res: Respons
 
 export const changePassword = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-  
+
   const user = await userService.getUserById(id);
-  
+
   if (req.body.oldPassword === req.body.newPassword) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'New password must be different from old password');
   }
@@ -80,5 +80,11 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
 export const getUserCapLimits = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const capLimits = await userCapService.getCapLimitsByUserId(id);
-  res.send(capLimits);
+
+  const response = {
+    limit: capLimits,
+    // other data
+  };
+  
+  res.status(httpStatus.OK).json({ success: true, message: 'Cap limits fetched successfully', data: response });
 });

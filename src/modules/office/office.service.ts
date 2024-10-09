@@ -78,7 +78,7 @@ export const getOffices = async (
     },
   ]);
 
-  return offices[0];
+  return offices.length ? offices[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 }
 };
 
 export const editOffice = async (officeId: mongoose.Types.ObjectId, payload: Partial<IOffice>): Promise<IOffice | null> => {

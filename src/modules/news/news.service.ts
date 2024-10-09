@@ -76,7 +76,7 @@ export const getLatestNews = async (
     },
   ]);
 
-  return news[0] || { success: true, data: { results: [] }, page, limit, totalPages: 0, totalResults: 0 };
+  return news.length ? news[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
 export const getNewsById = async (id: string): Promise<INewsDoc> => {

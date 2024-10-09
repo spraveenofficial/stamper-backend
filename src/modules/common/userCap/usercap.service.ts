@@ -61,21 +61,37 @@ export const addUserCapBasedOnRoleAndPlan = async (
 };
 
 /**
- * 
- * @param userId 
+ *
+ * @param userId
  * @returns Promise<ICapLimitsDoc>
  */
 export const getCapLimitsByUserId = async (userId: mongoose.Types.ObjectId): Promise<ICapLimitsDoc> => {
   const response = await UserCap.findOne({ userId }).select('-_id -__v').lean().exec();
 
-  return response || {
-    addOffice: 0,
-    addDepartment: 0,
-    addJobTitle: 0,
-    addEmployee: 0,
-    addManager: 0,
-    addFolder: 0,
-    addDocument: 0,
-    canSubscribeToPlan: false,
-  } as ICapLimitsDoc;  // Explicitly cast this object to match the expected type
+  return (
+    response ||
+    ({
+      addOffice: 0,
+      addDepartment: 0,
+      addJobTitle: 0,
+      addEmployee: 0,
+      addManager: 0,
+      addFolder: 0,
+      addDocument: 0,
+      canSubscribeToPlan: false,
+    } as ICapLimitsDoc)
+  ); // Explicitly cast this object to match the expected type
+};
+
+export const updateCapLimitsByUserIdAndKey = async (
+  userId: mongoose.Types.ObjectId,
+  key: string,
+  value: number
+): Promise<ICapLimitsDoc | null> => {
+  const response = await UserCap.findOneAndUpdate({ userId }, { [key]: value }, { new: true })
+    .select('-_id -__v')
+    .lean()
+    .exec();
+
+  return response;
 };
