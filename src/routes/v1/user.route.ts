@@ -13,7 +13,7 @@ const router: Router = express.Router();
 
 router.route('/profile').get(auth('profile'), userController.getSelfUser);
 router.route('/edit-profile').patch(auth('profile'), userController.updateSelfUser);
-router.route('/:userId').get(auth('getUsers'), validate(userValidation.getUser), userController.getUsers);
+// router.route('/:userId').get(auth('getUsers'), validate(userValidation.getUser), userController.getUsers);
 // .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
 // .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 router
@@ -22,6 +22,8 @@ router
 
 
 router.route('/change-password').patch(auth('profile'), validate(userValidation.changePassword), userController.changePassword);
+
+router.route('/cap-check').get(auth(), userController.getUserCapLimits);
   
 export default router;
 

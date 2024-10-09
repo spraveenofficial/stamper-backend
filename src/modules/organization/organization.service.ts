@@ -115,26 +115,6 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
       },
     },
     {
-      // Filter out departments where `children` (jobTitles) is empty
-      $project: {
-        _id: 1,
-        name: 1,
-        location: 1,
-        children: {
-          $filter: {
-            input: '$children',
-            as: 'department',
-            cond: {
-              $and: [
-                { $ne: ['$$department.id', null] },
-                { $gt: [{ $size: '$$department.children' }, 0] }, // Only include departments with jobTitles (children) > 0
-              ],
-            },
-          },
-        },
-      },
-    },
-    {
       $project: {
         id: '$_id',
         name: 1,
@@ -199,26 +179,6 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId): Promise<any>
                   name: '$$jobTitle.jobTitle',
                 },
               },
-            },
-          },
-        },
-      },
-    },
-    {
-      // Filter out departments where `jobtitles` is empty
-      $project: {
-        _id: 1,
-        name: 1,
-        location: 1,
-        departments: {
-          $filter: {
-            input: '$departments',
-            as: 'department',
-            cond: {
-              $and: [
-                { $ne: ['$$department.id', null] },
-                { $gt: [{ $size: '$$department.jobtitles' }, 0] }, // Only include departments with jobtitles > 0
-              ],
             },
           },
         },

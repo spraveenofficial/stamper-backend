@@ -1,10 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose, { CallbackError } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import toJSON from '../toJSON/toJSON';
 import paginate from '../paginate/paginate';
 import { rolesEnum } from '../../config/roles';
 import { IUserDoc, IUserModel } from './user.interfaces';
+import { plansInterfaces } from '../common/plans';
+import { userCapService } from '../common/userCap';
 
 const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
   {
@@ -98,6 +100,24 @@ userSchema.pre('save', async function (next) {
   const user = this;
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 8);
+  }
+  next();
+});
+
+/**
+ * Post-save hook to create user cap limits based on role and plan
+ */
+userSchema.post('save', async function (user, next) {
+  try {
+    // Assign the role and default plan (e.g., FREE plan)
+    const role = user.role;
+    const plan = plansInterfaces.SubscriptionPlanEnum.FREE; // You can set the default plan
+
+    // Call the function to add cap limits for the user
+    await userCapService.addUserCapBasedOnRoleAndPlan(user._id as mongoose.Types.ObjectId, role as rolesEnum, plan);
+  } catch (error) {
+    next(error as CallbackError); // Cast error to CallbackError to ensure correct type
+    return; // Ensure the middleware does not continue if an error occurred
   }
   next();
 });

@@ -9,6 +9,7 @@ import { organizationService } from '../organization';
 import { s3Services } from '../s3';
 import { ApiError } from '../errors';
 import { rolesEnum } from '../../config/roles';
+import { userCapService } from '../common/userCap';
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.createUserAsOrganization(req.body, req.t);
@@ -74,4 +75,10 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
   await userService.updateUserById(id, { password: req.body.newPassword });
 
   res.status(httpStatus.OK).json({ success: true, message: 'Password changed successfully' });
+});
+
+export const getUserCapLimits = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const capLimits = await userCapService.getCapLimitsByUserId(id);
+  res.send(capLimits);
 });
