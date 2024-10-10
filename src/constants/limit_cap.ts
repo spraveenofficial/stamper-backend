@@ -53,8 +53,9 @@ const ROLE_LIMITS : Record<rolesEnum, (keyof ICapLimitsType)[]> = {
     'ADD_FOLDER',
     'ADD_DOCUMENT',
   ],
-  admin: ['ADD_EMPLOYEE', 'ADD_FOLDER', 'ADD_DOCUMENT'],
+  admin: [],
   employee: ['ADD_FOLDER', 'ADD_DOCUMENT'],
+  moderator: [],
 };
 
 // Mapping between snake_case keys and camelCase keys

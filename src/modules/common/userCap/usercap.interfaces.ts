@@ -2,6 +2,7 @@ import mongoose, { Document, Model } from 'mongoose';
 
 export interface ICapLimits {
   userId: mongoose.Types.ObjectId;
+  parentLimitId: mongoose.Types.ObjectId | null,
   addOffice: number;
   addDepartment: number;
   addJobTitle: number;

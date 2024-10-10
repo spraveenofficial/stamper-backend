@@ -33,4 +33,5 @@ export enum rolesEnum {
   organization = 'organization',
   employee = 'employee',
   admin = 'admin',
+  moderator = 'moderator',
 }
