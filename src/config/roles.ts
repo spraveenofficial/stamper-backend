@@ -15,7 +15,9 @@ const allRoles = {
     'createDocumentFolder',
     'createNews',
     'deleteNews',
-    'updateNews'
+    'updateNews',
+    'addLeaveType',
+    'addLeavePolicy'
   ],
   employee: ['profile'],
   admin: ['profile'],

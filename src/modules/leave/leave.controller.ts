@@ -8,6 +8,9 @@ import { rolesEnum } from '../../config/roles';
 import { notificationServices } from '../notification';
 import { userService } from '../user';
 import { LeaveStatus } from './leave.interfaces';
+import { organizationService } from '../organization';
+import { leaveAndPolicyService } from '../common/leavePolicies';
+import { ApiError } from '../errors';
 
 export const createLeave = catchAsync(async (req: Request, res: Response) => {
   // Check if from date is greater than to date
@@ -68,14 +71,70 @@ export const updateLeaveStatus = catchAsync(async (req: Request, res: Response) 
   const { leaveId } = req.body;
 
   const leave = await leaveService.updateLeaveStatus(req.body, new mongoose.Types.ObjectId(leaveId), id);
-  if(leave.status === LeaveStatus.APPROVED) {
+  if (leave.status === LeaveStatus.APPROVED) {
     const user = await userService.getUserById(new mongoose.Types.ObjectId(leave?.employeeId as unknown as string));
     const managerInformation = await userService.getUserById(new mongoose.Types.ObjectId(id));
-    await notificationServices.createLeaveApprovedNotification(user!.id, managerInformation!.name, managerInformation?.id, leave._id);
+    await notificationServices.createLeaveApprovedNotification(
+      user!.id,
+      managerInformation!.name,
+      managerInformation?.id,
+      leave._id
+    );
   }
-  
+
   res.status(httpStatus.OK).json({
     message: 'Leave Updated Successfully',
+    leave,
+  });
+});
+
+export const addLeaveType = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const organization = await organizationService.getOrganizationByUserId(id);
+
+  if (!organization) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Organization not found');
+  }
+
+  const leave = await leaveAndPolicyService.createLeaveType({ ...req.body, organizationId: organization!.id }, req.t);
+
+  return res.status(httpStatus.CREATED).json({
+    message: 'Leave type added successfully',
+    leave,
+  });
+});
+
+export const addPolicyToLeaveType = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const organization = await organizationService.getOrganizationByUserId(id);
+
+  if (!organization) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Organization not found');
+  }
+
+  const leave = await leaveAndPolicyService.createLeavePolicy(req.body, req.t);
+
+  return res.status(httpStatus.CREATED).json({
+    message: 'Policy added to leave type successfully',
+    leave,
+  });
+});
+
+export const getLeaveTypes = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const organization = await organizationService.getOrganizationByUserId(id);
+
+  if (!organization) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Organization not found');
+  }
+
+  const leave = await leaveAndPolicyService.getLeaveTypesByOrganizationId(organization!.id);
+
+  return res.status(httpStatus.OK).json({
+    message: 'Leave types fetched successfully',
     leave,
   });
 });

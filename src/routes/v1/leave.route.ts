@@ -16,4 +16,14 @@ router
   .route('/status')
   .post(auth('editLeaveStatus'), validate(leaveValidation.updateLeaveStatus), leaveController.updateLeaveStatus);
 
+
+router.route('/organization/leave-type').
+ put(auth('addLeaveType'), validate(leaveValidation.createLeaveType), leaveController.addLeaveType);
+  
+router.route('/organization/leave-policy').
+  put(auth('addLeavePolicy'), validate(leaveValidation.createLeaveTypePolicy), leaveController.addPolicyToLeaveType);
+
+router.route('/organization/leave-type/list').get(auth(), leaveController.getLeaveTypes);
+
+  
 export default router;

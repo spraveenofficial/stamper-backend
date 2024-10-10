@@ -25,9 +25,9 @@ export const createUserAsOrganization = async (userBody: NewCreatedUser, t: (key
  * @returns {Promise<IUserDoc>}
  */
 
-export const createUserAsEmployee = async (userBody: NewCreatedUser): Promise<IUserDoc> => {
+export const createUserAsEmployee = async (userBody: NewCreatedUser, t:(key: string) =>string): Promise<IUserDoc> => {
   if (await User.isEmailTaken(userBody.email)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+    throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.emailAlreadyExists'));
   }
   return User.create({ ...userBody, role: rolesEnum.employee });
 };

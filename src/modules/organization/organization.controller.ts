@@ -50,7 +50,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Job title not found');
   }
 
-  const employee = await userService.createUserAsEmployee(user);
+  const employee = await userService.createUserAsEmployee(user, req.t);
   // TODO: Check if employee already exists
   const employeeInformations = await employeeService.addEmployee({
     ...employeeInformation,
