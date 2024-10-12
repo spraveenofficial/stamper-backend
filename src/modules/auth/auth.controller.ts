@@ -35,18 +35,37 @@ export const login = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {
-  const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
-  const domain = host.includes('localhost') ? 'localhost' : 'stamper.tech';
-  
-  await authService.logout(req.body.refreshToken, req.t);
-  
-  res.setHeader('Set-Cookie', [
-    tokenService.getCookieForLogout(req.body.accessToken, 'token', domain, req.secure),
-    tokenService.getCookieForLogout(req.body.refreshToken, 'refreshToken', domain, req.secure),
-  ]);
+  // Determine the domain for cookie clearing
+  const host: any = req.headers.host ? req.headers.host.split(':')[0] : 'localhost' as string;
+  const domain = host.includes('localhost') ? 'localhost' : '.stamper.tech'; // Ensure cross-subdomain compatibility
 
-  res.status(httpStatus.OK).json({ success: true, message: req.t('Auth.logoutSuccess') });
+  // Call your auth service to log out the user (e.g., invalidating refresh token)
+  await authService.logout(req.body.refreshToken, req.t);
+
+  // Clear the cookies by using res.clearCookie
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: req.secure, // Ensure secure flag is set if you're using HTTPS
+    domain: domain,
+    sameSite: 'none',  // Needed for cross-site cookie clearing
+    path: '/',
+  });
+
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: req.secure,
+    domain: domain,
+    sameSite: 'none',
+    path: '/',
+  });
+
+  // Send a success response
+  res.status(httpStatus.OK).json({
+    success: true,
+    message: req.t('Auth.logoutSuccess'),
+  });
 });
+
 
 export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
   const userWithTokens = await authService.refreshAuth(req.body.refreshToken, req.t);

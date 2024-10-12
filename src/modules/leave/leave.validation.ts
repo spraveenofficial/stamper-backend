@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { objectId } from '../validate';
-import { LeaveStatus } from './leave.interfaces';
+import { LeaveStatus, NewLeave } from './leave.interfaces';
 import { leavePoliciesInterface } from '../common/leavePolicies';
 
 const createLeaveTypeBody: Record<keyof leavePoliciesInterface.NewLeaveType, any> = {
@@ -31,8 +31,8 @@ export const createLeaveTypePolicy = {
   body: Joi.object().keys(createLeaveTypePolicyBody),
 };
 
-const createLeaveBody = {
-  leaveType: Joi.string().required(),
+const createLeaveBody: Record<keyof NewLeave, any> = {
+  leaveTypeId: Joi.string().custom(objectId).required(),
   startDate: Joi.date().required(),
   endDate: Joi.date().required(),
   total: Joi.number().required(),

@@ -21,7 +21,7 @@ const leaveTypeSchema = new Schema<leavePoliciesInterface.ILeaveTypeDoc, leavePo
   isOperational: {
     type: Boolean,
     required: false,
-    default: true,
+    default: false,
   },
   policyId: {
     type: Schema.Types.ObjectId,

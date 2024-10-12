@@ -31,5 +31,11 @@
     "newsDeleteSuccess": "News deleted successfully",
     "newsFetchSuccess": "News fetched successfully",
     "notAuthorizedToPerformAction": "You are not authorized to perform this action"
+  },
+  "validation": {
+    "objectIdInvalid": "{{field}} must be a valid MongoDB ObjectId",
+    "string.base": "{{field}} must be a string",
+    "string.empty": "{{field}} cannot be empty",
+    "any.required": "{{field}} is required"
   }
 }

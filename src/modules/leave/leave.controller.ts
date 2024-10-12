@@ -13,6 +13,7 @@ import { leaveAndPolicyService } from '../common/leavePolicies';
 import { ApiError } from '../errors';
 
 export const createLeave = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
   // Check if from date is greater than to date
   // if (new Date(req.body.startDate) > new Date(req.body.endDate)) {
   //   res.status(httpStatus.BAD_REQUEST).json({
@@ -33,13 +34,24 @@ export const createLeave = catchAsync(async (req: Request, res: Response) => {
   //     message: 'Start date cannot be more than 3 months',
   //   });
   // }
-  const leave = await leaveService.createLeave(req.body, req.user.id, req.file);
-  const user = await userService.getUserById(req.user.id);
-  const managerId = await employeeService.getEmployeeByUserId(req.user.id);
-  if (req.user?.role === rolesEnum.employee) {
-    await notificationServices.createLeaveRequestNotification(managerId!.managerId, user!.name, user?._id, leave._id);
+  const leaveType = await leaveAndPolicyService.getLeaveTypeById(req.body.leaveTypeId);
+  if (!leaveType || !leaveType.policyId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Leave type not found');
   }
+
+  // Check if user is having enough leave balance
+  console.log('Leave Type:', leaveType);
+
+  const user = await userService.getUserById(id);
+  const managerId = await employeeService.getEmployeeByUserId(id);
+  const leave = await leaveService.createLeave(req.body, id, req.file);
+
+  if (req.user?.role !== rolesEnum.organization && managerId) {
+    await notificationServices.createLeaveRequestNotification(managerId.managerId, user!.name, user?._id, leave._id);
+  }
+
   res.status(httpStatus.CREATED).json({
+    success: true,
     message: 'Leave created successfully',
     leave,
   });
@@ -53,6 +65,7 @@ export const updateLeave = catchAsync(async (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
       message: 'Leave Updated Successfully',
       leave,
+      success: true,
     });
   }
 });
@@ -63,6 +76,7 @@ export const getMyOwnLeaves = catchAsync(async (req: Request, res: Response) => 
   res.status(httpStatus.OK).json({
     message: 'Leaves fetched successfully',
     data: leaves,
+    success: true,
   });
 });
 
@@ -122,7 +136,7 @@ export const addPolicyToLeaveType = catchAsync(async (req: Request, res: Respons
   });
 });
 
-export const getLeaveTypes = catchAsync(async (req: Request, res: Response) => {
+export const getLeaveTypesWithPolicy = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
 
   const organization = await organizationService.getOrganizationByUserId(id);
@@ -134,7 +148,26 @@ export const getLeaveTypes = catchAsync(async (req: Request, res: Response) => {
   const leave = await leaveAndPolicyService.getLeaveTypesByOrganizationId(organization!.id);
 
   return res.status(httpStatus.OK).json({
+    success: true,
     message: 'Leave types fetched successfully',
     leave,
+  });
+});
+
+export const getOnlyLeaveTypes = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const organization = await organizationService.getOrganizationByUserId(id);
+
+  if (!organization) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Organization not found');
+  }
+
+  const leave = await leaveAndPolicyService.getOnlyLeaveTypesByOrganizationId(organization!.id);
+
+  return res.status(httpStatus.OK).json({
+    success: true,
+    message: 'Leave types fetched successfully',
+    data: leave,
   });
 });

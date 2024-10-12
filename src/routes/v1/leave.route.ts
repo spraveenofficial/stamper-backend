@@ -23,7 +23,8 @@ router.route('/organization/leave-type').
 router.route('/organization/leave-policy').
   put(auth('addLeavePolicy'), validate(leaveValidation.createLeaveTypePolicy), leaveController.addPolicyToLeaveType);
 
-router.route('/organization/leave-type/list').get(auth(), leaveController.getLeaveTypes);
+router.route('/organization/leave-type/list').get(auth(), leaveController.getLeaveTypesWithPolicy);
 
+router.route('/leave-types').get(auth(), leaveController.getOnlyLeaveTypes);
   
 export default router;

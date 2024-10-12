@@ -35,6 +35,7 @@ export const createLeavePolicy = async (
   const leavePolicyResponse = await LeavePolicy.create(leavePolicy);
 
   leaveType.policyId = leavePolicyResponse._id;
+  leaveType.isOperational = true;
   await leaveType.save();
   return leavePolicyResponse as leavePoliciesInterface.ILeavePolicyTypeDoc;
 };
@@ -45,7 +46,7 @@ export const createLeavePolicy = async (
  * @returns
  */
 export const getLeaveTypeById = async (id: mongoose.Types.ObjectId): Promise<leavePoliciesInterface.ILeaveTypeDoc | null> =>
-  await LeaveType.findById(id);
+  await LeaveType.findById(id).populate('policyId').exec();
 
 
 
@@ -54,4 +55,11 @@ export const getLeaveTypesByOrganizationId = async (
     ): Promise<leavePoliciesInterface.ILeaveTypeDoc[]> => await LeaveType
     .find({ organizationId })
     .populate('policyId')
+    .exec();
+
+
+export const getOnlyLeaveTypesByOrganizationId = async (
+    organizationId: mongoose.Types.ObjectId
+    ): Promise<leavePoliciesInterface.ILeaveTypeDoc[]> => await LeaveType
+    .find({ organizationId }).select('-policyId -organizationId')
     .exec();

@@ -9,7 +9,7 @@ const leaveSchema = new mongoose.Schema<ILeaveDoc, ILeaveModel>(
       ref: 'Employee',
       required: true,
     },
-    leaveType: {
+    leaveTypeId: {
       type: String,
       required: true,
     },

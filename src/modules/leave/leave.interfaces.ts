@@ -8,7 +8,7 @@ export enum LeaveStatus {
 
 export interface ILeave {
   employeeId: mongoose.Schema.Types.ObjectId;
-  leaveType: string;
+  leaveTypeId: mongoose.Schema.Types.ObjectId;
   total: number;
   attachment: string;
   startDate: Date;
