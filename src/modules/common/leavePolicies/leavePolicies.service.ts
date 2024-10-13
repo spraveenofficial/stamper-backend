@@ -32,6 +32,11 @@ export const createLeavePolicy = async (
   if (!leaveType) {
     throw new Error(t('LeavePolicies.leaveTypeNotExist error'));
   }
+
+  if(leaveType.isOperational){
+    throw new Error(t('LeavePolicies.leaveTypeOperational error'));
+  }
+  
   const leavePolicyResponse = await LeavePolicy.create(leavePolicy);
 
   leaveType.policyId = leavePolicyResponse._id;

@@ -6,7 +6,10 @@ import { leavePoliciesInterface } from '../common/leavePolicies';
 const createLeaveTypeBody: Record<keyof leavePoliciesInterface.NewLeaveType, any> = {
   leaveType: Joi.string().required(),
   isPaid: Joi.boolean().required(),
-  unit: Joi.string().valid(...Object.values(leavePoliciesInterface.LeaveUnit)).required(),
+  unit: Joi.string()
+    .valid(...Object.values(leavePoliciesInterface.LeaveUnit))
+    .required(),
+  isEarned: Joi.boolean().optional(),
 };
 
 const createLeaveTypePolicyBody: Record<keyof leavePoliciesInterface.ILeavePolicyType, any> = {
@@ -18,10 +21,11 @@ const createLeaveTypePolicyBody: Record<keyof leavePoliciesInterface.ILeavePolic
   canCarryForward: Joi.boolean().required(),
   leaveExpiryDate: Joi.date().required(),
   maxAccrual: Joi.number().required(),
-  durationType: Joi.string().required(),
+  durationType: Joi.array()
+    .items(Joi.string().valid(...Object.values(leavePoliciesInterface.DurationType)))
+    .required(),
   frequencyCount: Joi.number().required(),
 };
-
 
 export const createLeaveType = {
   body: Joi.object().keys(createLeaveTypeBody),

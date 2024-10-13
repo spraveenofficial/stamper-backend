@@ -18,6 +18,11 @@ const leaveTypeSchema = new Schema<leavePoliciesInterface.ILeaveTypeDoc, leavePo
     type: Boolean,
     required: true,
   },
+  isEarned: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
   isOperational: {
     type: Boolean,
     required: false,
@@ -82,7 +87,7 @@ const leavePolicySchema = new Schema<
     required: true,
   },
   durationType: {
-    type: String,
+    type: [String],
     required: true,
     enum: leavePoliciesInterface.DurationType,
   },

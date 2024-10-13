@@ -106,7 +106,7 @@ export const getNewsById = async (id: string): Promise<INewsDoc> => {
 
   const news = await News.aggregate(pipeline);
 
-  return news[0];
+  return news[0] || { results: [], page: 1, limit: 10, totalResults: 0, totalPages: 0 };
 };
 
 export const findNewsById = async (id: string): Promise<INewsDoc | null> => {

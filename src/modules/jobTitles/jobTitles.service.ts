@@ -102,7 +102,7 @@ export const getJobTitles = async (
     },
   ]);
 
-  return jobTitles[0] || { results: [], page, limit, totalPages: 0, totalResults: 0 };
+  return jobTitles[0] || { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
 export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Promise<IJobTitleDoc | null> => {

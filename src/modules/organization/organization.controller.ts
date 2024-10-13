@@ -61,9 +61,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
     officeId: office.id as mongoose.Types.ObjectId,
     departmentId: department.id as mongoose.Types.ObjectId,
   });
-
-  //TODO: Create token and send invitation email
-
+  
   const token = await tokenService.generateOrganizationInvitationToken(employee);
 
   if (DevelopmentOptions.production) {

@@ -16,12 +16,20 @@ export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: R
   const { token } = req.query;
   const isTokenValid = await tokenService.verifyToken(token as string, tokenTypes.INVITATION);
 
+  if (!isTokenValid) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid Token');
+  }
+
   const employeeid = new mongoose.Types.ObjectId(isTokenValid.user);
   const user = await userService.getUserById(employeeid);
+
   
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }
+  
+  const token_for = await tokenService.generateOrganizationInvitationToken(user);
+  console.log('Token:', token_for);
   const updatePassword = await userService.updateUserById(user.id, body);
   await employeeService.updateEmployeeAccountStatus(user.id, employeeAccountStatus.Active);
   await tokenService.deleteToken(token as string);

@@ -93,7 +93,7 @@ export const getDepartments = async (
     },
   ]);
 
-  return departments[0] || { success: true, data: { results: [] }, page, limit, totalPages: 0, totalResults: 0 };
+  return departments[0] || { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
 

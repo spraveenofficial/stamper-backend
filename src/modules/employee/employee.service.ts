@@ -14,11 +14,7 @@ export const getEmployeeById = async (id: string): Promise<IEmployee | null> => 
 export const getEmployeeByUserId = async (userId: string): Promise<IEmployeeDoc | null> => Employee.findOne({ userId });
 
 // Function to get employees by manager ID with modified response structure
-export const getEmployeesByManagerId = async (
-  managerId: string,
-  page: number = 1,
-  limit: number = 10
-): Promise<any> => {
+export const getEmployeesByManagerId = async (managerId: string, page: number = 1, limit: number = 10): Promise<any> => {
   const managerID = new mongoose.Types.ObjectId(managerId);
 
   const skip = (page - 1) * limit;
@@ -41,15 +37,15 @@ export const getEmployeesByManagerId = async (
         localField: 'managerId', // Field from the Employee collection
         foreignField: '_id', // Field from the User collection
         as: 'managerDetails', // Output array field
-      }
+      },
     },
     {
       $lookup: {
-         from: 'jobtitles', // Collection to join with
-          localField: 'jobTitleId', // Field from the Employee collection
-          foreignField: '_id', // Field from the JobTitle collection
-          as: 'jobTitleDetails', // Output array field
-      }
+        from: 'jobtitles', // Collection to join with
+        localField: 'jobTitleId', // Field from the Employee collection
+        foreignField: '_id', // Field from the JobTitle collection
+        as: 'jobTitleDetails', // Output array field
+      },
     },
     {
       $lookup: {
@@ -57,15 +53,15 @@ export const getEmployeesByManagerId = async (
         localField: 'departmentId', // Field from the Employee collection
         foreignField: '_id', // Field from the Department collection
         as: 'departmentDetails', // Output array field
-      }
+      },
     },
     {
-      $lookup:{
+      $lookup: {
         from: 'offices', // Collection to join with
         localField: 'officeId', // Field from the Employee collection
         foreignField: '_id', // Field from the Office collection
         as: 'officeDetails', // Output array field
-      }
+      },
     },
     {
       $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true }, // Unwind the userDetails array
@@ -74,7 +70,7 @@ export const getEmployeesByManagerId = async (
       $unwind: { path: '$managerDetails', preserveNullAndEmptyArrays: true }, // Unwind the managerDetails array
     },
     {
-      $unwind: {path: '$jobTitleDetails', preserveNullAndEmptyArrays: true}, // Unwind the jobTitleDetails array
+      $unwind: { path: '$jobTitleDetails', preserveNullAndEmptyArrays: true }, // Unwind the jobTitleDetails array
     },
     {
       $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true }, // Unwind the departmentDetails array
@@ -121,7 +117,7 @@ export const getEmployeesByManagerId = async (
       $facet: {
         metadata: [
           { $count: 'totalCount' }, // Count total documents
-          { $addFields: { page, limit } } // Include page and limit in metadata
+          { $addFields: { page, limit } }, // Include page and limit in metadata
         ],
         data: [
           { $skip: skip }, // Skip for pagination
@@ -130,7 +126,7 @@ export const getEmployeesByManagerId = async (
       },
     },
     {
-      $unwind: '$metadata' // Unwind the metadata array
+      $unwind: '$metadata', // Unwind the metadata array
     },
     {
       $project: {
@@ -138,17 +134,15 @@ export const getEmployeesByManagerId = async (
         page: '$metadata.page',
         limit: '$metadata.limit',
         totalPages: {
-          $ceil: { $divide: ['$metadata.totalCount', limit] } // Calculate totalPages
+          $ceil: { $divide: ['$metadata.totalCount', limit] }, // Calculate totalPages
         },
         totalResults: '$metadata.totalCount',
       },
     },
   ]);
 
-  return employees[0] || { data: {results: []}, page, limit, totalPages: 0, totalResults: 0 }; // Return formatted response
+  return employees.length ? employees[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 }; // Return formatted response
 };
-
-
 
 /**
  * Function to update employee account status
