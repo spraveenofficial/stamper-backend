@@ -40,7 +40,7 @@ export const getCookieWithToken = (token: string, tokenName: string, domainName:
 
   // Determine if it's secure (use Secure only in production)
   const secureFlag = isSecure ? 'Secure;' : 'Secure;';
-  const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=None;';
+  const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
   // Use Domain only in production
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
 
