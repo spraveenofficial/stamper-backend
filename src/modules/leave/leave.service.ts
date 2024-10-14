@@ -43,7 +43,41 @@ export const getLeaveById = async (id: mongoose.Types.ObjectId): Promise<ILeaveD
  * */
 
 export const getLeaveByEmployeeId = async (employeeId: mongoose.Types.ObjectId): Promise<ILeaveDoc[]> => {
-  return Leave.find({ employeeId }).select('-employeeId');
+  const pipeline = [
+    {
+      $match: {
+        employeeId: new mongoose.Types.ObjectId(employeeId), // Match the specific employeeId
+      },
+    },
+    {
+      $lookup: {
+        from: 'leavetypes', // The collection name for LeaveType
+        localField: 'leaveTypeId', // Field in Leave document
+        foreignField: '_id', // Field in LeaveType document
+        as: 'leaveType', // The field name in the output for the populated field
+      },
+    },
+    {
+      $unwind: {
+        path: '$leaveType', // Flatten the array created by $lookup
+        preserveNullAndEmptyArrays: true, // Keep documents even if no leaveType is found
+      },
+    },
+    {
+      $project: {
+        id: '$_id', // Rename _id to id
+        _id: 0, // Exclude the original _id field
+        startDate: 1, // Include other necessary fields
+        endDate: 1,
+        status: 1,
+        total: 1,
+        note: 1,
+        leaveType: '$leaveType.leaveType', // Rename leaveTypeId.leaveType to leaveType in the final output
+      },
+    },
+  ];
+
+  return Leave.aggregate(pipeline);
 };
 
 /**
@@ -102,4 +136,22 @@ export const updateLeaveStatus = async (
   Object.assign(leave, leaveBody);
   await leave.save();
   return leave;
+};
+
+export const getLeaveBalanceByUserId = async (userId: mongoose.Types.ObjectId): Promise<any> => {
+  const pipeline = [
+    {
+      $match: {
+        employeeId: userId,
+      },
+    },
+    {
+      $group: {
+        _id: '$leaveTypeId',
+        total: { $sum: '$total' },
+      },
+    },
+  ];
+
+  return Leave.aggregate(pipeline);
 };

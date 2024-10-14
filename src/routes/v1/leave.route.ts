@@ -26,5 +26,7 @@ router.route('/organization/leave-policy').
 router.route('/organization/leave-type/list').get(auth(), leaveController.getLeaveTypesWithPolicy);
 
 router.route('/leave-types').get(auth(), leaveController.getOnlyLeaveTypes);
+
+router.route('/balance').get(auth(), leaveController.getLeaveBalance);
   
 export default router;

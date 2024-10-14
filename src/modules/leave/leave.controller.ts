@@ -171,3 +171,33 @@ export const getOnlyLeaveTypes = catchAsync(async (req: Request, res: Response) 
     data: leave,
   });
 });
+
+export const getLeaveBalance = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const user = await userService.getUserById(id);
+
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found');
+  }
+
+  let orgId;
+  if (req.user?.role === rolesEnum.organization) {
+    const organization = await organizationService.getOrganizationByUserId(id);
+    orgId = organization?.id;
+  } else {
+    const employee = await employeeService.getEmployeeByUserId(id);
+    orgId = employee?.organizationId;
+  }
+
+  if (!orgId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Organization not found');
+  }
+
+  const leave = await leaveAndPolicyService.getLeavesbalanceByOrgAndEmployeeId(orgId, user.id);
+
+  return res.status(httpStatus.OK).json({
+    success: true,
+    message: 'Leave balance fetched successfully',
+    data: leave,
+  });
+});

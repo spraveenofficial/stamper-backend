@@ -10,8 +10,9 @@ const leaveSchema = new mongoose.Schema<ILeaveDoc, ILeaveModel>(
       required: true,
     },
     leaveTypeId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
+      ref: 'LeaveType',
     },
     total: {
       type: Number,
