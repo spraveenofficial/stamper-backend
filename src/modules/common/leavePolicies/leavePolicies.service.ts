@@ -18,6 +18,18 @@ export const createLeaveType = async (
   return await LeaveType.create(leaveType);
 };
 
+export const updateLeaveTypeById = async (
+  id: mongoose.Types.ObjectId,
+  leaveType: Partial<leavePoliciesInterface.ILeaveType>
+): Promise<leavePoliciesInterface.ILeaveTypeDoc | null> => {
+  const leaveTypeDoc = await LeaveType.findById(id);
+  if (!leaveTypeDoc) {
+    return null;
+  }
+  Object.assign(leaveTypeDoc, leaveType);
+  return await leaveTypeDoc.save();
+};
+
 /**
  *
  * @param leavePolicy
@@ -144,16 +156,16 @@ export const getLeavesbalanceByOrgAndEmployeeId = async (
           ],
         },
         rejectedLeaves: {
-            $arrayElemAt: [
-                {
-                $filter: {
-                    input: '$leaveDetails',
-                    as: 'leave',
-                    cond: { $eq: ['$$leave._id', 'rejected'] },
-                },
-                },
-                0,
-            ],
+          $arrayElemAt: [
+            {
+              $filter: {
+                input: '$leaveDetails',
+                as: 'leave',
+                cond: { $eq: ['$$leave._id', 'rejected'] },
+              },
+            },
+            0,
+          ],
         },
       },
     },

@@ -9,10 +9,10 @@ import mongoose from 'mongoose';
 import { tokenService } from '../token';
 import { DevelopmentOptions } from '../../config/roles';
 import { emailService } from '../email';
-import { IOptions } from '../paginate/paginate';
 import { departmentService } from '../departments';
 import { officeServices } from '../office';
 import { jobTitleService } from '../jobTitles';
+import { employeeAccountStatus, MyEmployeeStatus } from '../employee/employee.interfaces';
 
 export const createOrganization = catchAsync(async (req: Request, res: Response) => {
   const organization = await organizationService.createOrganization(req.body, req.user.id);
@@ -61,7 +61,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
     officeId: office.id as mongoose.Types.ObjectId,
     departmentId: department.id as mongoose.Types.ObjectId,
   });
-  
+
   const token = await tokenService.generateOrganizationInvitationToken(employee);
 
   if (DevelopmentOptions.production) {
@@ -73,17 +73,43 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getOrganizationEmployees = catchAsync(async (req: Request, res: Response) => {
-  const options: IOptions = pick(req.query, ['limit', 'page']);
+  const { limit, page, officeId, accountStatus, employeeStatus } = pick(req.query, [
+    'limit',
+    'page',
+    'officeId',
+    'accountStatus',
+    'employeeStatus',
+  ]);
+
   const organization = await organizationService.getOrganizationByUserId(req.user.id);
   if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   }
 
   // Set default values for pagination
-  const page = Math.max(1, +options.page! || 1); // Default to page 1
-  const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
-  const employees = await employeeService.getEmployeesByManagerId(req.user.id, page, limit);
-  res.status(httpStatus.OK).json({ data: employees });
+  // Pagination defaults
+  const paginationOptions = {
+    page: Math.max(1, +page || 1),
+    limit: Math.max(1, +limit || 10),
+  };
+
+  // Prepare filtering criteria
+  const filterOptions = {
+    officeId: officeId || null,
+    accountStatus: (accountStatus as employeeAccountStatus) || null,
+    employeeStatus: (employeeStatus as MyEmployeeStatus) || null,
+  };
+
+  // Fetch employees with pagination and filters
+  const employees = await employeeService.getEmployeesByOrgId(
+    organization._id,
+    paginationOptions.page,
+    paginationOptions.limit,
+    filterOptions.officeId,
+    filterOptions.accountStatus,
+    filterOptions.employeeStatus
+  );
+  res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data: employees });
 });
 
 export const getOrganizationChart = catchAsync(async (req: Request, res: Response) => {
@@ -97,7 +123,6 @@ export const getOrganizationChart = catchAsync(async (req: Request, res: Respons
     throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   }
 
-  console.log('organization id -------> ', organization);
   const data = await organizationService.getOrgChartById(organization.id as mongoose.Types.ObjectId);
 
   return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data });

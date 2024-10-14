@@ -137,21 +137,3 @@ export const updateLeaveStatus = async (
   await leave.save();
   return leave;
 };
-
-export const getLeaveBalanceByUserId = async (userId: mongoose.Types.ObjectId): Promise<any> => {
-  const pipeline = [
-    {
-      $match: {
-        employeeId: userId,
-      },
-    },
-    {
-      $group: {
-        _id: '$leaveTypeId',
-        total: { $sum: '$total' },
-      },
-    },
-  ];
-
-  return Leave.aggregate(pipeline);
-};
