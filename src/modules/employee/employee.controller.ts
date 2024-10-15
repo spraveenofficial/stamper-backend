@@ -79,21 +79,26 @@ export const generateBulkUploadEmployeeExcelExample = catchAsync(async (_req: Re
   // }
 
   const dummyData = {
-    groups: ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'],
-    departments: ['Development', 'QA', 'Operations', 'Support', 'Research'],
-    designations: ['Software Engineer', 'Marketing Specialist', 'Sales Manager', 'HR Coordinator', 'Financial Analyst'],
-    locations: ['New York', 'San Francisco', 'London', 'Berlin', 'Tokyo'],
-    employeeID: 'EMP123',
-    name: {
-      first: 'John',
-      middle: 'D.',
-      last: 'Doe',
-    },
-    email: 'john.doe@example.com',
-    aadhaarNumber: '123412341234',
-    dateOfJoining: '01-01-2021',
-    dateOfBirth: '01-01-1990',
+    employeeID: "E001",
+    name: { first: "John", middle: "A.", last: "Doe" },
+    PAN: "ABCDE1234F",
+    phone: "1234567890",
+    email: "john.doe@example.com",
+    aadhaarNumber: "123456789012",
+    dateOfJoining: "10-12-2020",
+    dateOfBirth: "01-15-1990",
+    ctc: "500000",
+    isCtcExcludesEmployerContribution: "No",
+    isPFEnabled: "Yes",
+    isVariablePercentage: "No",
+    variablePercentage: "0",
+  
+    groups: ["Engineering", "HR", "Sales", "Marketing", "Operations"],
+    departments: ["Development", "Support", "Admin", "Finance", "Legal"],
+    designations: ["Manager", "Engineer", "HR Specialist", "Sales Executive", "Marketing Lead"],
+    locations: ["New York", "San Francisco", "London", "Sydney", "Tokyo"]
   };
+  
   
   const excel = await excelServices.generateSampleEmployeeBulkUploadExcelSheet(dummyData);
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

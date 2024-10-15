@@ -73,6 +73,7 @@ export const getLeaveByEmployeeId = async (employeeId: mongoose.Types.ObjectId):
         total: 1,
         note: 1,
         leaveType: '$leaveType.leaveType', // Rename leaveTypeId.leaveType to leaveType in the final output
+        leaveTypeId: '$leaveType._id', // Rename leaveTypeId._id to leaveTypeId in the final output
       },
     },
   ];
