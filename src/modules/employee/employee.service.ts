@@ -22,7 +22,7 @@ export const getEmployeesByOrgId = async (
   const skip = (page - 1) * limit;
 
   const matchCriteria: any = {
-    organizationId: new mongoose.Types.ObjectId(orgId), // Match employees with the given managerId
+    organizationId: new mongoose.Types.ObjectId(orgId), // Match employees with the given organizationId
   };
 
   if (officeId) {
@@ -39,7 +39,7 @@ export const getEmployeesByOrgId = async (
 
   const employees = await Employee.aggregate([
     {
-      $match: { ...matchCriteria }, // Stage 1: Match employees with the given managerId
+      $match: { ...matchCriteria }, // Stage 1: Match employees with the given organizationId
     },
     {
       $lookup: {

@@ -10,6 +10,8 @@ import { DevelopmentOptions } from '../../config/roles';
 import { emailService } from '../email';
 import config from '../../config/config';
 import mongoose from 'mongoose';
+// import { organizationService } from '../organization';
+import { excelServices } from '../common/services/excel-service';
 
 export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: Response) => {
   const { body } = req;
@@ -67,4 +69,34 @@ export const reinviteEmployee = catchAsync(async (req: Request, res: Response) =
 
   console.log('Token:', token);
   res.status(httpStatus.OK).json({ success: true, message: 'Employee re-invited successfully' });
+});
+
+export const generateBulkUploadEmployeeExcelExample = catchAsync(async (_req: Request, res: Response) => {
+  // const { id } = req.user;
+  // const organization = await organizationService.getOrganizationByUserId(id);
+  // if (!organization) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+  // }
+
+  const dummyData = {
+    groups: ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'],
+    departments: ['Development', 'QA', 'Operations', 'Support', 'Research'],
+    designations: ['Software Engineer', 'Marketing Specialist', 'Sales Manager', 'HR Coordinator', 'Financial Analyst'],
+    locations: ['New York', 'San Francisco', 'London', 'Berlin', 'Tokyo'],
+    employeeID: 'EMP123',
+    name: {
+      first: 'John',
+      middle: 'D.',
+      last: 'Doe',
+    },
+    email: 'john.doe@example.com',
+    aadhaarNumber: '123412341234',
+    dateOfJoining: '01-01-2021',
+    dateOfBirth: '01-01-1990',
+  };
+  
+  const excel = await excelServices.generateSampleEmployeeBulkUploadExcelSheet(dummyData);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=employee-bulk-upload-example.xlsx');
+  res.status(httpStatus.OK).send(excel);
 });
