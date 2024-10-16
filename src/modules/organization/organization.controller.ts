@@ -134,13 +134,34 @@ export const getOrganizationChart = catchAsync(async (req: Request, res: Respons
 export const getOrganizationData = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
 
+  // Fetch the organization data by user ID
   const organization = await organizationService.getOrganizationByUserId(id);
-  const responseData = {
+
+  // Prepare the response structure
+  const responseData: any = {
     organizationAdded: !!organization,
     config: null,
+    FLOWS: [],
   };
-  if (!organization) return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data: responseData });
-  const data = await organizationService.getOrgConfig(organization?.id as mongoose.Types.ObjectId);
-  responseData.config = data;
-  return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data: responseData });
+  const flowForEmployeeOnboarding = await organizationService.getOrgEmployeeOnBoardingFlow(
+    organization?.id as mongoose.Types.ObjectId,
+    !!organization
+  );
+
+  if (flowForEmployeeOnboarding) {
+    responseData.FLOWS.push(flowForEmployeeOnboarding);
+  }
+
+  if (organization) {
+    // Fetch the organization config
+    const data = await organizationService.getOrgConfig(organization.id as mongoose.Types.ObjectId);
+    responseData.config = data;
+  }
+
+  // Return the response with a success message
+  return res.status(httpStatus.OK).json({
+    success: true,
+    message: 'Fetch Success',
+    data: responseData,
+  });
 });

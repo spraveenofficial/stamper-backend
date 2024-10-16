@@ -5,6 +5,9 @@ import mongoose from 'mongoose';
 import { IOrganization, IOrganizationDoc } from './organization.interfaces';
 import { Employee } from '../employee';
 import { Office } from '../office';
+import { Department } from '../departments';
+import { JobTitle } from '../jobTitles';
+import { FLOW_CONSTANTS } from '../../constants/flow_constansts';
 
 /**
  * Update user by id
@@ -196,4 +199,64 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId): Promise<any>
   ]);
 
   return organizationConfig;
+};
+
+export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.ObjectId, isOrgAdded: boolean): Promise<any> => {
+  // Initialize flow status
+  const flowStatus = {
+    flowName: FLOW_CONSTANTS.EMPLOYEE_ONBOARDING,
+    hasOrganization: isOrgAdded,
+    hasOffice: false,
+    hasDepartment: false,
+    hasJobTitle: false,
+    currentStep: isOrgAdded ? 'office' : null, // Start checking at 'office' only if organization is added
+    message: isOrgAdded ? 'Please add an office to continue.' : 'Please add an organization to continue.',
+    totalSteps: 4, // Total steps include organization, office, department, and job title
+    completedSteps: 0,
+  };
+
+  // If organization is not added, return flow status indicating the need to add an organization
+  if (!isOrgAdded) {
+    return Promise.resolve(flowStatus); // Return flow status with message to add organization
+  }
+
+  // Check for office existence
+  return Office.exists({ organizationId })
+    .then(officeExists => {
+      if (officeExists) {
+        flowStatus.hasOffice = true;
+        flowStatus.currentStep = 'department';
+        flowStatus.message = 'Please add a department to continue.';
+      }
+      return Department.exists({ organizationId });
+    })
+    .then(departmentExists => {
+      if (departmentExists) {
+        flowStatus.hasDepartment = true;
+        flowStatus.currentStep = 'jobTitle';
+        flowStatus.message = 'Please add a job title to continue.';
+      }
+      return JobTitle.exists({ organizationId });
+    })
+    .then(jobTitleExists => {
+      if (jobTitleExists) {
+        flowStatus.hasJobTitle = true;
+        flowStatus.currentStep = 'complete';
+        flowStatus.message = 'You are ready to add an employee.';
+      }
+
+      // Calculate completed steps
+      flowStatus.completedSteps = [
+        flowStatus.hasOrganization,
+        flowStatus.hasOffice,
+        flowStatus.hasDepartment,
+        flowStatus.hasJobTitle,
+      ].filter(Boolean).length;
+
+      // Return null if all steps are completed
+      return flowStatus.completedSteps === flowStatus.totalSteps ? null : flowStatus;
+    })
+    .catch(error => {
+      throw new Error('Error checking preconditions: ' + error.message);
+    });
 };

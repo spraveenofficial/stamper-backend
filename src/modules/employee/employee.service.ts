@@ -328,3 +328,7 @@ export const getEmployeesByOfficeId = async (officeId: string, page: number = 1,
 
   return employees.length ? employees[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 }; // Return formatted response
 };
+
+export const getEmployeeByOfficeIdAndEmpId = async (officeId: mongoose.Types.ObjectId, empId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => {
+  return await Employee.findOne({ officeId, userId: empId });
+};

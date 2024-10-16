@@ -25,7 +25,10 @@ router.get(
   validate(employeeValidation.getEmployeeRequestValidation),
   organizationController.getOrganizationEmployees
 );
+
+
 router.get('/org-chart', auth(), organizationController.getOrganizationChart);
+
 router.get('/data', auth(), organizationController.getOrganizationData);
 
 export default router;

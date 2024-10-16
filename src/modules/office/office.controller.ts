@@ -31,7 +31,7 @@ export const getOffices = catchAsync(async (req: Request, res: Response) => {
   const page = Math.max(1, +options.page! || 1); // Default to page 1
   const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
   const response = await officeServices.getOffices(organization.id, page, limit);
-  res.status(httpStatus.OK).json({ success: true, message: "Success", data: response });
+  res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
 });
 
 export const editOffice = catchAsync(async (req: Request, res: Response) => {
@@ -53,11 +53,10 @@ export const editOffice = catchAsync(async (req: Request, res: Response) => {
   if (office.organizationId.toString() !== organization.id.toString()) {
     throw res.status(httpStatus.BAD_REQUEST).json({ message: 'This office does not belong to the organization' });
   }
-  
+
   const response = await officeServices.editOffice(req.body.officeId, req.body);
   res.status(httpStatus.OK).json({ message: 'Office updated successfully', data: response });
 });
-
 
 // export const getEachOfficeDetails = catchAsync(async (req: Request, res: Response) => {
 //   const { id } = req.user;
@@ -70,8 +69,7 @@ export const editOffice = catchAsync(async (req: Request, res: Response) => {
 //   res.status(httpStatus.OK).json({ message: 'Success', data: response });
 // });
 
-
-export const getOfficeEmployees = catchAsync(async (req: Request, res: Response) => {
+export const getEmployeesByOfficeId = catchAsync(async (req: Request, res: Response) => {
   const { id, role } = req.user;
   const { limit, page, officeId, accountStatus, employeeStatus, name } = pick(req.query, [
     'limit',
@@ -81,14 +79,14 @@ export const getOfficeEmployees = catchAsync(async (req: Request, res: Response)
     'employeeStatus',
     'name',
   ]);
-  
+
   let organization;
-  if(role === rolesEnum.organization){
-    const document = await organizationService.getOrganizationByUserId(id);
-    organization = document?._id;
-  }else{
-    const document = await employeeService.getEmployeeByUserId(id);
-    organization = document?.organizationId;
+  if (role === rolesEnum.organization) {
+    const org = await organizationService.getOrganizationByUserId(id);
+    organization = org?._id;
+  } else {
+    const org = await employeeService.getEmployeeByUserId(id);
+    organization = org?.organizationId;
   }
 
   const paginationOptions = {
@@ -111,8 +109,18 @@ export const getOfficeEmployees = catchAsync(async (req: Request, res: Response)
     filterOptions.officeId,
     filterOptions.accountStatus,
     filterOptions.employeeStatus,
-    filterOptions.name,
+    filterOptions.name
   );
 
   res.status(httpStatus.OK).json({ message: 'Success', data: employees });
+});
+
+export const assignManagerToOffice = catchAsync(async (req: Request, res: Response) => {
+  const { managerId, officeId } = req.body;
+  const isEmployee = await employeeService.getEmployeeByOfficeIdAndEmpId(officeId, managerId);
+  if (!isEmployee) {
+    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Manager does not belong to this office' });
+  }
+  const response = await officeServices.editOffice(officeId, { managerId: managerId });
+  res.status(httpStatus.OK).json({ message: 'Manager assigned successfully', data: response });
 });
