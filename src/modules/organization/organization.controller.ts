@@ -73,12 +73,13 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getOrganizationEmployees = catchAsync(async (req: Request, res: Response) => {
-  const { limit, page, officeId, accountStatus, employeeStatus } = pick(req.query, [
+  const { limit, page, officeId, accountStatus, employeeStatus, name } = pick(req.query, [
     'limit',
     'page',
     'officeId',
     'accountStatus',
     'employeeStatus',
+    'name',
   ]);
 
   const organization = await organizationService.getOrganizationByUserId(req.user.id);
@@ -98,6 +99,7 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
     officeId: officeId || null,
     accountStatus: (accountStatus as employeeAccountStatus) || null,
     employeeStatus: (employeeStatus as MyEmployeeStatus) || null,
+    name: name || null,
   };
 
   // Fetch employees with pagination and filters
@@ -107,7 +109,8 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
     paginationOptions.limit,
     filterOptions.officeId,
     filterOptions.accountStatus,
-    filterOptions.employeeStatus
+    filterOptions.employeeStatus,
+    filterOptions.name
   );
   res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data: employees });
 });

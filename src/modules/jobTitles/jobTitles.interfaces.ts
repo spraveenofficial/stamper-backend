@@ -15,7 +15,7 @@ export interface IJobTitleDoc extends IJobTitle, Document {}
 
 export interface IJobTitleModel extends Model<IJobTitleDoc> {
   paginate(filter: Record<string, any>, options: Record<string, any>): Promise<QueryResult>;
-  isJobTitleExists(officeId: mongoose.Types.ObjectId, title: string): Promise<boolean>;
+  isJobTitleExists(officeId: mongoose.Types.ObjectId, title: string, organizationId: mongoose.Types.ObjectId): Promise<boolean>;
 }
 
 export type NewJobTitleType = Omit<IJobTitle, 'isOperational' | 'managerId' | 'organizationId'>;

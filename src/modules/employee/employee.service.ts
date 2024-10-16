@@ -17,7 +17,8 @@ export const getEmployeesByOrgId = async (
   limit: number = 10,
   officeId?: string | null,
   accountStatus?: employeeAccountStatus | null,
-  employeeStatus?: MyEmployeeStatus | null
+  employeeStatus?: MyEmployeeStatus | null,
+  employeeName?: string | null // Optional employeeName filter
 ): Promise<any> => {
   const skip = (page - 1) * limit;
 
@@ -33,11 +34,11 @@ export const getEmployeesByOrgId = async (
     matchCriteria.accountStatus = accountStatus;
   }
 
-  if(employeeStatus) {
+  if (employeeStatus) {
     matchCriteria.employeeStatus = employeeStatus;
   }
 
-  const employees = await Employee.aggregate([
+  const pipeline: any[] = [
     {
       $match: { ...matchCriteria }, // Stage 1: Match employees with the given organizationId
     },
@@ -96,6 +97,18 @@ export const getEmployeesByOrgId = async (
     {
       $unwind: { path: '$officeDetails', preserveNullAndEmptyArrays: true }, // Unwind the officeDetails array
     },
+  ];
+
+  // Add employeeName filter if provided
+  if (employeeName) {
+    pipeline.push({
+      $match: {
+        'userDetails.name': { $regex: employeeName, $options: 'i' }, // Case-insensitive partial match on employee name
+      },
+    });
+  }
+
+  pipeline.push(
     {
       $addFields: {
         employeeId: '$userDetails._id',
@@ -156,8 +169,10 @@ export const getEmployeesByOrgId = async (
         },
         totalResults: '$metadata.totalCount',
       },
-    },
-  ]);
+    }
+  );
+
+  const employees = await Employee.aggregate(pipeline);
 
   return employees.length ? employees[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 }; // Return formatted response
 };

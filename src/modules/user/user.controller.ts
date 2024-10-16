@@ -17,12 +17,15 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.getUserById(req.user.id);
-  if (req.user.role === rolesEnum.organization) {
-    const organization = await organizationService.getOrganizationByUserId(req.user.id);
+  const { id, role } = req.user;
+
+  const user = await userService.getUserById(id);
+
+  if (role === rolesEnum.organization) {
+    const organization = await organizationService.getOrganizationByUserId(id);
     res.send({ user, organization });
   } else {
-    const employeeInformation = await employeeService.getEmployeeByUserId(req.user.id);
+    const employeeInformation = await employeeService.getEmployeeByUserId(id);
     const organization = await organizationService.getOrganizationByUserId(employeeInformation!.managerId);
     res.send({ user, employeeInformation, organization });
   }
@@ -85,6 +88,6 @@ export const getUserCapLimits = catchAsync(async (req: Request, res: Response) =
     limit: capLimits,
     // other data
   };
-  
+
   res.status(httpStatus.OK).json({ success: true, message: 'Cap limits fetched successfully', data: response });
 });

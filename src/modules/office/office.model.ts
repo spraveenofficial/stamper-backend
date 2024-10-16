@@ -58,10 +58,6 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
       type: String,
       required: false,
     },
-    officePolicies: {
-      type: [String],
-      default: [],
-    },
   },
   {
     timestamps: true,

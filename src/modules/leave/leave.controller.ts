@@ -39,9 +39,6 @@ export const createLeave = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Leave type not found');
   }
 
-  // Check if user is having enough leave balance
-  console.log('Leave Type:', leaveType);
-
   const user = await userService.getUserById(id);
   const managerId = await employeeService.getEmployeeByUserId(id);
   const leave = await leaveService.createLeave(req.body, id, req.file);

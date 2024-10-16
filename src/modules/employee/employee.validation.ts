@@ -26,3 +26,10 @@ export const acceptInvitation = {
 export const reinviteEmployee = {
   body: Joi.object().keys(employeeReinviteBody),
 };
+
+
+export const getEmployeeRequestValidation = {
+  query: Joi.object().keys({
+    token: Joi.string().required(),
+  }),
+}

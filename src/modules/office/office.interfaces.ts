@@ -14,7 +14,6 @@ export interface IOffice {
   contactNumber: string;
   contactEmail: string;
   companyOverview: string;
-  officePolicies: string[];
 }
 
 export interface IOfficeDoc extends IOffice, Document {}
@@ -27,4 +26,6 @@ export interface IOfficeModel extends Model<IOfficeDoc> {
 
 export type NewAddOffice = Omit<IOffice, 'addedBy' | 'managerId' | 'isOperational' | 'organizationId' | 'officePolicies'>;
 
-export type UpdateOffice = Omit<IOffice, 'addedBy' | 'managerId' | 'organizationId' | 'officePolicies' | 'isHeadQuarter'> & { officeId: string };
+export type UpdateOffice = Omit<IOffice, 'addedBy' | 'managerId' | 'organizationId' | 'officePolicies' | 'isHeadQuarter'> & {
+  officeId: string;
+};

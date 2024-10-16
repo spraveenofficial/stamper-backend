@@ -3,17 +3,27 @@ import { IJobTitleDoc, NewJobTitleType } from './jobTitles.interfaces';
 import JobTitle from './jobTitles.model';
 import { ApiError } from '../errors';
 
+/**
+ * 
+ * @param jobTitleBody 
+ * @param managerId 
+ * @param officeId 
+ * @param organizationId 
+ * @returns 
+ */
+
 export const createJobTitle = async (
   jobTitleBody: NewJobTitleType,
   managerId: mongoose.Types.ObjectId,
   officeId: mongoose.Types.ObjectId,
   organizationId: mongoose.Types.ObjectId
 ): Promise<IJobTitleDoc> => {
-  if (await JobTitle.isJobTitleExists(officeId, jobTitleBody.jobTitle)) {
+  if (await JobTitle.isJobTitleExists(officeId, jobTitleBody.jobTitle, organizationId)) {
     throw new ApiError(400, 'Job title already exists');
   }
   return await JobTitle.create({ ...jobTitleBody, managerId, officeId, organizationId });
 };
+
 
 export const getJobTitles = async (
   organizationId: mongoose.Types.ObjectId,
@@ -107,4 +117,17 @@ export const getJobTitles = async (
 
 export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Promise<IJobTitleDoc | null> => {
   return await JobTitle.findById(jobTitleId);
+};
+
+/**
+ * 
+ * @param jobTitleId 
+ * @param jobTitleBody 
+ * @returns 
+ */
+export const editJobTitleById = async (
+  jobTitleId: mongoose.Types.ObjectId,
+  jobTitleBody: NewJobTitleType
+): Promise<IJobTitleDoc | null> => {
+  return await JobTitle.findByIdAndUpdate(jobTitleId, jobTitleBody, { new: true });
 };

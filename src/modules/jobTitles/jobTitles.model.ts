@@ -38,8 +38,8 @@ const jobTitleSchema = new mongoose.Schema<IJobTitleDoc, IJobTitleModel>(
   }
 );
 
-jobTitleSchema.static('isJobTitleExists', async function (officeId: mongoose.Types.ObjectId, title: string) {
-  const jobTitle = await this.findOne({ officeId, title });
+jobTitleSchema.static('isJobTitleExists', async function (officeId: mongoose.Types.ObjectId, title: string, organizationId: mongoose.Types.ObjectId) {
+  const jobTitle = await this.findOne({ officeId, title, organizationId });
   return !!jobTitle;
 });
 

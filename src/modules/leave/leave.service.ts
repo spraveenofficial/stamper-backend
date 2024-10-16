@@ -41,7 +41,6 @@ export const getLeaveById = async (id: mongoose.Types.ObjectId): Promise<ILeaveD
  * @param {mongoose.Types.ObjectId} employeeId
  * @returns {Promise<ILeaveDoc[]>}
  * */
-
 export const getLeaveByEmployeeId = async (employeeId: mongoose.Types.ObjectId): Promise<ILeaveDoc[]> => {
   const pipeline = [
     {
@@ -78,8 +77,13 @@ export const getLeaveByEmployeeId = async (employeeId: mongoose.Types.ObjectId):
     },
   ];
 
-  return Leave.aggregate(pipeline);
+  // Use 'as' or cast to resolve type mismatch
+  const result = await Leave.aggregate(pipeline).exec() as ILeaveDoc[];
+
+  return result;
 };
+
+
 
 /**
  * Update leave by id
