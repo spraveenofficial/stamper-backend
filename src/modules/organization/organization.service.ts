@@ -3,11 +3,14 @@ import { ApiError } from '../errors';
 import Organization from './organization.model';
 import mongoose from 'mongoose';
 import { IOrganization, IOrganizationDoc } from './organization.interfaces';
-import { Employee } from '../employee';
 import { Office } from '../office';
 import { Department } from '../departments';
 import { JobTitle } from '../jobTitles';
 import { FLOW_CONSTANTS } from '../../constants/flow_constansts';
+
+export const getOrganizationById = async (id: mongoose.Types.ObjectId): Promise<IOrganizationDoc | null> => {
+  return await Organization.findById(id);
+};
 
 /**
  * Update user by id
@@ -53,15 +56,12 @@ export const isEmployeeAndManagerInSameOrganization = async (
   employeeId: string,
   managerId: mongoose.Types.ObjectId
 ): Promise<boolean> => {
-  const organization = await Employee.findOne({
-    userId: employeeId,
-  });
-
-  if (!organization) {
+  const office = await Office.findOne({ managerId: managerId });
+  if (!office) {
     return false;
   }
   // Compare the ObjectId values as strings
-  return managerId.toString() === organization.managerId.toString();
+  return managerId.toString() === employeeId.toString();
 };
 
 export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<any> => {
@@ -131,16 +131,20 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
   return orgChart;
 };
 
-export const getOrgConfig = async (orgId: mongoose.Types.ObjectId): Promise<any> => {
-  // Get all the offices of this organization
-  // Get all the departments of each office
-  // Get all the jobTitles of each department
+export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mongoose.Types.ObjectId): Promise<any> => {
   const organizationId = new mongoose.Types.ObjectId(orgId);
+
+  const matchFilter: any = {
+    organizationId: organizationId,
+  };
+
+  if (officeId) {
+    matchFilter['_id'] = officeId;
+  }
+  
   const organizationConfig = await Office.aggregate([
     {
-      $match: {
-        organizationId: organizationId,
-      },
+      $match: matchFilter,
     },
     {
       $lookup: {
@@ -171,16 +175,22 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId): Promise<any>
         location: { $first: '$location' }, // Any other office fields
         departments: {
           $push: {
-            id: '$departments._id', // Department ID
-            name: '$departments.title', // Department name
-            jobtitles: {
-              $map: {
-                input: '$departments.jobTitles',
-                as: 'jobTitle',
-                in: {
-                  id: '$$jobTitle._id',
-                  name: '$$jobTitle.jobTitle',
+            id: { $cond: { if: { $gt: ['$departments', null] }, then: '$departments._id', else: null } },
+            name: { $cond: { if: { $gt: ['$departments', null] }, then: '$departments.title', else: null } },
+            jobTitles: {
+              $cond: {
+                if: { $gt: [{ $size: '$departments.jobTitles' }, 0] }, // Check if jobTitles exist
+                then: {
+                  $map: {
+                    input: '$departments.jobTitles',
+                    as: 'jobTitle',
+                    in: {
+                      id: '$$jobTitle._id',
+                      name: '$$jobTitle.jobTitle',
+                    },
+                  },
                 },
+                else: [], // Return an empty array if no job titles exist
               },
             },
           },
@@ -189,11 +199,30 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId): Promise<any>
     },
     {
       $project: {
-        id: '$_id',
+        id: '$_id', // Retain id field from _id
         name: 1,
         location: 1,
-        departments: 1, // Departments are renamed, with jobtitles nested within departments
-        _id: 0,
+        departments: {
+          $filter: {
+            input: '$departments',
+            as: 'dept',
+            cond: {
+              $and: [
+                { $ne: ['$$dept.id', null] }, // Include department only if it has a valid ID
+                { $gt: [{ $size: '$$dept.jobTitles' }, 0] }, // Include department only if it has job titles
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0, // Exclude _id from the final output
+        id: 1, // Include the id field
+        name: 1,
+        location: 1,
+        departments: 1,
       },
     },
   ]);
@@ -222,7 +251,7 @@ export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.Obje
 
   // Check for office existence
   return Office.exists({ organizationId })
-    .then(officeExists => {
+    .then((officeExists) => {
       if (officeExists) {
         flowStatus.hasOffice = true;
         flowStatus.currentStep = 'department';
@@ -230,7 +259,7 @@ export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.Obje
       }
       return Department.exists({ organizationId });
     })
-    .then(departmentExists => {
+    .then((departmentExists) => {
       if (departmentExists) {
         flowStatus.hasDepartment = true;
         flowStatus.currentStep = 'jobTitle';
@@ -238,7 +267,7 @@ export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.Obje
       }
       return JobTitle.exists({ organizationId });
     })
-    .then(jobTitleExists => {
+    .then((jobTitleExists) => {
       if (jobTitleExists) {
         flowStatus.hasJobTitle = true;
         flowStatus.currentStep = 'complete';
@@ -256,7 +285,7 @@ export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.Obje
       // Return null if all steps are completed
       return flowStatus.completedSteps === flowStatus.totalSteps ? null : flowStatus;
     })
-    .catch(error => {
+    .catch((error) => {
       throw new Error('Error checking preconditions: ' + error.message);
     });
 };

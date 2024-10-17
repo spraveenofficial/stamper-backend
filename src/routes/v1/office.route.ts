@@ -9,4 +9,7 @@ router.route('/add').post(auth('addOffice'), validate(officeValidations.creatOff
 router.route('/edit').put(auth('editOffice'), validate(officeValidations.editOfficeRequest), officeControllers.editOffice);
 router.route('/list').get(auth('getOffices'), officeControllers.getOffices);
 
+
+
+router.route('/assign-manager').put(auth('editOfficeManager'), officeControllers.assignManagerToOffice);
 export default router;

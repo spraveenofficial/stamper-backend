@@ -20,10 +20,6 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
       required: true,
       default: Date.now,
     },
-    managerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
     organizationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Organization',

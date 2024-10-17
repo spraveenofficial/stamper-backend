@@ -26,7 +26,7 @@ export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
     res.send({ user, organization });
   } else {
     const employeeInformation = await employeeService.getEmployeeByUserId(id);
-    const organization = await organizationService.getOrganizationByUserId(employeeInformation!.managerId);
+    const organization = await organizationService.getOrganizationById(employeeInformation!.organizationId);
     res.send({ user, employeeInformation, organization });
   }
 });

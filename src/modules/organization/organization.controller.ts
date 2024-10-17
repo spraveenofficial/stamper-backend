@@ -7,7 +7,7 @@ import { employeeService } from '../employee';
 import { ApiError } from '../errors';
 import mongoose from 'mongoose';
 import { tokenService } from '../token';
-import { DevelopmentOptions } from '../../config/roles';
+import { DevelopmentOptions, rolesEnum } from '../../config/roles';
 import { emailService } from '../email';
 import { departmentService } from '../departments';
 import { officeServices } from '../office';
@@ -132,36 +132,69 @@ export const getOrganizationChart = catchAsync(async (req: Request, res: Respons
 });
 
 export const getOrganizationData = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { id, role } = req.user;
 
-  // Fetch the organization data by user ID
-  const organization = await organizationService.getOrganizationByUserId(id);
+  if (role === rolesEnum.organization) {
+    // Fetch the organization data by user ID
+    const organization = await organizationService.getOrganizationByUserId(id);
 
-  // Prepare the response structure
-  const responseData: any = {
-    organizationAdded: !!organization,
-    config: null,
-    FLOWS: [],
-  };
-  const flowForEmployeeOnboarding = await organizationService.getOrgEmployeeOnBoardingFlow(
-    organization?.id as mongoose.Types.ObjectId,
-    !!organization
-  );
+    // Prepare the response structure
+    const responseData: any = {
+      organizationAdded: !!organization,
+      config: null,
+      FLOWS: [],
+    };
+    const flowForEmployeeOnboarding = await organizationService.getOrgEmployeeOnBoardingFlow(
+      organization?.id as mongoose.Types.ObjectId,
+      !!organization
+    );
 
-  if (flowForEmployeeOnboarding) {
-    responseData.FLOWS.push(flowForEmployeeOnboarding);
+    if (flowForEmployeeOnboarding) {
+      responseData.FLOWS.push(flowForEmployeeOnboarding);
+    }
+
+    if (organization) {
+      // Fetch the organization config
+      const data = await organizationService.getOrgConfig(organization.id as mongoose.Types.ObjectId);
+      responseData.config = data;
+    }
+
+    // Return the response with a success message
+    return res.status(httpStatus.OK).json({
+      success: true,
+      message: 'Fetch Success',
+      data: responseData,
+    });
+  } else {
+    // Fetch the organization data by user ID
+    const organization = await employeeService.getEmployeeByUserId(id);
+    const org = await organizationService.getOrganizationById(organization!.organizationId);
+    // Prepare the response structure
+    const responseData: any = {
+      organizationAdded: !!org,
+      config: null,
+      FLOWS: [],
+    };
+    const flowForEmployeeOnboarding = await organizationService.getOrgEmployeeOnBoardingFlow(
+      org?.id as mongoose.Types.ObjectId,
+      !!org
+    );
+
+    if (flowForEmployeeOnboarding) {
+      responseData.FLOWS.push(flowForEmployeeOnboarding);
+    }
+
+    if (org) {
+      // Fetch the organization config
+      const data = await organizationService.getOrgConfig(org.id as mongoose.Types.ObjectId, organization!.officeId);
+      responseData.config = data;
+    }
+
+    // Return the response with a success message
+    return res.status(httpStatus.OK).json({
+      success: true,
+      message: 'Fetch Success',
+      data: responseData,
+    });
   }
-
-  if (organization) {
-    // Fetch the organization config
-    const data = await organizationService.getOrgConfig(organization.id as mongoose.Types.ObjectId);
-    responseData.config = data;
-  }
-
-  // Return the response with a success message
-  return res.status(httpStatus.OK).json({
-    success: true,
-    message: 'Fetch Success',
-    data: responseData,
-  });
 });

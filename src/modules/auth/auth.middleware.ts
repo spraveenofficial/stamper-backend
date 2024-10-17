@@ -16,9 +16,7 @@ const verifyCallback =
     if (requiredRights.length) {
       const userRights = roleRights.get(user.role);
       if (!userRights) return reject(new ApiError(httpStatus.FORBIDDEN, 'Not allowed right'));
-      const hasRequiredRights = requiredRights.every((requiredRight: string) =>
-        userRights.includes(requiredRight)
-      );
+      const hasRequiredRights = requiredRights.every((requiredRight: string) => userRights.includes(requiredRight));
       if (!hasRequiredRights && req.params['userId'] !== user.id) {
         return reject(new ApiError(httpStatus.FORBIDDEN, 'Forbidden'));
       }
@@ -45,11 +43,11 @@ const authMiddleware =
         }
 
         // Invoke the verifyCallback
-        verifyCallback(req, resolve, reject, requiredRights)(err, decodedToken, "");
+        verifyCallback(req, resolve, reject, requiredRights)(err, decodedToken, '');
       });
     })
       .then(() => next())
       .catch((err) => next(err));
-  };
+};
 
 export default authMiddleware;

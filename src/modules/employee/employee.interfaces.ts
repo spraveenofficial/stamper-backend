@@ -3,7 +3,6 @@ import { QueryResult } from '../paginate/paginate';
 
 export interface IEmployee {
   userId: mongoose.Types.ObjectId;
-  managerId: mongoose.Types.ObjectId;
   employeeStatus: employeeStatus;
   accountStatus: employeeAccountStatus;
   joiningDate: Date;
@@ -34,5 +33,5 @@ export enum employeeAccountStatus {
 
 export type NewEmployee = Omit<
   IEmployee,
-  'userId' | 'accountStatus' | 'employeeStatus' | 'managerId' | 'organizationId'
+  'userId' | 'accountStatus' | 'employeeStatus' | 'organizationId'
 >;

@@ -8,6 +8,8 @@ import { pick } from '../utils';
 import { employeeService } from '../employee';
 import { employeeAccountStatus, MyEmployeeStatus } from '../employee/employee.interfaces';
 import { rolesEnum } from '../../config/roles';
+import { userService } from '../user';
+import mongoose from 'mongoose';
 
 export const addOffice = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -121,6 +123,7 @@ export const assignManagerToOffice = catchAsync(async (req: Request, res: Respon
   if (!isEmployee) {
     throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Manager does not belong to this office' });
   }
-  const response = await officeServices.editOffice(officeId, { managerId: managerId });
+  const response = await officeServices.editOffice(officeId, { managerId: new mongoose.Types.ObjectId(managerId) });
+  await userService.updateUserById(managerId, { role: rolesEnum.moderator });
   res.status(httpStatus.OK).json({ message: 'Manager assigned successfully', data: response });
 });

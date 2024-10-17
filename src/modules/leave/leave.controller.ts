@@ -11,6 +11,7 @@ import { LeaveStatus } from './leave.interfaces';
 import { organizationService } from '../organization';
 import { leaveAndPolicyService } from '../common/leavePolicies';
 import { ApiError } from '../errors';
+import { officeServices } from '../office';
 
 export const createLeave = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -42,9 +43,9 @@ export const createLeave = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.getUserById(id);
   const managerId = await employeeService.getEmployeeByUserId(id);
   const leave = await leaveService.createLeave(req.body, id, req.file);
-
+  const office = await officeServices.getOfficeByOrgAndEmpId(managerId!.organizationId, managerId?.id);
   if (req.user?.role !== rolesEnum.organization && managerId) {
-    await notificationServices.createLeaveRequestNotification(managerId.managerId, user!.name, user?._id, leave._id);
+    await notificationServices.createLeaveRequestNotification(office!.managerId, user!.name, user?._id, leave._id);
   }
 
   res.status(httpStatus.CREATED).json({

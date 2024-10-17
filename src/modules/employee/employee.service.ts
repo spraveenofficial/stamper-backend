@@ -52,14 +52,6 @@ export const getEmployeesByOrgId = async (
     },
     {
       $lookup: {
-        from: 'users', // Collection to join with
-        localField: 'managerId', // Field from the Employee collection
-        foreignField: '_id', // Field from the User collection
-        as: 'managerDetails', // Output array field
-      },
-    },
-    {
-      $lookup: {
         from: 'jobtitles', // Collection to join with
         localField: 'jobTitleId', // Field from the Employee collection
         foreignField: '_id', // Field from the JobTitle collection
@@ -80,6 +72,14 @@ export const getEmployeesByOrgId = async (
         localField: 'officeId', // Field from the Employee collection
         foreignField: '_id', // Field from the Office collection
         as: 'officeDetails', // Output array field
+      },
+    },
+    {
+      $lookup: {
+        from: 'users', // Collection to join with
+        localField: 'officeDetails.managerId', // Field from the Employee collection
+        foreignField: '_id', // Field from the User collection
+        as: 'managerDetails', // Output array field
       },
     },
     {

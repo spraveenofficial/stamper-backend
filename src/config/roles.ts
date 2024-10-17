@@ -17,10 +17,12 @@ const allRoles = {
     'deleteNews',
     'updateNews',
     'addLeaveType',
-    'addLeavePolicy'
+    'addLeavePolicy',
+    'editOfficeManager',
   ],
   employee: ['profile'],
   admin: ['profile'],
+  moderator: ['profile'],
 };
 
 export enum DevelopmentOptions {
