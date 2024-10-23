@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import { organizationService } from '.';
 import { employeeService } from '../employee';
 import { rolesEnum } from '../../config/roles';
+import { IOrganizationDoc } from './organization.interfaces';
 
 const organizationMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -15,18 +16,17 @@ const organizationMiddleware = async (req: Request, res: Response, next: NextFun
     let organization;
     if (role === rolesEnum.organization) {
       const org = await organizationService.getOrganizationByUserId(id);
-      organization = org?._id;
+      organization = org;
     } else {
       const org = await employeeService.getEmployeeByUserId(id);
-      organization = org?.organizationId;
+      organization = org;
     }
 
     if (!organization) {
       return res.status(httpStatus.BAD_REQUEST).json({ message: 'Please add organization first' });
     }
 
-    req.organization = organization;
-
+    req.organization = organization as IOrganizationDoc;
     return next();
   } catch (error) {
     return res.status(httpStatus.UNAUTHORIZED).json({ message: 'Forbidden' });

@@ -10,8 +10,8 @@ router
   .route('/create')
   .post(
     auth('createNews'),
-    organizationMiddleware.organizationMiddleware,
     validate(newsValidation.createNewNewsBody),
+    organizationMiddleware.organizationMiddleware,
     newsController.createNews
 );
 

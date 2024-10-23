@@ -8,9 +8,7 @@ import { IOptions } from '../paginate/paginate';
 
 export const createNews = catchAsync(async (req: Request, res: Response) => {
   const { id: userId } = req.user;
-  const { id: organizationId } = req.organization;
-
-  const news = await newsService.createNews(req.body, userId, organizationId);
+  const news = await newsService.createNews(req.body, userId, new mongoose.Types.ObjectId(req.organization.id));
   return res.status(httpStatus.CREATED).json({ success: true, message: req.t('News.newsAddSuccess'), data: news });
 });
 
