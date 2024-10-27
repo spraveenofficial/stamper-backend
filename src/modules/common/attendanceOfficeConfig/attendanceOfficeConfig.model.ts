@@ -20,20 +20,29 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       type: {
         type: String,
         enum: ['Point'],
-        required: true,
       },
       coordinates: {
         type: [Number],
-        required: true,
       },
+      required: function (this: IAttendanceOfficeConfigDoc) {
+        return this.geofencing;
+      },
+    },
+    geofencing: {
+      type: Boolean,
+      required: true,
     },
     radius: {
       type: Number,
-      required: true,
+      required: function (this: IAttendanceOfficeConfigDoc) {
+        return this.geofencing;
+      },
     },
     officeLocationText: {
       type: String,
-      required: true,
+      required: function (this: IAttendanceOfficeConfigDoc) {
+        return this.geofencing;
+      },
     },
     officeStartTime: {
       type: String,
@@ -61,10 +70,6 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
     },
     officeWorkingDays: {
       type: [String],
-      required: true,
-    },
-    officeTimezone: {
-      type: String,
       required: true,
     },
   },

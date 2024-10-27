@@ -7,7 +7,8 @@ export interface IAttendanceOfficeConfig {
     type: string;
     coordinates: number[];
   };
-  radius: number;
+  geofencing: boolean;
+  radius: number | null;
   officeLocationText: string;
   officeStartTime: string;
   officeEndTime: string;
