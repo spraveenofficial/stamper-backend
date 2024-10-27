@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import { IAttendanceOfficeConfig, IAttendanceOfficeConfigDoc } from './attendanceOfficeConfig.interface';
+import {
+  AttendanceClockinAndClockoutMode,
+  IAttendanceOfficeConfig,
+  IAttendanceOfficeConfigDoc,
+} from './attendanceOfficeConfig.interface';
 import { toJSON } from '@/modules/toJSON';
 
 const { Schema } = mongoose;
@@ -16,6 +20,14 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       required: true,
       ref: 'Office',
     },
+    policyName: {
+      type: String,
+      required: true,
+    },
+    policyDescription: {
+      type: String,
+      required: true,
+    },
     officeLocation: {
       type: {
         type: String,
@@ -28,7 +40,16 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
         return this.geofencing;
       },
     },
+    clockinMode: {
+      type: [String],
+      required: true,
+      enum: Object.values(AttendanceClockinAndClockoutMode),
+    },
     geofencing: {
+      type: Boolean,
+      required: true,
+    },
+    qrEnabled: {
       type: Boolean,
       required: true,
     },
