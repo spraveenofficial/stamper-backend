@@ -24,7 +24,6 @@ export interface IAttendanceOfficeConfig {
   officeBreakStartTime: string;
   officeBreakEndTime: string;
   officeBreakDuration: number;
-  officeBreakDurationUnit: string;
   officeWorkingDays: string[];
 }
 

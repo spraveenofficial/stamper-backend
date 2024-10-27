@@ -85,10 +85,6 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       type: Number,
       required: true,
     },
-    officeBreakDurationUnit: {
-      type: String,
-      required: true,
-    },
     officeWorkingDays: {
       type: [String],
       required: true,
