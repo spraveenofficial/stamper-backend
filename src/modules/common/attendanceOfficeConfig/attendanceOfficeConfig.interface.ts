@@ -8,7 +8,6 @@ export enum AttendanceClockinAndClockoutMode {
 export interface IAttendanceOfficeConfig {
   organizationId: mongoose.Types.ObjectId;
   officeId: mongoose.Types.ObjectId;
-  policyName: string;
   policyDescription: string;
   officeLocation: {
     type: string;

@@ -20,10 +20,6 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       required: true,
       ref: 'Office',
     },
-    policyName: {
-      type: String,
-      required: true,
-    },
     policyDescription: {
       type: String,
       required: true,
