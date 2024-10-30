@@ -1,7 +1,11 @@
+import mongoose from 'mongoose';
 import { attendanceConfigInterface, AttendanceOfficeConfig } from '.';
 
-export const saveOfficeConfig = async (config: attendanceConfigInterface.IAttendanceOfficeConfig) => {
-  const officeConfig = await AttendanceOfficeConfig.create(config);
+export const saveOfficeConfig = async (
+  config: attendanceConfigInterface.NewAttendanceConfigPayload,
+  orgId: mongoose.Types.ObjectId
+) => {
+  const officeConfig = await AttendanceOfficeConfig.create({ organizationId: orgId, ...config });
   return officeConfig;
 };
 

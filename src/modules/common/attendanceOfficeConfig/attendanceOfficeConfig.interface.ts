@@ -24,8 +24,11 @@ export interface IAttendanceOfficeConfig {
   officeBreakEndTime: string;
   officeBreakDuration: number;
   officeWorkingDays: string[];
+  addedBy: mongoose.Types.ObjectId;
 }
 
 export interface IAttendanceOfficeConfigDoc extends IAttendanceOfficeConfig, Document {}
 
 export interface IAttendanceOfficeConfigModel extends Model<IAttendanceOfficeConfigDoc> {}
+
+export type NewAttendanceConfigPayload = Omit<IAttendanceOfficeConfig, 'organizationId' | 'addedBy'>;

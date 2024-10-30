@@ -8,7 +8,7 @@ import { organizationMiddleware } from '../../modules/organization';
 const router: Router = express.Router();
 
 router
-  .route('/add')
+  .route('/add-config')
   .post(auth('addAttendanceconfig'), organizationMiddleware.organizationMiddleware, attendanceController.createAttendanceConfigForOffice);
 
 
