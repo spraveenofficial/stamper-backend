@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 import {
   AttendanceClockinAndClockoutMode,
-  IAttendanceOfficeConfig,
   IAttendanceOfficeConfigDoc,
+  IAttendanceOfficeConfigModel,
 } from './attendanceOfficeConfig.interface';
 import { toJSON } from '@/modules/toJSON';
 
 const { Schema } = mongoose;
 
-const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAttendanceOfficeConfig>(
+const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAttendanceOfficeConfigModel>(
   {
     organizationId: {
       type: Schema.Types.ObjectId,
@@ -100,7 +100,12 @@ attendanceOfficeConfigSchema.index({ officeLocation: '2dsphere' });
 
 attendanceOfficeConfigSchema.plugin(toJSON);
 
-export const AttendanceOfficeConfig = mongoose.model<IAttendanceOfficeConfigDoc>(
+attendanceOfficeConfigSchema.statics['isAlreadyExist'] = async function (officeId: string) {
+  const officeConfig = await this.findOne({ officeId });
+  return officeConfig;
+};
+
+export const AttendanceOfficeConfig = mongoose.model<IAttendanceOfficeConfigDoc, IAttendanceOfficeConfigModel>(
   'AttendanceOfficeConfig',
   attendanceOfficeConfigSchema
 );
