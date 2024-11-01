@@ -11,6 +11,8 @@ router
   .route('/add-config')
   .post(auth('addAttendanceconfig'), organizationMiddleware.organizationMiddleware, attendanceController.createAttendanceConfigForOffice);
 
+  router.route('/get-config')
+  .get(auth('getAttendanceconfig'), organizationMiddleware.organizationMiddleware, attendanceController.getAttendanceConfigForOffice);
 
 
 export default router;

@@ -4,6 +4,7 @@ import { organizationService } from '.';
 import { employeeService } from '../employee';
 import { rolesEnum } from '../../config/roles';
 import { IOrganizationDoc } from './organization.interfaces';
+import { IEmployeeDoc } from '../employee/employee.interfaces';
 
 const organizationMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -12,21 +13,26 @@ const organizationMiddleware = async (req: Request, res: Response, next: NextFun
     }
 
     const { id, role } = req.user;
+    let organization: IOrganizationDoc | IEmployeeDoc | null = null;
 
-    let organization;
     if (role === rolesEnum.organization) {
-      const org = await organizationService.getOrganizationByUserId(id);
-      organization = org;
+      organization = await organizationService.getOrganizationByUserId(id);
     } else {
-      const org = await employeeService.getEmployeeByUserId(id);
-      organization = org;
+      organization = await employeeService.getEmployeeByUserId(id);
     }
 
     if (!organization) {
       return res.status(httpStatus.BAD_REQUEST).json({ message: 'Please add organization first' });
     }
 
-    req.organization = organization as IOrganizationDoc;
+    // Narrow down to check if it's IEmployeeDoc or IOrganizationDoc
+    if ('officeId' in organization) {
+      console.log("Employee's office ID:", organization.officeId); // Access fields specific to IEmployeeDoc
+    } else {
+      console.log("Organization-specific data:", organization.companyName); // Access fields specific to IOrganizationDoc
+    }
+
+    req.organization = organization;
     return next();
   } catch (error) {
     return res.status(httpStatus.UNAUTHORIZED).json({ message: 'Forbidden' });

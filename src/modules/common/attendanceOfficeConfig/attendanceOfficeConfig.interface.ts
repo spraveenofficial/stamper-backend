@@ -11,7 +11,7 @@ export interface IAttendanceOfficeConfig {
   policyDescription: string;
   officeLocation: {
     type: string;
-    coordinates: number[];
+    coordinates: number[]; // [longitude, latitude]
   };
   qrEnabled: boolean;
   clockinMode: AttendanceClockinAndClockoutMode[];
@@ -22,13 +22,16 @@ export interface IAttendanceOfficeConfig {
   officeEndTime: string;
   officeBreakStartTime: string;
   officeBreakEndTime: string;
-  officeBreakDuration: number;
+  officeBreakDurationInMinutes: number;
   officeWorkingDays: string[];
   addedBy: mongoose.Types.ObjectId;
+  isActive: boolean;
 }
 
 export interface IAttendanceOfficeConfigDoc extends IAttendanceOfficeConfig, Document {}
 
-export interface IAttendanceOfficeConfigModel extends Model<IAttendanceOfficeConfigDoc> {}
+export interface IAttendanceOfficeConfigModel extends Model<IAttendanceOfficeConfigDoc> {
+  isAlreadyExist(officeId: mongoose.Types.ObjectId): Promise<boolean>;
+}
 
-export type NewAttendanceConfigPayload = Omit<IAttendanceOfficeConfig, 'organizationId' | 'addedBy'>;
+export type NewAttendanceConfigPayload = Omit<IAttendanceOfficeConfig, 'organizationId' | 'addedBy' | 'isActive'>;

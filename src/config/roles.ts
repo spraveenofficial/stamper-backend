@@ -19,6 +19,8 @@ const allRoles = {
     'addLeaveType',
     'addLeavePolicy',
     'editOfficeManager',
+    'addAttendanceconfig',
+    'getAttendanceconfig',
   ],
   employee: ['profile'],
   admin: ['profile'],

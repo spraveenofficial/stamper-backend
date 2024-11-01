@@ -4,7 +4,7 @@ import {
   IAttendanceOfficeConfigDoc,
   IAttendanceOfficeConfigModel,
 } from './attendanceOfficeConfig.interface';
-import { toJSON } from '@/modules/toJSON';
+import { toJSON } from '../../../modules/toJSON';
 
 const { Schema } = mongoose;
 
@@ -28,12 +28,13 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       type: {
         type: String,
         enum: ['Point'],
+        default: 'Point',
       },
       coordinates: {
         type: [Number],
-      },
-      required: function (this: IAttendanceOfficeConfigDoc) {
-        return this.geofencing;
+        required: function (this: IAttendanceOfficeConfigDoc) {
+          return this.geofencing;
+        },
       },
     },
     clockinMode: {
@@ -77,7 +78,7 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       type: String,
       required: true,
     },
-    officeBreakDuration: {
+    officeBreakDurationInMinutes: {
       type: Number,
       required: true,
     },
@@ -90,6 +91,10 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       ref: 'User',
       required: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
@@ -101,7 +106,7 @@ attendanceOfficeConfigSchema.index({ officeLocation: '2dsphere' });
 attendanceOfficeConfigSchema.plugin(toJSON);
 
 attendanceOfficeConfigSchema.statics['isAlreadyExist'] = async function (officeId: string) {
-  const officeConfig = await this.findOne({ officeId });
+  const officeConfig = await this.findOne({ officeId, isActive: true });
   return officeConfig;
 };
 
