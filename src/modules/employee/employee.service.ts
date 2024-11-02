@@ -6,9 +6,9 @@ export const addEmployee = async (employeeBody: IEmployee): Promise<IEmployeeDoc
   return Employee.create(employeeBody);
 };
 
-export const getEmployeeById = async (id: string): Promise<IEmployee | null> => Employee.findById(id);
+export const getEmployeeById = async (id: mongoose.Types.ObjectId): Promise<IEmployee | null> => Employee.findById(id);
 
-export const getEmployeeByUserId = async (userId: string): Promise<IEmployeeDoc | null> => Employee.findOne({ userId });
+export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => Employee.findOne({ userId });
 
 // Function to get employees by manager ID with modified response structure
 export const getEmployeesByOrgId = async (

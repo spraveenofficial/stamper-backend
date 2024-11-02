@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { attendanceConfigInterface, AttendanceOfficeConfig } from '.';
 import { Office } from '../../../modules/office';
+import { IAttendanceOfficeConfig } from './attendanceOfficeConfig.interface';
 
 export const saveOfficeConfig = async (
   config: attendanceConfigInterface.NewAttendanceConfigPayload,
@@ -14,7 +15,7 @@ export const saveOfficeConfig = async (
   return officeConfig;
 };
 
-export const findOfficeConfig = async (officeId: string) => {
+export const findOfficeConfig = async (officeId: mongoose.Types.ObjectId) :Promise<IAttendanceOfficeConfig | null> => {
   const officeConfig = await AttendanceOfficeConfig.findOne({ officeId });
   return officeConfig;
 };

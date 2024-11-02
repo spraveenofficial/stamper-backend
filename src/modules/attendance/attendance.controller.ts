@@ -4,6 +4,8 @@ import { catchAsync, pick } from '../utils';
 import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
 import { IOptions } from '../paginate/paginate';
 import { rolesEnum } from '../../config/roles';
+import { userService } from '../user';
+import { attendanceServices } from '.';
 
 export const createAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -41,4 +43,16 @@ export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res:
   }
 
   res.status(httpStatus.OK).json({ success: true, message: 'Success', data: officeConfig });
+});
+
+export const getClockinButtonStatus = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const user = await userService.getUserById(id);
+
+  if (!user) {
+    return res.status(httpStatus.BAD_REQUEST).json({ message: 'User not found' });
+  }
+  const response = await attendanceServices.checkIfEmployeeCanClockInToday(user.id);
+  return res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
 });
