@@ -17,8 +17,6 @@ export const createAttendanceConfigForOffice = catchAsync(async (req: Request, r
 });
 
 export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
-  //@ts-ignore
-  const { id } = req.user;
   const { id: organizationId } = req.organization;
   const options: IOptions = pick(req.query, ['limit', 'page']);
 
@@ -31,10 +29,11 @@ export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res:
   if (req.user.role === rolesEnum.organization) {
     officeConfig = await attendanceOfficeConfigService.getOrganizationOfficeConfig(organizationId, undefined, page, limit);
   } else {
+    console.log(req.organization)
     // Type guard to ensure req.organization is IEmployeeDoc before accessing officeId
     if ('officeId' in req.organization) {
       officeConfig = await attendanceOfficeConfigService.getOrganizationOfficeConfig(
-        organizationId,
+        req.organization.organizationId,
         req.organization.officeId,
         page,
         limit

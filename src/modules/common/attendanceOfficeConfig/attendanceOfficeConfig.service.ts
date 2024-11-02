@@ -15,7 +15,7 @@ export const saveOfficeConfig = async (
   return officeConfig;
 };
 
-export const findOfficeConfig = async (officeId: mongoose.Types.ObjectId) :Promise<IAttendanceOfficeConfig | null> => {
+export const findOfficeConfig = async (officeId: mongoose.Types.ObjectId): Promise<IAttendanceOfficeConfig | null> => {
   const officeConfig = await AttendanceOfficeConfig.findOne({ officeId });
   return officeConfig;
 };
@@ -47,7 +47,7 @@ export const isUserIsWithinGeofence = async (userLongitude: number, userLatitude
 };
 
 export const getOrganizationOfficeConfig = async (
-  orgId: string,
+  orgId: mongoose.Types.ObjectId,
   officeId?: mongoose.Types.ObjectId,
   page: number = 1,
   limit: number = 10
@@ -58,7 +58,7 @@ export const getOrganizationOfficeConfig = async (
   if (officeId) {
     filter._id = new mongoose.Types.ObjectId(officeId);
   }
-
+  
   const pipeline = [
     {
       $match: filter,
@@ -149,14 +149,8 @@ export const getOrganizationOfficeConfig = async (
     },
     {
       $facet: {
-        metadata: [
-          { $count: 'totalCount' },
-          { $addFields: { page, limit } },
-        ],
-        data: [
-          { $skip: skip },
-          { $limit: limit },
-        ],
+        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
+        data: [{ $skip: skip }, { $limit: limit }],
       },
     },
     {
@@ -176,7 +170,5 @@ export const getOrganizationOfficeConfig = async (
   ];
 
   const response = await Office.aggregate(pipeline);
-  return response.length
-    ? response[0]
-    : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+  return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };

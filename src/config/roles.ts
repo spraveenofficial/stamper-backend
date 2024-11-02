@@ -24,7 +24,7 @@ const allRoles = {
   ],
   employee: ['profile', 'getClockinButtonStatus'],
   admin: ['profile'],
-  moderator: ['profile', 'getClockinButtonStatus'],
+  moderator: ['profile', 'getClockinButtonStatus', 'getAttendanceconfig'],
 };
 
 export enum DevelopmentOptions {
