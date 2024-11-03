@@ -91,14 +91,6 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
       type: String,
       required: false,
     },
-    clockinDevice: {
-      type: String,
-      required: true,
-    },
-    clockoutDevice: {
-      type: String,
-      required: false,
-    },
     clockinBrowser: {
       type: String,
       required: true,
@@ -126,10 +118,32 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
     isHavingLunch: {
       type: Boolean,
       required: false,
-    }
+    },
+    totalLoggedHours: {
+      type: Number,
+      required: false,
+      default: null
+    },
   },
   { timestamps: true }
 );
+
+attendanceSchema.post('findOneAndUpdate', async function (doc: IAttendanceDoc) {
+  if (doc.isClockedout && doc.clockoutTime && doc.clockinTime) {
+    console.log("Called post hook", doc);
+    const clockinTime = new Date(doc.clockinTime);
+    const clockoutTime = new Date(doc.clockoutTime);
+
+    // Calculate the total logged hours
+    const diff = clockoutTime.getTime() - clockinTime.getTime();
+    const hours = diff / (1000 * 60 * 60);
+    doc.totalLoggedHours = parseFloat(hours.toFixed(2)); // Set totalLoggedHours to 2 decimal places
+
+    // Save the updated document with total logged hours
+    await doc.save();
+  }
+});
+
 
 attendanceSchema.statics['isAttendanceAlreadyMarkedToday'] = async function (
   employeeId: mongoose.Types.ObjectId,

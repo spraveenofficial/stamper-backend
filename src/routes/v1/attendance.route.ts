@@ -39,4 +39,8 @@ router
   .route('/clockin')
   .post(auth('clockin'), organizationMiddleware.organizationMiddleware, attendanceController.clockinEmployee);
 
+router
+  .route('/clockout')
+  .post(auth('clockout'), organizationMiddleware.organizationMiddleware, attendanceController.clockoutEmployee);
+
 export default router;

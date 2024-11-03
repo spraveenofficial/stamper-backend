@@ -22,9 +22,17 @@ const allRoles = {
     'addAttendanceconfig',
     'getAttendanceconfig',
   ],
-  employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin'],
+  employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin', 'clockout'],
   admin: ['profile'],
-  moderator: ['profile', 'getClockinButtonStatus', 'getAttendanceconfig', 'getMyAttendance', 'getEmployees', 'clockin'],
+  moderator: [
+    'profile',
+    'getClockinButtonStatus',
+    'getAttendanceconfig',
+    'getMyAttendance',
+    'getEmployees',
+    'clockin',
+    'clockout',
+  ],
 };
 
 export enum DevelopmentOptions {

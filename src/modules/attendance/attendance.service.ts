@@ -6,7 +6,7 @@ import { officeServices } from '../office';
 import mongoose from 'mongoose';
 import { employeeService } from '../employee';
 import Attendance from './attendance.model';
-import { CreateClockinPayload, IAttendanceDoc } from './attendance.interface';
+import { CreateClockinPayload, CreateClockoutPayload, IAttendanceDoc } from './attendance.interface';
 import { OfficeWorkingDaysEnum } from '../common/attendanceOfficeConfig/attendanceOfficeConfig.interface';
 
 export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.ObjectId) => {
@@ -52,7 +52,8 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
   const response = {
     isWorkingDay,
     isWithinWorkingHours,
-    attendanceStatus: todayAttendanceStatus ? 'CLOCKED_IN' : 'NOT_CLOCKED_IN',
+    attendanceStatus: todayAttendanceStatus?.isClockedin ? 'CLOCKED_IN' : (todayAttendanceStatus ? 'CLOCKED_OUT' : 'NOT_CLOCKED_IN'),
+    clockedInAt: todayAttendanceStatus ? todayAttendanceStatus.clockinTime : null,
     eligibleForLunch: isWorkingDay ? moment(currentTime, 'HH:mm').isBetween(lunchStartTime, lunchEndTime) : false,
     officeStartTime: officeStartTime.format('HH:mm'),
     officeEndTime: officeEndTime.format('HH:mm'),
@@ -108,15 +109,24 @@ export const getMyAttendance = async (employeeId: mongoose.Types.ObjectId) => {
   const pipeline = [
     {
       $match: {
-        employeeId: employeeId,
+        employeeId: new mongoose.Types.ObjectId(employeeId),
         clockinTime: { $gte: last7Days[last7Days.length - 1] }, // Filter within the 7-day range
       },
     },
     {
       $project: {
         _id: 1,
-        clockinTime: { $dateToString: { format: '%Y-%m-%d', date: '$clockinTime' } },
+        clockinTime: 1,
         clockoutTime: 1,
+        clockinIpAddress: 1,
+        clockoutIpAddress: 1,
+        clockinDevice: 1,
+        clockoutDevice: 1,
+        clockinBrowser: 1,
+        clockoutBrowser: 1,
+        clockinOs: 1,
+        clockoutOs: 1,
+        totalLoggedHours: 1,
       },
     },
   ];
@@ -125,20 +135,32 @@ export const getMyAttendance = async (employeeId: mongoose.Types.ObjectId) => {
 
   // Map attendance records to last 7 days, marking absent where no punch-in info exists
   const attendanceSummary = last7Days.map((date) => {
-    const dateString = moment(date).format('YYYY-MM-DD');
-    const record = attendanceRecords.find((rec) => rec.clockinTime === dateString);
+    const record = attendanceRecords.find((rec) =>
+      moment(rec.clockinTime).isSame(date, 'day')
+    );
 
     return {
-      date: dateString,
+      date: moment(date).toISOString(),
       day: moment(date).format('dddd'),
       status: record ? 'Present' : 'Absent',
       clockinTime: record?.clockinTime || null,
       clockoutTime: record?.clockoutTime || null,
+      clockinIpAddress: record?.clockinIpAddress || null,
+      clockoutIpAddress: record?.clockoutIpAddress || null,
+      clockinDevice: record?.clockinDevice || null,
+      clockoutDevice: record?.clockoutDevice || null,
+      clockinBrowser: record?.clockinBrowser || null,
+      clockoutBrowser: record?.clockoutBrowser || null,
+      clockinOs: record?.clockinOs || null,
+      clockoutOs: record?.clockoutOs || null,
+      totalLoggedHours: record?.totalLoggedHours || null,
     };
   });
 
   return attendanceSummary;
 };
+
+
 
 export const getEmployeeTodayAttendanceBasedOnUTC = async (
   employeeId: mongoose.Types.ObjectId,
@@ -214,7 +236,58 @@ export const clockinEmployee = async (employeeId: mongoose.Types.ObjectId, paylo
   const attendance = await Attendance.create({
     employeeId,
     ...payload,
+    isClockedin: true,
   });
+
+  return attendance;
+};
+
+
+export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payload: CreateClockoutPayload) => {
+  const employee = await employeeService.getEmployeeByUserId(employeeId);
+  if (!employee) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Employee not found');
+  }
+
+  const loadOfficeConfig = await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
+
+  if (!loadOfficeConfig) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
+  }
+
+  const office = await officeServices.getOfficeById(employee.officeId);
+
+  const [timezone, _offset] = office?.timezone.split(' - ') ?? [null, null];
+
+  const todayInOfficeTime = moment.tz(timezone!);
+
+  const todayDayName = todayInOfficeTime.format('dddd') as OfficeWorkingDaysEnum;
+
+  const isWorkingDay = loadOfficeConfig.officeWorkingDays.includes(todayDayName);
+
+  // const currentHour = todayInOfficeTime.hour();
+
+  // const currentMinute = todayInOfficeTime.minute();
+
+  // const currentTime = `${currentHour}:${currentMinute}`;
+
+  if (!isWorkingDay) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Today is not a working day');
+  }
+
+  const attendance = await Attendance.findOneAndUpdate(
+    {
+      employeeId,
+      isClockedin: true,
+    },
+    {
+      ...payload,
+      isClockedout: true,
+      isClockedin: false,
+      clockoutTime: todayInOfficeTime.toDate(),
+    },
+    { new: true }
+  );
 
   return attendance;
 };

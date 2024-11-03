@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { AttendanceClockinAndClockoutMode } from '../common/attendanceOfficeConfig/attendanceOfficeConfig.interface';
 
 export interface IAttendance {
   employeeId: mongoose.Types.ObjectId;
@@ -17,13 +18,12 @@ export interface IAttendance {
     coordinates: number[];
     locationText: string;
   };
-  clockinMode: string;
-  clockoutMode: string;
+  clockinMode: AttendanceClockinAndClockoutMode;
+  clockoutMode: AttendanceClockinAndClockoutMode;
   clockinImage: string;
   clockoutImage: string;
   clockinIpAddress: string;
   clockoutIpAddress: string;
-  clockinDevice: string;
   clockoutDevice: string;
   clockinBrowser: string;
   clockoutBrowser: string;
@@ -32,6 +32,7 @@ export interface IAttendance {
   isClockedin: boolean;
   isClockedout: boolean;
   isHavingLunch: boolean;
+  totalLoggedHours: number;
 }
 
 export interface IAttendanceDoc extends IAttendance, mongoose.Document {}
@@ -55,4 +56,22 @@ export type CreateClockinPayload = Omit<
   | 'clockoutDevice'
   | 'clockoutBrowser'
   | 'clockoutOs'
+  | 'totalLoggedHours'
+>;
+
+export type CreateClockoutPayload = Pick<
+  IAttendance,
+  | 'clockinTime'
+  | 'employeeId'
+  | 'organizationId'
+  | 'isClockedin'
+  | 'isClockedout'
+  | 'isHavingLunch'
+  | 'clockinLocation'
+  | 'clockinMode'
+  | 'clockinImage'
+  | 'clockinIpAddress'
+  | 'clockinBrowser'
+  | 'clockinOs'
+  | 'totalLoggedHours'
 >;
