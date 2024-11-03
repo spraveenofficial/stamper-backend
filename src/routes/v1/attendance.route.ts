@@ -23,11 +23,15 @@ router
   );
 
 router
-  .route('/clockin-button-status')
+  .route('/button-status')
   .get(
     auth('getClockinButtonStatus'),
     organizationMiddleware.organizationMiddleware,
     attendanceController.getClockinButtonStatus
   );
+
+router
+  .route('/my-attendance')
+  .get(auth('getMyAttendance'), organizationMiddleware.organizationMiddleware, attendanceController.getMyAttendance);
 
 export default router;

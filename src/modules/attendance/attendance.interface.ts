@@ -6,18 +6,19 @@ export interface IAttendance {
   organizationId: mongoose.Types.ObjectId;
   clockinTime: Date;
   clockoutTime: Date;
+  isGeoFencing: boolean;
   clockinLocation: {
     type: string;
     coordinates: number[];
+    locationText: string;
   };
   clockoutLocation: {
     type: string;
     coordinates: number[];
+    locationText: string;
   };
   clockinMode: string;
   clockoutMode: string;
-  clockinVia: string;
-  clockoutVia: string;
   clockinImage: string;
   clockoutImage: string;
   clockinIpAddress: string;

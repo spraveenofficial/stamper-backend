@@ -3,6 +3,7 @@ import {
   AttendanceClockinAndClockoutMode,
   IAttendanceOfficeConfigDoc,
   IAttendanceOfficeConfigModel,
+  OfficeWorkingDaysEnum,
 } from './attendanceOfficeConfig.interface';
 import { toJSON } from '../../../modules/toJSON';
 
@@ -85,6 +86,7 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
     officeWorkingDays: {
       type: [String],
       required: true,
+      enum: Object.values(OfficeWorkingDaysEnum),
     },
     addedBy: {
       type: Schema.Types.ObjectId,

@@ -29,6 +29,10 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
       type: Date,
       required: false,
     },
+    isGeoFencing: {
+      type: Boolean,
+      required: true,
+    },
     clockinLocation: {
       type: {
         type: String,
@@ -37,7 +41,15 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
       },
       coordinates: {
         type: [Number],
-        required: true,
+        required: function (this: IAttendanceDoc) {
+          return this.isGeoFencing;
+        },
+      },
+      locationText: {
+        type: String,
+        required: function (this: IAttendanceDoc) {
+          return this.isGeoFencing;
+        },
       },
     },
     clockoutLocation: {
@@ -48,7 +60,15 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
       },
       coordinates: {
         type: [Number],
-        required: false,
+        required: function (this: IAttendanceDoc) {
+          return this.isGeoFencing;
+        },
+      },
+      locationText: {
+        type: String,
+        required: function (this: IAttendanceDoc) {
+          return this.isGeoFencing;
+        },
       },
     },
     clockinMode: {
@@ -56,14 +76,6 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
       required: true,
     },
     clockoutMode: {
-      type: String,
-      required: false,
-    },
-    clockinVia: {
-      type: String,
-      required: true,
-    },
-    clockoutVia: {
       type: String,
       required: false,
     },

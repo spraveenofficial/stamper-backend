@@ -5,6 +5,16 @@ export enum AttendanceClockinAndClockoutMode {
   MOBILE = 'mobile',
 }
 
+export enum OfficeWorkingDaysEnum {
+  Sunday = 'Sunday',
+  Monday = 'Monday',
+  Tuesday = 'Tuesday',
+  Wednesday = 'Wednesday',
+  Thursday = 'Thursday',
+  Friday = 'Friday',
+  Saturday = 'Saturday',
+}
+
 export interface IAttendanceOfficeConfig {
   organizationId: mongoose.Types.ObjectId;
   officeId: mongoose.Types.ObjectId;
@@ -23,7 +33,7 @@ export interface IAttendanceOfficeConfig {
   officeBreakStartTime: string;
   officeBreakEndTime: string;
   officeBreakDurationInMinutes: number;
-  officeWorkingDays: string[];
+  officeWorkingDays: OfficeWorkingDaysEnum[];
   addedBy: mongoose.Types.ObjectId;
   isActive: boolean;
 }

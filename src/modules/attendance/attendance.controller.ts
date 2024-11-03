@@ -4,7 +4,6 @@ import { catchAsync, pick } from '../utils';
 import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
 import { IOptions } from '../paginate/paginate';
 import { rolesEnum } from '../../config/roles';
-import { userService } from '../user';
 import { attendanceServices } from '.';
 
 export const createAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
@@ -29,7 +28,7 @@ export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res:
   if (req.user.role === rolesEnum.organization) {
     officeConfig = await attendanceOfficeConfigService.getOrganizationOfficeConfig(organizationId, undefined, page, limit);
   } else {
-    console.log(req.organization)
+    console.log(req.organization);
     // Type guard to ensure req.organization is IEmployeeDoc before accessing officeId
     if ('officeId' in req.organization) {
       officeConfig = await attendanceOfficeConfigService.getOrganizationOfficeConfig(
@@ -46,12 +45,26 @@ export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res:
 
 export const getClockinButtonStatus = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-
-  const user = await userService.getUserById(id);
-
-  if (!user) {
-    return res.status(httpStatus.BAD_REQUEST).json({ message: 'User not found' });
-  }
-  const response = await attendanceServices.checkIfEmployeeCanClockInToday(user.id);
+  const response = await attendanceServices.checkIfEmployeeCanClockInToday(id);
   return res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
+});
+
+export const getMyAttendance = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const options: IOptions = pick(req.query, ['limit', 'page']);
+  //@ts-ignore
+  const page = Math.max(1, +options.page! || 1); // Default to page 1
+  //@ts-ignore
+  const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
+
+  const response = await attendanceServices.getMyAttendance(id);
+  res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
+});
+
+
+export const clockinEmployee = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+
+  const response = await attendanceServices.clockinEmployee(id, req.body);
+  res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
 });
