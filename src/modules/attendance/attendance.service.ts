@@ -52,7 +52,11 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
   const response = {
     isWorkingDay,
     isWithinWorkingHours,
-    attendanceStatus: todayAttendanceStatus?.isClockedin ? 'CLOCKED_IN' : (todayAttendanceStatus ? 'CLOCKED_OUT' : 'NOT_CLOCKED_IN'),
+    attendanceStatus: todayAttendanceStatus?.isClockedin
+      ? 'CLOCKED_IN'
+      : todayAttendanceStatus
+      ? 'CLOCKED_OUT'
+      : 'NOT_CLOCKED_IN',
     clockedInAt: todayAttendanceStatus ? todayAttendanceStatus.clockinTime : null,
     eligibleForLunch: isWorkingDay ? moment(currentTime, 'HH:mm').isBetween(lunchStartTime, lunchEndTime) : false,
     officeStartTime: officeStartTime.format('HH:mm'),
@@ -81,7 +85,14 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
   return response;
 };
 
-export const getMyAttendance = async (employeeId: mongoose.Types.ObjectId) => {
+export const getMyAttendance = async (
+  employeeId: mongoose.Types.ObjectId,
+  page: number = 1,
+  limit: number = 10,
+  status?: 'present' | 'absent' | 'all',
+  startDate?: string,
+  endDate?: string
+) => {
   const employee = await employeeService.getEmployeeByUserId(employeeId);
   if (!employee) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee not found');
@@ -92,25 +103,29 @@ export const getMyAttendance = async (employeeId: mongoose.Types.ObjectId) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
   }
 
-  const officeWorkingDays = loadOfficeConfig.officeWorkingDays; // e.g., ["Monday", "Tuesday", ...]
+  const officeWorkingDays = loadOfficeConfig.officeWorkingDays;
+  const skip = (page - 1) * limit;
 
-  // Calculate the last 7 days, filtering out non-working days
-  const last7Days = [];
-  for (let i = 0; i < 7; i++) {
-    const day = moment().subtract(i, 'days');
-    const dayName = day.format('dddd') as OfficeWorkingDaysEnum;
+  // Determine the date range
+  const endMoment = endDate ? moment(endDate) : moment();
+  const startMoment = startDate ? moment(startDate) : endMoment.clone().subtract(6, 'days');
 
-    // Only add if it's a working day
+  // Generate the days in the date range, filtering out non-working days
+  const dateRange = [];
+  let currentDate = endMoment;
+  while (currentDate.isSameOrAfter(startMoment, 'day')) {
+    const dayName = currentDate.format('dddd') as OfficeWorkingDaysEnum;
     if (officeWorkingDays.includes(dayName)) {
-      last7Days.push(day.startOf('day').toDate());
+      dateRange.push(currentDate.startOf('day').toDate());
     }
+    currentDate = currentDate.subtract(1, 'days');
   }
 
   const pipeline = [
     {
       $match: {
         employeeId: new mongoose.Types.ObjectId(employeeId),
-        clockinTime: { $gte: last7Days[last7Days.length - 1] }, // Filter within the 7-day range
+        clockinTime: { $gte: dateRange[dateRange.length - 1], $lte: dateRange[0] }, // Use selected date range
       },
     },
     {
@@ -129,20 +144,40 @@ export const getMyAttendance = async (employeeId: mongoose.Types.ObjectId) => {
         totalLoggedHours: 1,
       },
     },
+    {
+      $facet: {
+        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
+        data: [{ $skip: skip }, { $limit: limit }],
+      },
+    },
+    {
+      $unwind: '$metadata',
+    },
+    {
+      $project: {
+        results: '$data',
+        page: '$metadata.page',
+        limit: '$metadata.limit',
+        totalResults: '$metadata.totalCount',
+        totalPages: {
+          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
+        },
+      },
+    },
   ];
 
-  const attendanceRecords = await Attendance.aggregate(pipeline);
+  const [attendanceData] = await Attendance.aggregate(pipeline);
 
-  // Map attendance records to last 7 days, marking absent where no punch-in info exists
-  const attendanceSummary = last7Days.map((date) => {
-    const record = attendanceRecords.find((rec) =>
-      moment(rec.clockinTime).isSame(date, 'day')
-    );
+  // Map attendance records to date range and apply status filter
+  const attendanceSummary = dateRange.map((date) => {
+    const record = attendanceData.results.find((rec: any) => moment(rec.clockinTime).isSame(date, 'day'));
+
+    const attendanceStatus = record ? 'Present' : 'Absent';
 
     return {
-      date: moment(date).toISOString(),
+      date: moment(date).format('YYYY-MM-DD').toString(),
       day: moment(date).format('dddd'),
-      status: record ? 'Present' : 'Absent',
+      status: attendanceStatus,
       clockinTime: record?.clockinTime || null,
       clockoutTime: record?.clockoutTime || null,
       clockinIpAddress: record?.clockinIpAddress || null,
@@ -157,10 +192,18 @@ export const getMyAttendance = async (employeeId: mongoose.Types.ObjectId) => {
     };
   });
 
-  return attendanceSummary;
+  // Apply status filter (if provided)
+  const filteredSummary =
+    status !== 'all' ? attendanceSummary.filter((entry) => entry.status.toLowerCase() === status) : attendanceSummary;
+
+  return {
+    results: filteredSummary.slice(skip, skip + limit),
+    page,
+    limit,
+    totalResults: filteredSummary.length,
+    totalPages: Math.ceil(filteredSummary.length / limit),
+  };
 };
-
-
 
 export const getEmployeeTodayAttendanceBasedOnUTC = async (
   employeeId: mongoose.Types.ObjectId,
@@ -241,7 +284,6 @@ export const clockinEmployee = async (employeeId: mongoose.Types.ObjectId, paylo
 
   return attendance;
 };
-
 
 export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payload: CreateClockoutPayload) => {
   const employee = await employeeService.getEmployeeByUserId(employeeId);

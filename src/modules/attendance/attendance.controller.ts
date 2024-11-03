@@ -51,13 +51,16 @@ export const getClockinButtonStatus = catchAsync(async (req: Request, res: Respo
 
 export const getMyAttendance = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-  const options: IOptions = pick(req.query, ['limit', 'page']);
+  const {limit, page, status} = req.query;
   //@ts-ignore
-  const page = Math.max(1, +options.page! || 1); // Default to page 1
+  const pageToFn = Math.max(1, +page! || 1); // Default to page 1
   //@ts-ignore
-  const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
+  const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
 
-  const response = await attendanceServices.getMyAttendance(id);
+  const statusToFn = (status as 'present' | 'absent' | 'all') || 'all';
+
+
+  const response = await attendanceServices.getMyAttendance(id, pageToFn, limitToFn, statusToFn);
   res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
 });
 
