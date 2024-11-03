@@ -31,11 +31,28 @@ export interface IAttendance {
   clockoutOs: string;
   isClockedin: boolean;
   isClockedout: boolean;
+  isHavingLunch: boolean;
 }
-
 
 export interface IAttendanceDoc extends IAttendance, mongoose.Document {}
 
 export interface IAttendanceModel extends mongoose.Model<IAttendanceDoc> {
-    isAttendanceAlreadyMarkedToday(employeeId: mongoose.Types.ObjectId, officeId: mongoose.Types.ObjectId): Promise<boolean>;
+  isAttendanceAlreadyMarkedToday(employeeId: mongoose.Types.ObjectId, officeId: mongoose.Types.ObjectId): Promise<boolean>;
 }
+
+export type CreateClockinPayload = Omit<
+  IAttendance,
+  | 'clockoutTime'
+  | 'employeeId'
+  | 'organizationId'
+  | 'isClockedin'
+  | 'isClockedout'
+  | 'isHavingLunch'
+  | 'clockoutLocation'
+  | 'clockoutMode'
+  | 'clockoutImage'
+  | 'clockoutIpAddress'
+  | 'clockoutDevice'
+  | 'clockoutBrowser'
+  | 'clockoutOs'
+>;

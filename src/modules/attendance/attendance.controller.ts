@@ -64,7 +64,9 @@ export const getMyAttendance = catchAsync(async (req: Request, res: Response) =>
 
 export const clockinEmployee = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-
+  if ('officeId' in req.organization) {
+    req.body.officeId = req.organization.officeId;
+  }
   const response = await attendanceServices.clockinEmployee(id, req.body);
   res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
 });

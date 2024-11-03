@@ -3,6 +3,7 @@ import { organizationController, organizationValidation } from '../../modules/or
 import { auth } from '../../modules/auth';
 import { validate } from '../../modules/validate';
 import { employeeValidation } from '../../modules/employee';
+import { organizationMiddleware } from '../../modules/organization/organization.middleware';
 
 const router: Router = express.Router();
 router.post(
@@ -23,11 +24,11 @@ router.get(
   '/employees',
   auth('getEmployees'),
   validate(employeeValidation.getEmployeeRequestValidation),
+  organizationMiddleware,
   organizationController.getOrganizationEmployees
 );
 
-
-router.get('/org-chart', auth(), organizationController.getOrganizationChart);
+router.get('/org-chart', auth(), organizationMiddleware, organizationController.getOrganizationChart);
 
 router.get('/data', auth(), organizationController.getOrganizationData);
 

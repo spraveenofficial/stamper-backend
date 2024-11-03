@@ -6,7 +6,7 @@ import { officeServices } from '../office';
 import mongoose from 'mongoose';
 import { employeeService } from '../employee';
 import Attendance from './attendance.model';
-import { IAttendanceDoc } from './attendance.interface';
+import { CreateClockinPayload, IAttendanceDoc } from './attendance.interface';
 import { OfficeWorkingDaysEnum } from '../common/attendanceOfficeConfig/attendanceOfficeConfig.interface';
 
 export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.ObjectId) => {
@@ -155,7 +155,7 @@ export const getEmployeeTodayAttendanceBasedOnUTC = async (
   return attendance;
 };
 
-export const clockinEmployee = async (employeeId: mongoose.Types.ObjectId, payload: any) => {
+export const clockinEmployee = async (employeeId: mongoose.Types.ObjectId, payload: CreateClockinPayload) => {
   if (await Attendance.isAttendanceAlreadyMarkedToday(employeeId, payload.officeId)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Attendance already marked for today');
   }
@@ -213,9 +213,7 @@ export const clockinEmployee = async (employeeId: mongoose.Types.ObjectId, paylo
 
   const attendance = await Attendance.create({
     employeeId,
-    officeId: employee.officeId,
-    clockinTime: todayInOfficeTime.toISOString(),
-    addedBy: employeeId,
+    ...payload,
   });
 
   return attendance;

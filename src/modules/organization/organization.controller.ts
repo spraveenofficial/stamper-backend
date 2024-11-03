@@ -81,13 +81,6 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
     'employeeStatus',
     'name',
   ]);
-
-  const organization = await organizationService.getOrganizationByUserId(req.user.id);
-  if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
-  }
-
-  // Set default values for pagination
   // Pagination defaults
   const paginationOptions = {
     page: Math.max(1, +page || 1),
@@ -96,15 +89,23 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
 
   // Prepare filtering criteria
   const filterOptions = {
+    orgId: req.user.role === rolesEnum.organization ? req.organization.id : null,
     officeId: officeId || null,
     accountStatus: (accountStatus as employeeAccountStatus) || null,
     employeeStatus: (employeeStatus as MyEmployeeStatus) || null,
     name: name || null,
   };
 
+  if(req.user.role === rolesEnum.moderator){
+    if ('officeId' in req.organization) {
+      filterOptions.officeId = req.organization.officeId
+      filterOptions.orgId = req.organization.organizationId
+    }
+  }
+
   // Fetch employees with pagination and filters
   const employees = await employeeService.getEmployeesByOrgId(
-    organization._id,
+    filterOptions.orgId,
     paginationOptions.page,
     paginationOptions.limit,
     filterOptions.officeId,
@@ -116,17 +117,9 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
 });
 
 export const getOrganizationChart = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const {id} = req.organization;
 
-  // TODO: Make this for employess as well
-
-  const organization = await organizationService.getOrganizationByUserId(id);
-
-  if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
-  }
-
-  const data = await organizationService.getOrgChartById(organization.id as mongoose.Types.ObjectId);
+  const data = await organizationService.getOrgChartById(id as mongoose.Types.ObjectId);
 
   return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data });
 });

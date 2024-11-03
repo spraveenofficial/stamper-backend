@@ -34,4 +34,9 @@ router
   .route('/my-attendance')
   .get(auth('getMyAttendance'), organizationMiddleware.organizationMiddleware, attendanceController.getMyAttendance);
 
+
+router
+  .route('/clockin')
+  .post(auth('clockin'), organizationMiddleware.organizationMiddleware, attendanceController.clockinEmployee);
+
 export default router;

@@ -60,15 +60,11 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
       },
       coordinates: {
         type: [Number],
-        required: function (this: IAttendanceDoc) {
-          return this.isGeoFencing;
-        },
+        required: false,
       },
       locationText: {
         type: String,
-        required: function (this: IAttendanceDoc) {
-          return this.isGeoFencing;
-        },
+        required: false,
       },
     },
     clockinMode: {
@@ -127,6 +123,10 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
       type: Boolean,
       required: false,
     },
+    isHavingLunch: {
+      type: Boolean,
+      required: false,
+    }
   },
   { timestamps: true }
 );
