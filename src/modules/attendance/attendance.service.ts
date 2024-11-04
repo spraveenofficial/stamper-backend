@@ -125,7 +125,7 @@ export const getMyAttendance = async (
     {
       $match: {
         employeeId: new mongoose.Types.ObjectId(employeeId),
-        clockinTime: { $gte: dateRange[dateRange.length - 1], $lte: dateRange[0] }, // Use selected date range
+        // clockinTime: { $gte: dateRange[dateRange.length - 1], $lte: dateRange[0] }, // Use selected date range
       },
     },
     {
@@ -332,4 +332,89 @@ export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payl
   );
 
   return attendance;
+};
+
+export const getEmployeeMonthlySummary = async (employeeId: mongoose.Types.ObjectId): Promise<any> => {
+  // 1. Retrieve the employee's details
+  const employee = await employeeService.getEmployeeByUserId(employeeId);
+  if (!employee) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Employee not found');
+  }
+
+  // 2. Retrieve the office configuration for the employee's office
+  const loadOfficeConfig = await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
+  if (!loadOfficeConfig) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
+  }
+
+  // 3. Get the current date, year, and month
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // getMonth() returns month index (0-11)
+
+  // 4. Calculate the start and end dates for the month
+  const startDate = new Date(year, month - 1, 1); // First day of the month
+  const endDate = new Date(year, month, 0); // Last day of the month
+
+  // 5. Query attendance records for the given month
+  const attendanceRecords = await getEmployeeAttendanceRecords(employeeId, startDate, endDate);
+
+
+  // 6. Initialize summary variables
+  let totalWorkingHours = 0;
+  let totalLoggedHours = 0;
+  let totalOvertime = 0;
+  let totalPaidTimeOff = 0;
+  let monthlyWorkingHours = 0;
+  // 7. Calculate metrics from attendance records
+  for (const record of attendanceRecords) {
+    const workingHours = moment(loadOfficeConfig.officeEndTime, 'HH:mm').diff(
+      moment(loadOfficeConfig.officeStartTime, 'HH:mm'),
+      'hours',
+      true
+    );
+    
+    monthlyWorkingHours = workingHours * loadOfficeConfig.officeWorkingDays.length 
+
+    // Calculate logged hours for the day
+    const loggedHours = record.totalLoggedHours || 0;
+    totalLoggedHours += loggedHours;
+
+    // Calculate overtime if logged hours exceed daily working hours
+    if (loggedHours > workingHours) {
+      totalOvertime += loggedHours - workingHours;
+    }
+
+    // Count paid time off
+    if (record.status === 'Paid Time Off') {
+      totalPaidTimeOff += workingHours; // Assuming full day paid time off
+    }
+
+    // Add to total working hours
+    totalWorkingHours += workingHours;
+  }
+
+  // 8. Return the calculated summary
+  return {
+    year,
+    month,
+    monthlyWorkingHours,
+    totalWorkingHours,
+    totalLoggedHours,
+    totalOvertime,
+    totalPaidTimeOff,
+  };
+};
+
+export const getEmployeeAttendanceRecords = async (
+  employeeId: mongoose.Types.ObjectId,
+  startDate: Date,
+  endDate: Date
+): Promise<any> => {
+  const attendanceRecords = await Attendance.find({
+    employeeId,
+    clockinTime: { $gte: startDate, $lte: endDate },
+  });
+
+  return attendanceRecords;
 };

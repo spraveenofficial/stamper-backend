@@ -43,4 +43,10 @@ router
   .route('/clockout')
   .post(auth('clockout'), organizationMiddleware.organizationMiddleware, attendanceController.clockoutEmployee);
 
+
+router
+  .route('/summary')
+  .get(auth(), organizationMiddleware.organizationMiddleware, attendanceController.getEmployeeMonthSummary);
+
 export default router;
+

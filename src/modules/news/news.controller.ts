@@ -4,23 +4,50 @@ import { catchAsync, pick } from '../utils';
 import { newsService } from '.';
 import { rolesEnum } from '../../config/roles';
 import mongoose from 'mongoose';
-import { IOptions } from '../paginate/paginate';
+import { NewsStatus } from './news.interfaces';
 
 export const createNews = catchAsync(async (req: Request, res: Response) => {
-  const { id: userId } = req.user;
-  const news = await newsService.createNews(req.body, userId, new mongoose.Types.ObjectId(req.organization.id));
+  const { id: userId, role } = req.user;
+
+  let news;
+  if (role === rolesEnum.organization) {
+    news = await newsService.createNews(req.body, userId, new mongoose.Types.ObjectId(req.organization.id));
+  } else {
+    if ('officeId' in req.organization) {
+      news = await newsService.createNews(req.body, userId, new mongoose.Types.ObjectId(req.organization.organizationId));
+    }
+  }
   return res.status(httpStatus.CREATED).json({ success: true, message: req.t('News.newsAddSuccess'), data: news });
 });
 
 export const getLatestNews = catchAsync(async (req: Request, res: Response) => {
   const { role } = req.user;
-  const options: IOptions = pick(req.query, ['limit', 'page']);
+  const { limit, page, status } = pick(req.query, ['limit', 'page', 'status']);
   const { id: organizationId } = req.organization;
 
-  const page = Math.max(1, +options.page! || 1); // Default to page 1
-  const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
+  const pageToFn = Math.max(1, +page! || 1); // Default to page 1
+  const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
 
-  const news = await newsService.getLatestNews(organizationId as mongoose.Types.ObjectId, role as rolesEnum, page, limit);
+  let news;
+  if (role === rolesEnum.organization) {
+    news = await newsService.getLatestNews(
+      organizationId as mongoose.Types.ObjectId,
+      role as rolesEnum,
+      pageToFn,
+      limitToFn,
+      status as NewsStatus
+    );
+  } else {
+    if ('officeId' in req.organization) {
+      news = await newsService.getLatestNews(
+        req.organization.organizationId as mongoose.Types.ObjectId,
+        role as rolesEnum,
+        pageToFn,
+        limitToFn,
+        status as NewsStatus
+      );
+    }
+  }
   return res.status(httpStatus.OK).json({ success: true, data: news, message: req.t('News.newsFetchSuccess') });
 });
 

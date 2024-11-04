@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import News from './news.model';
-import { INewsDoc, NewNewsType } from './news.interfaces';
+import { INewsDoc, NewNewsType, NewsStatus } from './news.interfaces';
 import { rolesEnum } from 'src/config/roles';
 
 export const createNews = async (
@@ -20,13 +20,20 @@ export const getLatestNews = async (
   organizationId: mongoose.Types.ObjectId,
   scope: rolesEnum,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  status?: NewsStatus
 ): Promise<INewsDoc[]> => {
   const skip = (page - 1) * limit;
   const orgId = new mongoose.Types.ObjectId(organizationId);
 
+  const filter : any = { organizationId: orgId, access: { $in: [scope] } };
+
+  if (status) {
+    filter.status = status;
+  }
+
   const news = await News.aggregate([
-    { $match: { organizationId: orgId, access: { $in: [scope] } } },
+    { $match: filter },
     { $lookup: { from: 'users', localField: 'createdBy', foreignField: '_id', as: 'createdByInfo' } },
     { $unwind: { path: '$createdByInfo', preserveNullAndEmptyArrays: true } },
     { $sort: { createdAt: -1 } },

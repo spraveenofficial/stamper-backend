@@ -32,6 +32,7 @@ const organizationMiddleware = async (req: Request, res: Response, next: NextFun
       console.log("Organization-specific data:", organization.companyName); // Access fields specific to IOrganizationDoc
     }
 
+    console.log("Console log organization middleware:", organization);
     req.organization = organization;
     return next();
   } catch (error) {
