@@ -45,3 +45,5 @@ export interface IAttendanceOfficeConfigModel extends Model<IAttendanceOfficeCon
 }
 
 export type NewAttendanceConfigPayload = Omit<IAttendanceOfficeConfig, 'organizationId' | 'addedBy' | 'isActive'>;
+
+export type UpdateAttendanceConfigPayload = Partial<NewAttendanceConfigPayload> & { id: mongoose.Types.ObjectId };

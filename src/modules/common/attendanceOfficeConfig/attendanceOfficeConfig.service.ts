@@ -58,7 +58,7 @@ export const getOrganizationOfficeConfig = async (
   if (officeId) {
     filter._id = new mongoose.Types.ObjectId(officeId);
   }
-  
+
   const pipeline = [
     {
       $match: filter,
@@ -177,4 +177,16 @@ export const getOrganizationOfficeConfig = async (
 
   const response = await Office.aggregate(pipeline);
   return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+};
+
+export const updateOfficeConfig = async (
+  config: attendanceConfigInterface.UpdateAttendanceConfigPayload,
+  orgId: mongoose.Types.ObjectId
+) => {
+  const updatedConfig = await AttendanceOfficeConfig.findOneAndUpdate(
+    { _id: config.id, organizationId: orgId },
+    { $set: config },
+    { new: true }
+  );
+  return updatedConfig;
 };

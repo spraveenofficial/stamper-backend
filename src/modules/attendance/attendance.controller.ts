@@ -15,6 +15,22 @@ export const createAttendanceConfigForOffice = catchAsync(async (req: Request, r
   res.status(httpStatus.CREATED).json({ success: true, message: req.t('AttendanceConfig.added'), data: officeConfig });
 });
 
+export const updateAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
+  const {role}= req.user;
+  const { id: organizationId } = req.organization;
+
+  let officeConfig;
+  if (role === rolesEnum.organization) {
+   officeConfig = await attendanceOfficeConfigService.updateOfficeConfig(req.body, organizationId);
+  } else{
+    if ('officeId' in req.organization) {
+      officeConfig = await attendanceOfficeConfigService.updateOfficeConfig(req.body, organizationId)
+    }
+  }
+
+  res.status(httpStatus.OK).json({ success: true, message: req.t('AttendanceConfig.updated'), data: officeConfig });
+});
+
 export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
   const { id: organizationId } = req.organization;
   const options: IOptions = pick(req.query, ['limit', 'page']);
