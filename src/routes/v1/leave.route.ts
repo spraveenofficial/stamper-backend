@@ -3,6 +3,7 @@ import { auth } from '../../modules/auth';
 import { validate } from '../../modules/validate';
 import { leaveController, leaveValidation } from '../../modules/leave';
 import { upload } from '../../modules/utils/multer';
+import { organizationMiddleware } from '../../modules/organization';
 
 const router: Router = express.Router();
 
@@ -15,7 +16,6 @@ router
   .route('/:leaveId')
   .patch(auth(), upload.single('file'), validate(leaveValidation.updateLeave), leaveController.updateLeave);
 
-  
 router
   .route('/status')
   .post(auth('editLeaveStatus'), validate(leaveValidation.updateLeaveStatus), leaveController.updateLeaveStatus);
@@ -30,8 +30,23 @@ router
 
 router.route('/organization/leave-type/list').get(auth(), leaveController.getLeaveTypesWithPolicy);
 
-router.route('/leave-types').get(auth(), leaveController.getOnlyLeaveTypes);
+router.route('/leave-types').get(auth(), organizationMiddleware.organizationMiddleware, leaveController.getOnlyLeaveTypes);
 
 router.route('/balance').get(auth(), leaveController.getLeaveBalance);
+
+// Holidays
+
+router
+  .route('/organization/holiday')
+  .post(
+    auth('addHoliday'),
+    validate(leaveValidation.addHoliday),
+    organizationMiddleware.organizationMiddleware,
+    leaveController.addHolidayForOffice
+  );
+
+router
+  .route('/organization/holiday')
+  .get(auth(), organizationMiddleware.organizationMiddleware, leaveController.getOfficesHolidays);
 
 export default router;

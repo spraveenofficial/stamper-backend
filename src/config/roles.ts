@@ -21,6 +21,7 @@ const allRoles = {
     'editOfficeManager',
     'addAttendanceconfig',
     'getAttendanceconfig',
+    'addHoliday',
   ],
   employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin', 'clockout'],
   admin: ['profile'],
@@ -32,6 +33,7 @@ const allRoles = {
     'getEmployees',
     'clockin',
     'clockout',
+    'addHoliday',
   ],
 };
 

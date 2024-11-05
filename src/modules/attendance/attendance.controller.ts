@@ -16,15 +16,15 @@ export const createAttendanceConfigForOffice = catchAsync(async (req: Request, r
 });
 
 export const updateAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
-  const {role}= req.user;
+  const { role } = req.user;
   const { id: organizationId } = req.organization;
 
   let officeConfig;
   if (role === rolesEnum.organization) {
-   officeConfig = await attendanceOfficeConfigService.updateOfficeConfig(req.body, organizationId);
-  } else{
+    officeConfig = await attendanceOfficeConfigService.updateOfficeConfig(req.body, organizationId);
+  } else {
     if ('officeId' in req.organization) {
-      officeConfig = await attendanceOfficeConfigService.updateOfficeConfig(req.body, organizationId)
+      officeConfig = await attendanceOfficeConfigService.updateOfficeConfig(req.body, organizationId);
     }
   }
 
@@ -67,13 +67,13 @@ export const getClockinButtonStatus = catchAsync(async (req: Request, res: Respo
 
 export const getMyAttendance = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-  const { limit, page, status } = req.query;
+  const { limit, page, status } = pick(req.query, ['limit', 'page', 'status']);
   //@ts-ignore
   const pageToFn = Math.max(1, +page! || 1); // Default to page 1
   //@ts-ignore
   const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
 
-  const statusToFn = (status as 'present' | 'absent' | 'all') || 'all';
+  const statusToFn = status as 'present' | 'absent' | 'all';
 
   const response = await attendanceServices.getMyAttendance(id, pageToFn, limitToFn, statusToFn);
   res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });

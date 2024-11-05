@@ -26,3 +26,5 @@ export interface ILeaveDoc extends ILeave, Document {}
 
 export type NewLeave = Omit<ILeave, 'employeeId' | 'status' | 'cancellationReason'>;
 export type UpdateLeave = Omit<ILeave, 'employeeId' | 'status' | 'cancellationReason'>;
+
+

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { catchAsync } from '../utils';
+import { catchAsync, pick } from '../utils';
 import { leaveService } from '.';
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
@@ -12,6 +12,8 @@ import { organizationService } from '../organization';
 import { leaveAndPolicyService } from '../common/leavePolicies';
 import { ApiError } from '../errors';
 import { officeServices } from '../office';
+import { officeHolidayServices } from '../common/officeHolidays';
+import { IHolidayDoc } from '../common/officeHolidays/holidays.interfaces';
 
 export const createLeave = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -153,15 +155,17 @@ export const getLeaveTypesWithPolicy = catchAsync(async (req: Request, res: Resp
 });
 
 export const getOnlyLeaveTypes = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-
-  const organization = await organizationService.getOrganizationByUserId(id);
-
-  if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Organization not found');
+  const { role } = req.user;
+  let organization: any;
+  if (role === rolesEnum.organization) {
+    organization = req.organization.id;
+  } else {
+    if ('officeId' in req.organization) {
+      organization = req.organization.organizationId;
+    }
   }
 
-  const leave = await leaveAndPolicyService.getOnlyLeaveTypesByOrganizationId(organization!.id);
+  const leave = await leaveAndPolicyService.getOnlyLeaveTypesByOrganizationId(organization);
 
   return res.status(httpStatus.OK).json({
     success: true,
@@ -198,4 +202,62 @@ export const getLeaveBalance = catchAsync(async (req: Request, res: Response) =>
     message: 'Leave balance fetched successfully',
     data: leave,
   });
+});
+
+export const addHolidayForOffice = catchAsync(async (req: Request, res: Response) => {
+  const { id, role } = req.user;
+  const { id: organizationId } = req.organization;
+
+  let holiday: IHolidayDoc | null = null;
+
+  if (role === rolesEnum.organization) {
+    holiday = await officeHolidayServices.addHoliday(id, organizationId, req.body);
+  } else {
+    if ('officeId' in req.organization) {
+      holiday = await officeHolidayServices.addHoliday(id, req.organization.organizationId, req.body);
+    }
+  }
+
+  res.status(httpStatus.CREATED).json({ success: true, message: 'Holiday added successfully', data: holiday });
+});
+
+export const editHolidayForOffice = catchAsync(async (req: Request, res: Response) => {
+  const holiday = await officeHolidayServices.editHoliday(req.body);
+  res.status(httpStatus.OK).json({ success: true, message: 'Holiday updated successfully', data: holiday });  
+});
+
+export const getOfficesHolidays = catchAsync(async (req: Request, res: Response) => {
+  const { role } = req.user;
+
+  const { limit, page, year } = pick(req.query, ['limit', 'page', 'year']);
+
+  let holidays;
+
+  let filterOptions = {
+    limit: Math.max(1, +limit! || 10),
+    page: Math.max(1, +page! || 1),
+    year: +year || new Date().getFullYear(),
+  };
+
+  if (role === rolesEnum.organization) {
+    holidays = await officeHolidayServices.getHolidaysForOffices(
+      req.organization.id,
+      undefined,
+      filterOptions.page,
+      filterOptions.limit,
+      filterOptions.year
+    );
+  } else {
+    if ('officeId' in req.organization) {
+      holidays = await officeHolidayServices.getHolidaysForOffices(
+        req.organization.organizationId,
+        req.organization.officeId,
+        page,
+        limit,
+        filterOptions.year
+      );
+    }
+  }
+
+  res.status(httpStatus.OK).json({ success: true, message: 'Success', data: holidays });
 });

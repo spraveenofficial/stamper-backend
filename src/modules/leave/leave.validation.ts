@@ -2,6 +2,7 @@ import Joi from 'joi';
 import { objectId } from '../validate';
 import { LeaveStatus, NewLeave } from './leave.interfaces';
 import { leavePoliciesInterface } from '../common/leavePolicies';
+import { officeHolidayInterfaces } from '../common/officeHolidays';
 
 const createLeaveTypeBody: Record<keyof leavePoliciesInterface.NewLeaveType, any> = {
   leaveType: Joi.string().required(),
@@ -26,6 +27,18 @@ const createLeaveTypePolicyBody: Record<keyof leavePoliciesInterface.ILeavePolic
     .required(),
   frequencyCount: Joi.number().required(),
 };
+
+const createHolidayBody: Record<keyof officeHolidayInterfaces.NewHolidayPayloadType, any> = {
+  officeId: Joi.string().custom(objectId).required(),
+  financialYear: Joi.number().required(),
+  holidayList: Joi.array().items(
+    Joi.object().keys({
+      date: Joi.date().required(),
+      description: Joi.string().required(),
+      note: Joi.string().allow(null).optional()
+    }),
+  ),
+}
 
 export const createLeaveType = {
   body: Joi.object().keys(createLeaveTypeBody),
@@ -54,6 +67,10 @@ export const updateLeave = {
   }),
   body: Joi.object().keys(createLeaveBody),
 };
+
+export const addHoliday = {
+  body: Joi.object().keys(createHolidayBody),
+}
 
 export const updateLeaveStatus = {
   body: Joi.object().keys({
