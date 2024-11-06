@@ -45,7 +45,7 @@ router
 
 
 router
-  .route('/summary')
+  .route('/month-summary')
   .get(auth(), organizationMiddleware.organizationMiddleware, attendanceController.getEmployeeMonthSummary);
 
 export default router;

@@ -44,7 +44,6 @@ export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res:
   if (req.user.role === rolesEnum.organization) {
     officeConfig = await attendanceOfficeConfigService.getOrganizationOfficeConfig(organizationId, undefined, page, limit);
   } else {
-    console.log(req.organization);
     // Type guard to ensure req.organization is IEmployeeDoc before accessing officeId
     if ('officeId' in req.organization) {
       officeConfig = await attendanceOfficeConfigService.getOrganizationOfficeConfig(

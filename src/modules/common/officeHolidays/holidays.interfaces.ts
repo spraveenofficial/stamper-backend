@@ -1,6 +1,6 @@
 import mongoose, { Document, Model } from 'mongoose';
 
-interface HolidayListType {
+export interface HolidayListType {
   description: string;
   date: string;
   note: string;

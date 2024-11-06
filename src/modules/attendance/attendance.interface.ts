@@ -59,7 +59,7 @@ export type CreateClockinPayload = Omit<
   | 'totalLoggedHours'
 >;
 
-export type CreateClockoutPayload = Pick<
+export type CreateClockoutPayload = Omit<
   IAttendance,
   | 'clockinTime'
   | 'employeeId'

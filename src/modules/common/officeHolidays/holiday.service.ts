@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IHolidayDoc, NewHolidayPayloadType, UpdateHolidayPayloadType } from './holidays.interfaces';
+import { HolidayListType, IHolidayDoc, NewHolidayPayloadType, UpdateHolidayPayloadType } from './holidays.interfaces';
 import Holiday from './holiday.model';
 import { ApiError } from '../../../modules/errors';
 import httpStatus from 'http-status';
@@ -128,4 +128,52 @@ export const editHoliday = async (payload: UpdateHolidayPayloadType): Promise<IH
   holiday.set(payload);
   await holiday.save();
   return holiday;
+};
+
+export const getNextTenHolidaysForOffice = async (officeId: mongoose.Types.ObjectId): Promise<HolidayListType[]> => {
+  const holidays = await Holiday.aggregate([
+    // Step 1: Filter documents by officeId
+    { $match: { officeId: new mongoose.Types.ObjectId(officeId), financialYear: new Date().getFullYear() } },
+    // Step 2: Unwind the holidayList array
+    { $unwind: '$holidayList' },
+    // Step 3: Filter for upcoming holidays only
+    {
+      $match: {
+        $expr: {
+          $gte: [
+            {
+              $dateFromParts: {
+                year: { $year: '$holidayList.date' },
+                month: { $month: '$holidayList.date' },
+                day: { $dayOfMonth: '$holidayList.date' },
+              },
+            },
+            {
+              $dateFromParts: {
+                year: { $year: new Date() },
+                month: { $month: new Date() },
+                day: { $dayOfMonth: new Date() },
+              },
+            },
+          ],
+        },
+      },
+    },
+    // Step 4: Sort by holiday date in ascending order
+    { $sort: { 'holidayList.date': 1 } },
+    // Step 5: Limit to the next 10 holidays
+    { $limit: 10 },
+    // Step 6: Project only necessary fields
+    {
+      $project: {
+        _id: 0, // Exclude the document _id from output
+        description: '$holidayList.description',
+        date: '$holidayList.date',
+        note: '$holidayList.note',
+      },
+    },
+  ]);
+
+  // Return holidays array, or an empty array if no results
+  return holidays.length ? holidays : [];
 };
