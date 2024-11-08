@@ -45,3 +45,7 @@ export const createLeaveApprovedNotification = async (to: mongoose.Types.ObjectI
 export const markAllNotificationsAsSeen = async (userId: string) => {
   return Notification.updateMany({ to: userId }, { seen: true }, { multi: true });
 };
+
+export const insertManyNotifications = async (notifications: any[]) => {
+  return Notification.insertMany(notifications);
+};

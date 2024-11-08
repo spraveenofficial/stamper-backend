@@ -4,12 +4,13 @@ import { catchAsync, pick } from '../utils';
 import { newsService } from '.';
 import { rolesEnum } from '../../config/roles';
 import mongoose from 'mongoose';
-import { NewsStatus } from './news.interfaces';
+import { INewsDoc, NewsStatus } from './news.interfaces';
+import { newNewsQueue, BULL_AVAILABLE_JOBS } from '../bullmqs';
 
 export const createNews = catchAsync(async (req: Request, res: Response) => {
   const { id: userId, role } = req.user;
-
-  let news;
+  const { title } = req.body;
+  let news: INewsDoc | null = null;
   if (role === rolesEnum.organization) {
     news = await newsService.createNews(req.body, userId, new mongoose.Types.ObjectId(req.organization.id));
   } else {
@@ -17,6 +18,16 @@ export const createNews = catchAsync(async (req: Request, res: Response) => {
       news = await newsService.createNews(req.body, userId, new mongoose.Types.ObjectId(req.organization.organizationId));
     }
   }
+
+  await newNewsQueue.add('sendNotifications', {
+    userId,
+    organizationId: req.organization.id,
+    newsTitle: title,
+    newsId: news!._id,
+    targetRole: 'employee', // or based on your logic to target specific roles
+    type: BULL_AVAILABLE_JOBS.NEWS_PUBLICATION_NOTIFICATION,
+  });
+
   return res.status(httpStatus.CREATED).json({ success: true, message: req.t('News.newsAddSuccess'), data: news });
 });
 

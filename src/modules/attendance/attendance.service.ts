@@ -183,7 +183,7 @@ export const getMyAttendance = async (
 
     return {
       date: moment.tz(date, 'UTC').format('YYYY-MM-DD'),
-      day: moment(date).format('dddd'),
+      day: moment.tz(date, 'UTC').format('dddd') as OfficeWorkingDaysEnum,
       status: attendanceStatus,
       clockinTime: record?.clockinTime || null,
       clockoutTime: record?.clockoutTime || null,

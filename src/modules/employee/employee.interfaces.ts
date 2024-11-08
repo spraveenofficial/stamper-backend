@@ -24,7 +24,7 @@ export enum employeeStatus {
   OnLeave = 'OnLeave',
   Resigned = 'Resigned',
 }
-export type MyEmployeeStatus = 'Active' | 'Inactive' | 'OnLeave' | 'Resigned';
+export type EmployeeStatus = 'Active' | 'Inactive' | 'OnLeave' | 'Resigned';
 
 export enum employeeAccountStatus {
   Active = 'Active',

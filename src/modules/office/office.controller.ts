@@ -6,7 +6,7 @@ import { officeServices } from '.';
 import { IOptions } from '../paginate/paginate';
 import { pick } from '../utils';
 import { employeeService } from '../employee';
-import { employeeAccountStatus, MyEmployeeStatus } from '../employee/employee.interfaces';
+import { employeeAccountStatus, EmployeeStatus } from '../employee/employee.interfaces';
 import { rolesEnum } from '../../config/roles';
 import { userService } from '../user';
 import mongoose from 'mongoose';
@@ -100,7 +100,7 @@ export const getEmployeesByOfficeId = catchAsync(async (req: Request, res: Respo
   const filterOptions = {
     officeId: officeId || null,
     accountStatus: (accountStatus as employeeAccountStatus) || null,
-    employeeStatus: (employeeStatus as MyEmployeeStatus) || null,
+    employeeStatus: (employeeStatus as EmployeeStatus) || null,
     name: name || null,
   };
 

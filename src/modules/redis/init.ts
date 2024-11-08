@@ -1,0 +1,30 @@
+import { createClient } from 'redis';
+import { logger } from '../logger';
+
+const redisConfig = {
+url: 'redis://default:K6153aBnDfguJ0ulA2LiKN9TtjoxMFbN@redis-12284.c325.us-east-1-4.ec2.redns.redis-cloud.com:12284'
+};
+
+// Create a Redis client with proper configuration for production
+const client = createClient(redisConfig);
+
+client.on('error', (err) => {
+  console.error('Redis Client Error', err);
+});
+
+// client.on('connect', async () => {
+//     await client.sendCommand(['CONFIG', 'SET', 'maxmemory-policy', 'noeviction']);
+// });
+
+
+const connectRedis = async () => {
+  try {
+    await client.connect();
+    logger.info('Connected to Redis');
+  } catch (err) {
+    logger.error('Failed to connect to Redis:', err);
+    process.exit(1); // Exit the process in case Redis connection fails
+  }
+};
+
+export { client as redisClient, connectRedis, redisConfig };

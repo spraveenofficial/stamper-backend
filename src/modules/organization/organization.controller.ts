@@ -12,7 +12,7 @@ import { emailService } from '../email';
 import { departmentService } from '../departments';
 import { officeServices } from '../office';
 import { jobTitleService } from '../jobTitles';
-import { employeeAccountStatus, MyEmployeeStatus } from '../employee/employee.interfaces';
+import { employeeAccountStatus, EmployeeStatus } from '../employee/employee.interfaces';
 
 export const createOrganization = catchAsync(async (req: Request, res: Response) => {
   const organization = await organizationService.createOrganization(req.body, req.user.id);
@@ -92,7 +92,7 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
     orgId: req.user.role === rolesEnum.organization ? req.organization.id : null,
     officeId: officeId || null,
     accountStatus: (accountStatus as employeeAccountStatus) || null,
-    employeeStatus: (employeeStatus as MyEmployeeStatus) || null,
+    employeeStatus: (employeeStatus as EmployeeStatus) || null,
     name: name || null,
   };
 

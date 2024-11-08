@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-import { employeeAccountStatus, IEmployee, IEmployeeDoc, MyEmployeeStatus } from './employee.interfaces';
+import { employeeAccountStatus, IEmployee, IEmployeeDoc, EmployeeStatus } from './employee.interfaces';
 import Employee from './employee.model';
+import { rolesEnum } from '../../config/roles';
 
 export const addEmployee = async (employeeBody: IEmployee): Promise<IEmployeeDoc> => {
   return Employee.create(employeeBody);
@@ -8,7 +9,8 @@ export const addEmployee = async (employeeBody: IEmployee): Promise<IEmployeeDoc
 
 export const getEmployeeById = async (id: mongoose.Types.ObjectId): Promise<IEmployee | null> => Employee.findById(id);
 
-export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => Employee.findOne({ userId });
+export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> =>
+  Employee.findOne({ userId });
 
 // Function to get employees by manager ID with modified response structure
 export const getEmployeesByOrgId = async (
@@ -17,7 +19,7 @@ export const getEmployeesByOrgId = async (
   limit: number = 10,
   officeId?: string | null,
   accountStatus?: employeeAccountStatus | null,
-  employeeStatus?: MyEmployeeStatus | null,
+  employeeStatus?: EmployeeStatus | null,
   employeeName?: string | null // Optional employeeName filter
 ): Promise<any> => {
   const skip = (page - 1) * limit;
@@ -329,6 +331,84 @@ export const getEmployeesByOfficeId = async (officeId: string, page: number = 1,
   return employees.length ? employees[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 }; // Return formatted response
 };
 
-export const getEmployeeByOfficeIdAndEmpId = async (officeId: mongoose.Types.ObjectId, empId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => {
+export const getEmployeeByOfficeIdAndEmpId = async (
+  officeId: mongoose.Types.ObjectId,
+  empId: mongoose.Types.ObjectId
+): Promise<IEmployeeDoc | null> => {
   return await Employee.findOne({ officeId, userId: empId });
+};
+
+export const getEmployeesByOrgIdWithoutLimit = async (
+  orgId: mongoose.Types.ObjectId,
+  officeId?: string | null,
+  accountStatus?: employeeAccountStatus | null,
+  employeeStatus?: EmployeeStatus | null,
+  targetRole?: rolesEnum | null
+): Promise<any> => {
+  let userMatchCriteria: any = {};
+  
+  const matchCriteria: any = {
+    organizationId: new mongoose.Types.ObjectId(orgId), // Match employees with the given organizationId
+  };
+
+  if (officeId) {
+    matchCriteria.officeId = new mongoose.Types.ObjectId(officeId);
+  }
+
+  if (accountStatus) {
+    matchCriteria.accountStatus = accountStatus;
+  }
+
+  if (employeeStatus) {
+    matchCriteria.employeeStatus = employeeStatus;
+  }
+
+  if(targetRole) {
+    userMatchCriteria.role = targetRole;
+  }
+
+  const pipeline: any[] = [
+    {
+      $match: { ...matchCriteria }, // Stage 1: Match employees with the given organizationId
+    },
+    {
+      $lookup: {
+        from: 'users', // Collection to join with
+        localField: 'userId', // Field from the Employee collection
+        foreignField: '_id', // Field from the User collection
+        as: 'userDetails', // Output array field
+      },
+    },
+    {
+      $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true }, // Unwind the userDetails array
+    },
+    {
+      $addFields: {
+        employeeId: '$userDetails._id',
+        employeeName: '$userDetails.name',
+        employeeEmail: '$userDetails.email',
+        employeeProfilePicture: '$userDetails.profilePic',
+        jobTitleId: '$jobTitleId',
+        joiningDate: '$joiningDate',
+        departmentId: '$departmentId',
+        officeId: '$officeId',
+        employeeStatus: '$employeeStatus',
+        accountStatus: '$accountStatus',
+        createdAt: '$createdAt',
+      },
+    },
+    {
+      $project: {
+        userDetails: 0, // Exclude the original userDetails field
+        _id: 0, // Exclude _id field
+        updatedAt: 0, // Exclude updatedAt field
+        __v: 0, // Exclude __v field
+        userId: 0, // Exclude userId field
+      },
+    }
+  ];
+
+  const employees = await Employee.aggregate(pipeline);
+
+  return employees;
 };

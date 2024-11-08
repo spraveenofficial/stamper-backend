@@ -6,6 +6,7 @@ export enum NotificationTypes {
   LEAVE_REQUEST_APPROVED = 'leave-request-approved',
   LEAVE_REQUEST_REJECTED = 'leave-request-rejected',
   LEAVE_REQUEST_CANCELLED = 'leave-request-cancelled',
+  NEWS_PUBLICATION = 'news-publication',
 }
 
 export interface INotification {

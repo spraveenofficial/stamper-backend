@@ -12,8 +12,12 @@ import { ApiError, errorConverter, errorHandler } from './modules/errors';
 import routes from './routes/v1';
 import cookieParser from 'cookie-parser';
 import { i18n } from './i18n/init';
+import { connectRedis } from './modules/redis/init';
 
 const app: Express = express();
+
+// Connect to Redis
+connectRedis();
 
 if (config.env !== 'test') {
   app.use(morgan.successHandler);
@@ -41,7 +45,7 @@ app.options('*', cors());
 app.use(express.json());
 
 // Initialize i18next middleware
-app.use(i18n)
+app.use(i18n);
 
 // Parse URL-encoded request body
 app.use(express.urlencoded({ extended: true }));
@@ -57,7 +61,6 @@ app.use(compression());
 if (config.env === 'production') {
   app.use('/api/v1/auth', authLimiter);
 }
-
 
 // v1 API routes
 app.use('/api/v1', routes);
