@@ -175,22 +175,16 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mo
         location: { $first: '$location' }, // Any other office fields
         departments: {
           $push: {
-            id: { $cond: { if: { $gt: ['$departments', null] }, then: '$departments._id', else: null } },
-            name: { $cond: { if: { $gt: ['$departments', null] }, then: '$departments.title', else: null } },
-            jobTitles: {
-              $cond: {
-                if: { $gt: [{ $size: '$departments.jobTitles' }, 0] }, // Check if jobTitles exist
-                then: {
-                  $map: {
-                    input: '$departments.jobTitles',
-                    as: 'jobTitle',
-                    in: {
-                      id: '$$jobTitle._id',
-                      name: '$$jobTitle.jobTitle',
-                    },
-                  },
+            id: '$departments._id', // Department ID
+            name: '$departments.title', // Department name
+            jobtitles: {
+              $map: {
+                input: '$departments.jobTitles',
+                as: 'jobTitle',
+                in: {
+                  id: '$$jobTitle._id',
+                  name: '$$jobTitle.jobTitle',
                 },
-                else: [], // Return an empty array if no job titles exist
               },
             },
           },
@@ -202,18 +196,7 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mo
         id: '$_id', // Retain id field from _id
         name: 1,
         location: 1,
-        departments: {
-          $filter: {
-            input: '$departments',
-            as: 'dept',
-            cond: {
-              $and: [
-                { $ne: ['$$dept.id', null] }, // Include department only if it has a valid ID
-                { $gt: [{ $size: '$$dept.jobTitles' }, 0] }, // Include department only if it has job titles
-              ],
-            },
-          },
-        },
+        departments: 1,
       },
     },
     {

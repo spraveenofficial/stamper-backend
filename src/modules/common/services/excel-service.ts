@@ -1,130 +1,77 @@
 import ExcelJS from 'exceljs';
 
 class ExcelServices {
-  private wb: any;
-
-  //   constructor() {
-  //     this.wb = new excel.Workbook({
-  //       defaultFont: { size: 10, name: 'Liberation Sans' },
-  //     });
-  //   }
-
-  async generateSampleEmployeeBulkUploadExcelSheet(_offices?: any, _swb: any = this.wb) {
+  async generateSampleEmployeeBulkUploadExcelSheet() {
     const workbook = new ExcelJS.Workbook();
-
-    // Create main sheet
     const ws = workbook.addWorksheet('Employee Upload');
-
-    // Create hidden sheet for dropdown data
     const hiddenSheet = workbook.addWorksheet('DropdownData');
+    hiddenSheet.state = 'hidden';
 
-    // Dummy data for offices with their specific departments and designations
-    let officesData = [
-      {
-        id: '1',
-        name: 'Head Office',
-        departments: [
-          { id: 'HR1', name: 'Human Resources' },
-          { id: 'FIN1', name: 'Finance' },
-          { id: 'ENG1', name: 'Engineering' },
-        ],
-        designations: [
-          { id: 'MGR1', name: 'Manager' },
-          { id: 'SMGR1', name: 'Senior Manager' },
-          { id: 'ENG2', name: 'Engineer' },
-        ],
-      },
-      {
-        id: '2',
-        name: 'Branch Office 1',
-        departments: [
-          { id: 'MKT1', name: 'Marketing' },
-          { id: 'SLS1', name: 'Sales' },
-        ],
-        designations: [
-          { id: 'SE1', name: 'Sales Executive' },
-          { id: 'MSP1', name: 'Marketing Specialist' },
-        ],
-      },
-      {
-        id: '3',
-        name: 'Branch Office 2',
-        departments: [
-          { id: 'CS1', name: 'Customer Support' },
-          { id: 'IT1', name: 'IT' },
-        ],
-        designations: [
-          { id: 'SA1', name: 'Support Agent' },
-          { id: 'ITS1', name: 'IT Specialist' },
-        ],
-      },
+    // Dummy data
+    const dummyData = {
+      name: 'John Doe',
+      phoneNumber: '1234567890',
+      email: 'john.doe@example.com',
+      offices: ['Office 1', 'Office 2'],
+      departments: ['Department 1', 'Department 2'],
+      jobTitles: ['Job Title 1', 'Job Title 2'],
+    };
+
+    // Dropdown data for Offices, Departments, and Job Titles
+    const offices = ['Head Office', 'Branch Office 1', 'Branch Office 2'];
+    const departments = ['Human Resources', 'Finance', 'Engineering'];
+    const jobTitles = ['Manager', 'Senior Manager', 'Engineer'];
+
+    // Populate hidden sheet with dropdown values
+    offices.forEach((office, index) => (hiddenSheet.getCell(`A${index + 1}`).value = office));
+    departments.forEach((dept, index) => (hiddenSheet.getCell(`B${index + 1}`).value = dept));
+    jobTitles.forEach((jobTitle, index) => (hiddenSheet.getCell(`C${index + 1}`).value = jobTitle));
+
+    // Define columns for the main sheet
+    ws.columns = [
+      { header: 'Employee Name', key: 'employeeName', width: 25 },
+      { header: 'Joining Date', key: 'joiningDate', width: 20 },
+      { header: 'Office', key: 'office', width: 20 },
+      { header: 'Department', key: 'department', width: 20 },
+      { header: 'Job Title', key: 'jobTitle', width: 20 },
+      { header: 'Phone Number', key: 'phoneNumber', width: 20 },
+      { header: 'Email', key: 'email', width: 30 },
     ];
 
-    // Add header row to the main sheet
-    ws.addRow(['OFFICE ID', 'OFFICE', 'DEPARTMENT ID', 'DEPARTMENT', 'DESIGNATION ID', 'DESIGNATION', 'LOCATION']);
-
-    // Populate the hidden sheet with dropdown data
-    officesData.forEach((office, officeIndex) => {
-      hiddenSheet.getCell(`A${officeIndex + 1}`).value = office.id; // Office IDs
-      hiddenSheet.getCell(`B${officeIndex + 1}`).value = office.name; // Office names
-
-      office.departments.forEach((dept, deptIndex) => {
-        hiddenSheet.getCell(`C${officeIndex * 10 + deptIndex + 1}`).value = dept.id; // Department IDs
-        hiddenSheet.getCell(`D${officeIndex * 10 + deptIndex + 1}`).value = dept.name; // Department names
-      });
-
-      office.designations.forEach((designation, designationIndex) => {
-        hiddenSheet.getCell(`E${officeIndex * 10 + designationIndex + 1}`).value = designation.id; // Designation IDs
-        hiddenSheet.getCell(`F${officeIndex * 10 + designationIndex + 1}`).value = designation.name; // Designation names
-      });
+    // Populate the first row with dummy data (randomly for Office, Department, and Job Title)
+    ws.addRow({
+      employeeName: dummyData.name,
+      joiningDate: new Date(), // You can set a static date or dynamic here
+      office: this.getRandomItem(offices),
+      department: this.getRandomItem(departments),
+      jobTitle: this.getRandomItem(jobTitles),
+      phoneNumber: dummyData.phoneNumber,
+      email: dummyData.email,
     });
 
-    // Set width of the columns
-    ws.columns = [
-      { header: 'Office ID', key: 'officeId', width: 20 },
-      { header: 'Office', key: 'office', width: 20 },
-      { header: 'Department ID', key: 'departmentId', width: 20 },
-      { header: 'Department', key: 'department', width: 30 },
-      { header: 'Designation ID', key: 'designationId', width: 20 },
-      { header: 'Designation', key: 'designation', width: 30 },
-      { header: 'Location', key: 'location', width: 20 },
-    ];
-
-    // Add 200 rows for user input
-    for (let i = 2; i <= 200; i++) {
-      ws.getRow(i).commit();
-    }
-
-    // Add data validation for Office column
-    for (let i = 2; i <= 200; i++) {
-      ws.getCell(`B${i}`).dataValidation = {
+    // Add data validation for Office, Department, and Job Title
+    for (let i = 2; i <= 100; i++) {
+      ws.getCell(`C${i}`).dataValidation = {
         type: 'list',
-        allowBlank: true,
-        formulae: [`DropdownData!$B$1:$B$${officesData.length}`],
+        formulae: [`DropdownData!$A$1:$A$${offices.length}`],
       };
-
-      // Add data validation for Department based on selected office
       ws.getCell(`D${i}`).dataValidation = {
         type: 'list',
-        allowBlank: true,
-        formulae: [
-          `OFFSET(DropdownData!$D$1, (MATCH(B${i}, DropdownData!$B$1:$B$${officesData.length}, 0)-1)*10, 0, COUNTIF(DropdownData!$B$1:$B$${officesData.length}, B${i}), 1)`,
-        ],
+        formulae: [`DropdownData!$B$1:$B$${departments.length}`],
       };
-
-      // Add data validation for Designation based on selected office
-      ws.getCell(`F${i}`).dataValidation = {
+      ws.getCell(`E${i}`).dataValidation = {
         type: 'list',
-        allowBlank: true,
-        formulae: [
-          `OFFSET(DropdownData!$F$1, (MATCH(B${i}, DropdownData!$B$1:$B$${officesData.length}, 0)-1)*10, 0, COUNTIF(DropdownData!$B$1:$B$${officesData.length}, B${i}), 1)`,
-        ],
+        formulae: [`DropdownData!$C$1:$C$${jobTitles.length}`],
       };
     }
 
-    // Write to buffer and return
-    const buffer = await workbook.xlsx.writeBuffer();
-    return buffer;
+    // Write to buffer and return the file
+    return await workbook.xlsx.writeBuffer();
+  }
+
+  private getRandomItem(arr: string[]): string {
+    const randomIndex = Math.floor(Math.random() * arr.length);
+    return arr[randomIndex] ?? "Unknown"; // Returns a random item from the array
   }
 }
 

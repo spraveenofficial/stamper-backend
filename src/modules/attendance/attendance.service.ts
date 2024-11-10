@@ -10,6 +10,7 @@ import { CreateClockinPayload, CreateClockoutPayload, IAttendanceDoc } from './a
 import { OfficeWorkingDaysEnum } from '../common/attendanceOfficeConfig/attendanceOfficeConfig.interface';
 import { attendanceUtils } from '.';
 import { officeHolidayServices } from '../common/officeHolidays';
+import { leaveService } from '../leave';
 
 export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.ObjectId) => {
   const employee = await employeeService.getEmployeeByUserId(employeeId);
@@ -33,6 +34,15 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
 
   // Check if today is a working day in the office
   const isWorkingDay = loadOfficeConfig.officeWorkingDays.includes(todayDayName);
+  let isOnLeave = false;
+  if (isWorkingDay) {
+    // Check if employee is on leave today
+    isOnLeave = await leaveService.isEmployeeIsOnLeave(
+      employeeId,
+      todayInOfficeTime.toISOString() as unknown as Date,
+      todayInOfficeTime.toISOString() as unknown as Date
+    );
+  }
 
   // Parse office working hours and break times with timezone
   const officeStartTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeStartTime, timezone!);
@@ -48,7 +58,7 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
 
   const holidays = await officeHolidayServices.getNextTenHolidaysForOffice(employee.officeId);
   const response = {
-    isWorkingDay,
+    isWorkingDay: isWorkingDay && !isOnLeave,
     isWithinWorkingHours,
     attendanceStatus: todayAttendanceStatus?.isClockedin
       ? 'CLOCKED_IN'

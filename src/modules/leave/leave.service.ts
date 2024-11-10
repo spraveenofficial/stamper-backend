@@ -78,12 +78,10 @@ export const getLeaveByEmployeeId = async (employeeId: mongoose.Types.ObjectId):
   ];
 
   // Use 'as' or cast to resolve type mismatch
-  const result = await Leave.aggregate(pipeline).exec() as ILeaveDoc[];
+  const result = (await Leave.aggregate(pipeline).exec()) as ILeaveDoc[];
 
   return result;
 };
-
-
 
 /**
  * Update leave by id
@@ -141,4 +139,19 @@ export const updateLeaveStatus = async (
   Object.assign(leave, leaveBody);
   await leave.save();
   return leave;
+};
+
+export const isEmployeeIsOnLeave = async (
+  employeeId: mongoose.Types.ObjectId,
+  startDate: Date,
+  endDate: Date
+): Promise<boolean> => {
+  const leave = await Leave.findOne({
+    employeeId: employeeId,
+    startDate: { $lte: endDate },
+    endDate: { $gte: startDate },
+    status: LeaveStatus.APPROVED,
+  });
+
+  return !!leave;
 };

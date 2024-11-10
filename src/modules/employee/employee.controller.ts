@@ -25,11 +25,10 @@ export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: R
   const employeeid = new mongoose.Types.ObjectId(isTokenValid.user);
   const user = await userService.getUserById(employeeid);
 
-  
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }
-  
+
   const token_for = await tokenService.generateOrganizationInvitationToken(user);
   console.log('Token:', token_for);
   const updatePassword = await userService.updateUserById(user.id, body);
@@ -78,29 +77,7 @@ export const generateBulkUploadEmployeeExcelExample = catchAsync(async (_req: Re
   //   throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
   // }
 
-  const dummyData = {
-    employeeID: "E001",
-    name: { first: "John", middle: "A.", last: "Doe" },
-    PAN: "ABCDE1234F",
-    phone: "1234567890",
-    email: "john.doe@example.com",
-    aadhaarNumber: "123456789012",
-    dateOfJoining: "10-12-2020",
-    dateOfBirth: "01-15-1990",
-    ctc: "500000",
-    isCtcExcludesEmployerContribution: "No",
-    isPFEnabled: "Yes",
-    isVariablePercentage: "No",
-    variablePercentage: "0",
-  
-    groups: ["Engineering", "HR", "Sales", "Marketing", "Operations"],
-    departments: ["Development", "Support", "Admin", "Finance", "Legal"],
-    designations: ["Manager", "Engineer", "HR Specialist", "Sales Executive", "Marketing Lead"],
-    locations: ["New York", "San Francisco", "London", "Sydney", "Tokyo"]
-  };
-  
-  
-  const excel = await excelServices.generateSampleEmployeeBulkUploadExcelSheet(dummyData);
+  const excel = await excelServices.generateSampleEmployeeBulkUploadExcelSheet();
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', 'attachment; filename=employee-bulk-upload-example.xlsx');
   res.status(httpStatus.OK).send(excel);
