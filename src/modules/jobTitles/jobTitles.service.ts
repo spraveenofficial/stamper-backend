@@ -4,12 +4,12 @@ import JobTitle from './jobTitles.model';
 import { ApiError } from '../errors';
 
 /**
- * 
- * @param jobTitleBody 
- * @param managerId 
- * @param officeId 
- * @param organizationId 
- * @returns 
+ *
+ * @param jobTitleBody
+ * @param managerId
+ * @param officeId
+ * @param organizationId
+ * @returns
  */
 
 export const createJobTitle = async (
@@ -24,16 +24,16 @@ export const createJobTitle = async (
   return await JobTitle.create({ ...jobTitleBody, managerId, officeId, organizationId });
 };
 
-
 export const getJobTitles = async (
   organizationId: mongoose.Types.ObjectId,
+  officeId: mongoose.Types.ObjectId,
   page: number = 1,
   limit: number = 10
 ): Promise<IJobTitleDoc[]> => {
   const skip = (page - 1) * limit;
   const orgId = new mongoose.Types.ObjectId(organizationId);
   const jobTitles = await JobTitle.aggregate([
-    { $match: { organizationId: orgId } },
+    { $match: { organizationId: orgId, officeId: new mongoose.Types.ObjectId(officeId) } },
     { $lookup: { from: 'departments', localField: 'departmentId', foreignField: '_id', as: 'department' } },
     { $unwind: { path: '$department', preserveNullAndEmptyArrays: true } },
     { $lookup: { from: 'users', localField: 'managerId', foreignField: '_id', as: 'manager' } },
@@ -111,7 +111,6 @@ export const getJobTitles = async (
       },
     },
   ]);
-
   return jobTitles[0] || { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
@@ -120,10 +119,10 @@ export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Prom
 };
 
 /**
- * 
- * @param jobTitleId 
- * @param jobTitleBody 
- * @returns 
+ *
+ * @param jobTitleId
+ * @param jobTitleBody
+ * @returns
  */
 export const editJobTitleById = async (
   jobTitleId: mongoose.Types.ObjectId,

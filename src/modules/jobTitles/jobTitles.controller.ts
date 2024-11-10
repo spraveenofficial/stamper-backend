@@ -5,6 +5,7 @@ import { officeServices } from '../office';
 import { ApiError } from '../errors';
 import { organizationService } from '../organization';
 import { jobTitleService } from '.';
+import { rolesEnum } from '../../config/roles';
 
 export const addJobTitle = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -31,14 +32,18 @@ export const addJobTitle = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getJobTitles = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-  const organization = await organizationService.getOrganizationByUserId(id);
-  if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+  const { limit, page, officeId } = pick(req.query, ['limit', 'page', 'officeId']);
+  
+  const pageTonFn = Math.max(1, +page! || 1); // Default to page 1
+  const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
+  let jobTitles;
+
+  if (req.user.role === rolesEnum.organization) {
+    jobTitles = await jobTitleService.getJobTitles(req.organization.id, officeId, pageTonFn, limitToFn);
+  } else {
+    if ('officeId' in req.organization) {
+      jobTitles = await jobTitleService.getJobTitles(req.organization.organizationId, officeId, page, limit);
+    }
   }
-  const options = pick(req.query, ['limit', 'page']);
-  const page = Math.max(1, +options.page! || 1); // Default to page 1
-  const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
-  const jobTitles = await jobTitleService.getJobTitles(organization.id, page, limit);
-  res.status(httpStatus.OK).json({ success: true, message: 'Job titles fetched successfully', data: jobTitles });
+  res.status(httpStatus.OK).json({ success: true, message: 'Job titles fetched successfully', data: jobTitles ?? [] });
 });
