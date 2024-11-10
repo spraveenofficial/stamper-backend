@@ -4,6 +4,7 @@ import { validate } from '../../modules/validate';
 import { leaveController, leaveValidation } from '../../modules/leave';
 import { upload } from '../../modules/utils/multer';
 import { organizationMiddleware } from '../../modules/organization';
+import { officeHolidayValidations } from '../../modules/common/officeHolidays';
 
 const router: Router = express.Router();
 
@@ -28,7 +29,7 @@ router
   .route('/organization/leave-policy')
   .put(auth('addLeavePolicy'), validate(leaveValidation.createLeaveTypePolicy), leaveController.addPolicyToLeaveType);
 
-router.route('/organization/leave-type/list').get(auth(), leaveController.getLeaveTypesWithPolicy);
+router.route('/organization/leave-type/list').get(auth(),organizationMiddleware.organizationMiddleware, leaveController.getLeaveTypesWithPolicy);
 
 router.route('/leave-types').get(auth(), organizationMiddleware.organizationMiddleware, leaveController.getOnlyLeaveTypes);
 
@@ -40,7 +41,7 @@ router
   .route('/organization/holiday')
   .post(
     auth('addHoliday'),
-    validate(leaveValidation.addHoliday),
+    validate(officeHolidayValidations.createHoliday),
     organizationMiddleware.organizationMiddleware,
     leaveController.addHolidayForOffice
   );

@@ -137,15 +137,14 @@ export const addPolicyToLeaveType = catchAsync(async (req: Request, res: Respons
 });
 
 export const getLeaveTypesWithPolicy = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-
-  const organization = await organizationService.getOrganizationByUserId(id);
-
-  if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Organization not found');
+  let leave;
+  if (req.user.role === rolesEnum.organization) {
+    leave = await leaveAndPolicyService.getLeaveTypesByOrganizationId(req.organization.id);
+  } else {
+    if ('officeId' in req.organization) {
+      leave = await leaveAndPolicyService.getLeaveTypesByOrganizationId(req.organization.organizationId);
+    }
   }
-
-  const leave = await leaveAndPolicyService.getLeaveTypesByOrganizationId(organization!.id);
 
   return res.status(httpStatus.OK).json({
     success: true,
