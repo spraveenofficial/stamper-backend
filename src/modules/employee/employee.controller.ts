@@ -34,6 +34,8 @@ export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: R
   const updatePassword = await userService.updateUserById(user.id, body);
   await employeeService.updateEmployeeAccountStatus(user.id, employeeAccountStatus.Active);
   await tokenService.deleteToken(token as string);
+  user.isEmailVerified = true;
+  await user.save();
   res.status(httpStatus.OK).json({ success: true, message: 'Employee account status updated successfully', updatePassword });
 });
 

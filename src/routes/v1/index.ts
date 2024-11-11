@@ -12,6 +12,7 @@ import jobTitlesRoute from './jobTitles.route';
 import documentsRoute from './documents.route'
 import newsRoute from './news.route';
 import attendanceRoute from "./attendance.route"; 
+import eventRoute from "./events.route";
 
 import config from '../../config/config';
 
@@ -70,6 +71,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/attendance',
     route: attendanceRoute,
+  },
+  {
+    path: "/event",
+    route: eventRoute,
   }
 ];
 

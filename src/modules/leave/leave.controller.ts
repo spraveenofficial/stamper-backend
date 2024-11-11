@@ -14,6 +14,7 @@ import { ApiError } from '../errors';
 import { officeServices } from '../office';
 import { officeHolidayServices } from '../common/officeHolidays';
 import { IHolidayDoc } from '../common/officeHolidays/holidays.interfaces';
+// import { eventServices } from '../events';
 
 export const createLeave = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -94,6 +95,12 @@ export const updateLeaveStatus = catchAsync(async (req: Request, res: Response) 
       managerInformation?.id,
       leave._id
     );
+    // await eventServices.createEvent(
+    //   leave?.employeeId,
+    //   {
+    //     title: 
+    //   }
+    // )
   }
 
   res.status(httpStatus.OK).json({
