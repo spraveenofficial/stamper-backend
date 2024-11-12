@@ -6,5 +6,6 @@ import { eventControllers } from '../../modules/events';
 const router: Router = express.Router();
 
 router.route('/reserve').post(auth(), eventControllers.createEventFromCalendar);
+router.route('/calendar').get(auth(), eventControllers.getEvents);
 
 export default router;
