@@ -1,12 +1,12 @@
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync } from '../utils';
+import { catchAsync, pick } from '../utils';
 import { userService } from '../user';
 import { ApiError } from '../errors';
 import { tokenService, tokenTypes } from '../token';
 import { employeeService } from '.';
 import { employeeAccountStatus } from './employee.interfaces';
-import { DevelopmentOptions } from '../../config/roles';
+import { DevelopmentOptions, rolesEnum } from '../../config/roles';
 import { emailService } from '../email';
 import config from '../../config/config';
 import mongoose from 'mongoose';
@@ -83,4 +83,35 @@ export const generateBulkUploadEmployeeExcelExample = catchAsync(async (_req: Re
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', 'attachment; filename=employee-bulk-upload-example.xlsx');
   res.status(httpStatus.OK).send(excel);
+});
+
+export const getEmployeeDirectory = catchAsync(async (req: Request, res: Response) => {
+  const { role } = req.user;
+  const { page, limit } = pick(req.query, ['page', 'limit']);
+
+  const paginationOptions = {
+    page: Math.max(1, +page || 1),
+    limit: Math.max(1, +limit || 10),
+  };
+
+  let directory: any;
+
+  if (role === rolesEnum.organization) {
+    directory = await employeeService.getEmployeesByOrgId(
+      req.organization.id,
+      paginationOptions.page,
+      paginationOptions.limit,
+    );
+  } else {
+    if ('officeId' in req.organization) {
+      directory = await employeeService.getEmployeesByOrgId(
+        req.organization.organizationId,
+        paginationOptions.page,
+        paginationOptions.limit,
+        req.organization.officeId.toString()
+      );
+    }
+  }
+
+  res.status(httpStatus.OK).json({ success: true, message: 'Employee directory fetched successfully', data: directory });
 });
