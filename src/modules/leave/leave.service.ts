@@ -3,8 +3,9 @@ import { ILeaveDoc, LeaveStatus, NewLeave } from './leave.interfaces';
 import Leave from './leave.model';
 import { ApiError } from '../errors';
 import httpStatus from 'http-status';
-import { organizationService } from '../organization';
+// import { organizationService } from '../organization';
 import { s3Services } from '../s3';
+// import { rolesEnum } from '../../config/roles';
 
 /**
  * Create a leave
@@ -108,15 +109,15 @@ export const updateLeaveById = async (
   if (leave.employeeId.toString() !== userId.toString()) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized to edit this leave');
   }
-  Object.assign(leave, leaveBody);
-  await leave.save();
-  return leave;
+  const updatedLeave = await Leave.findByIdAndUpdate(leaveId, leaveBody, { new: true, runValidators: true });
+  return updatedLeave;
 };
 
 export const updateLeaveStatus = async (
   leaveBody: NewLeave,
   leaveId: mongoose.Types.ObjectId,
-  userId: mongoose.Types.ObjectId
+  // userId: mongoose.Types.ObjectId,
+  // role: rolesEnum,
 ): Promise<ILeaveDoc> => {
   const leave = await Leave.findById(leaveId);
 
@@ -128,17 +129,18 @@ export const updateLeaveStatus = async (
     throw new ApiError(httpStatus.BAD_REQUEST, 'Leave Already Approved');
   }
   // Find employee manager
-  const employeeManager = await organizationService.isEmployeeAndManagerInSameOrganization(
-    leave.employeeId.toString(),
-    userId
-  );
-  if (!employeeManager) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized to update this leave');
-  }
+  // if(role === rolesEnum.employee){
+  //   const employeeManager = await organizationService.isEmployeeAndManagerInSameOrganization(
+  //     leave.employeeId.toString(),
+  //     userId
+  //   );
+  //   if (!employeeManager) {
+  //     throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized to update this leave');
+  //   }
+  // }
 
-  Object.assign(leave, leaveBody);
-  await leave.save();
-  return leave;
+  const updatedLeave = await Leave.findByIdAndUpdate(leave.id, leaveBody, { new: true, runValidators: true }) as ILeaveDoc;
+  return updatedLeave;
 };
 
 export const isEmployeeIsOnLeave = async (

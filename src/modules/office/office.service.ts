@@ -78,7 +78,7 @@ export const getOffices = async (
     },
   ]);
 
-  return offices.length ? offices[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 }
+  return offices.length ? offices[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
 export const editOffice = async (officeId: mongoose.Types.ObjectId, payload: Partial<IOffice>): Promise<IOffice | null> => {
@@ -97,7 +97,12 @@ export const getOfficeById = async (officeId: mongoose.Types.ObjectId): Promise<
   return await Office.findById(officeId);
 };
 
-
-export const getOfficeByOrgAndEmpId = async (orgId: mongoose.Types.ObjectId, empId: mongoose.Types.ObjectId): Promise<IOfficeDoc | null> => {
-  return await Office.findOne({ organizationId: orgId, managerId: empId });
-}
+export const getOfficeByOrgAndEmpId = async (
+  orgId: mongoose.Types.ObjectId,
+  empId: mongoose.Types.ObjectId
+): Promise<IOfficeDoc | null> => {
+  return await Office.findOne({
+    organizationId: new mongoose.Types.ObjectId(orgId),
+    managerId: new mongoose.Types.ObjectId(empId),
+  });
+};

@@ -22,9 +22,9 @@ export interface ILeaveModel extends Model<ILeave> {
   isLeaveExist(employeeId: mongoose.Types.ObjectId, startDate: Date, endDate: Date): Promise<boolean>;
 }
 
-export interface ILeaveDoc extends ILeave, Document {}
+export interface ILeaveDoc extends ILeave, Document {
+  // [x: string]: FilterQuery<any> | undefined;
+}
 
 export type NewLeave = Omit<ILeave, 'employeeId' | 'status' | 'cancellationReason'>;
 export type UpdateLeave = Omit<ILeave, 'employeeId' | 'status' | 'cancellationReason'>;
-
-

@@ -60,6 +60,8 @@ export const isEmployeeAndManagerInSameOrganization = async (
   if (!office) {
     return false;
   }
+
+  console.log(employeeId, office.managerId.toString());
   // Compare the ObjectId values as strings
   return managerId.toString() === employeeId.toString();
 };

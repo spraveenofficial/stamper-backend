@@ -17,43 +17,33 @@ import { IHolidayDoc } from '../common/officeHolidays/holidays.interfaces';
 // import { eventServices } from '../events';
 
 export const createLeave = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-  // Check if from date is greater than to date
-  // if (new Date(req.body.startDate) > new Date(req.body.endDate)) {
-  //   res.status(httpStatus.BAD_REQUEST).json({
-  //     message: 'Start date cannot be greater than end date',
-  //   });
-  // }
+  const { id, role } = req.user;
 
-  // Check if start date is less than current date
-  // if (new Date(req.body.startDate) < new Date()) {
-  //   res.status(httpStatus.BAD_REQUEST).json({
-  //     message: 'Start date cannot be less than current date',
-  //   });
-  // }
-
-  // Check if start date is more than 3 months
-  // if(new Date(req.body.startDate) > new Date(new Date().setMonth(new Date().getMonth() + 3))) {
-  //   res.status(httpStatus.BAD_REQUEST).json({
-  //     message: 'Start date cannot be more than 3 months',
-  //   });
-  // }
   const leaveType = await leaveAndPolicyService.getLeaveTypeById(req.body.leaveTypeId);
   if (!leaveType || !leaveType.policyId) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Leave type not found');
   }
 
-  const user = await userService.getUserById(id);
-  const managerId = await employeeService.getEmployeeByUserId(id);
+  const managerId = await employeeService.getEmployeeByUserId(id)
   const leave = await leaveService.createLeave(req.body, id, req.file);
-  const office = await officeServices.getOfficeByOrgAndEmpId(managerId!.organizationId, managerId?.id);
-  if (req.user?.role !== rolesEnum.organization && managerId) {
+  const user = await userService.getUserById(id);
+
+  if(role === rolesEnum.moderator){
+    const organization = await organizationService.getOrganizationById(managerId!.organizationId); 
+
+    // console.log('Organization', organization);
+    await notificationServices.createLeaveRequestNotification(organization!.userId! as any, user!.name, user?._id, leave._id);
+  }
+
+  if (role === rolesEnum.employee) {
+    const office = await officeServices.getOfficeByOrgAndEmpId(managerId!.organizationId, managerId?.id);
+
     await notificationServices.createLeaveRequestNotification(office!.managerId, user!.name, user?._id, leave._id);
   }
 
   res.status(httpStatus.CREATED).json({
-    success: true,
     message: 'Leave created successfully',
+    success: true,
     leave,
   });
 });
@@ -65,8 +55,8 @@ export const updateLeave = catchAsync(async (req: Request, res: Response) => {
     const leave = await leaveService.updateLeaveById(req.body, new mongoose.Types.ObjectId(leaveId), id);
     res.status(httpStatus.OK).json({
       message: 'Leave Updated Successfully',
-      leave,
       success: true,
+      leave,
     });
   }
 });
@@ -76,31 +66,26 @@ export const getMyOwnLeaves = catchAsync(async (req: Request, res: Response) => 
   const leaves = await leaveService.getLeaveByEmployeeId(id);
   res.status(httpStatus.OK).json({
     message: 'Leaves fetched successfully',
-    data: leaves,
     success: true,
+    data: leaves,
   });
 });
 
-export const updateLeaveStatus = catchAsync(async (req: Request, res: Response) => {
+export const updateLeaveStatusForOrgAndMods = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const { leaveId } = req.body;
 
-  const leave = await leaveService.updateLeaveStatus(req.body, new mongoose.Types.ObjectId(leaveId), id);
+  const leave = await leaveService.updateLeaveStatus(req.body, new mongoose.Types.ObjectId(leaveId));
   if (leave.status === LeaveStatus.APPROVED) {
     const user = await userService.getUserById(new mongoose.Types.ObjectId(leave?.employeeId as unknown as string));
     const managerInformation = await userService.getUserById(new mongoose.Types.ObjectId(id));
+    console.log(managerInformation)
     await notificationServices.createLeaveApprovedNotification(
       user!.id,
       managerInformation!.name,
       managerInformation?.id,
       leave._id
     );
-    // await eventServices.createEvent(
-    //   leave?.employeeId,
-    //   {
-    //     title: 
-    //   }
-    // )
   }
 
   res.status(httpStatus.OK).json({
@@ -229,7 +214,7 @@ export const addHolidayForOffice = catchAsync(async (req: Request, res: Response
 
 export const editHolidayForOffice = catchAsync(async (req: Request, res: Response) => {
   const holiday = await officeHolidayServices.editHoliday(req.body);
-  res.status(httpStatus.OK).json({ success: true, message: 'Holiday updated successfully', data: holiday });  
+  res.status(httpStatus.OK).json({ success: true, message: 'Holiday updated successfully', data: holiday });
 });
 
 export const getOfficesHolidays = catchAsync(async (req: Request, res: Response) => {

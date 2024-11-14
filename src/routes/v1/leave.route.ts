@@ -11,7 +11,13 @@ const router: Router = express.Router();
 router.route('/').get(auth(), leaveController.getMyOwnLeaves);
 router
   .route('/apply-leave')
-  .post(auth(), upload.single('file'), validate(leaveValidation.createLeave), leaveController.createLeave);
+  .post(
+    auth(),
+    upload.single('file'),
+    validate(leaveValidation.createLeave),
+    organizationMiddleware.organizationMiddleware,
+    leaveController.createLeave
+  );
 
 router
   .route('/:leaveId')
@@ -19,7 +25,11 @@ router
 
 router
   .route('/status')
-  .post(auth('editLeaveStatus'), validate(leaveValidation.updateLeaveStatus), leaveController.updateLeaveStatus);
+  .post(
+    auth('editLeaveStatus'),
+    validate(leaveValidation.updateLeaveStatus),
+    leaveController.updateLeaveStatusForOrgAndMods
+  );
 
 router
   .route('/organization/leave-type')
@@ -29,7 +39,9 @@ router
   .route('/organization/leave-policy')
   .put(auth('addLeavePolicy'), validate(leaveValidation.createLeaveTypePolicy), leaveController.addPolicyToLeaveType);
 
-router.route('/organization/leave-type/list').get(auth(),organizationMiddleware.organizationMiddleware, leaveController.getLeaveTypesWithPolicy);
+router
+  .route('/organization/leave-type/list')
+  .get(auth(), organizationMiddleware.organizationMiddleware, leaveController.getLeaveTypesWithPolicy);
 
 router.route('/leave-types').get(auth(), organizationMiddleware.organizationMiddleware, leaveController.getOnlyLeaveTypes);
 

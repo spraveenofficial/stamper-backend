@@ -3,6 +3,13 @@ import News from './news.model';
 import { INewsDoc, NewNewsType, NewsStatus } from './news.interfaces';
 import { rolesEnum } from 'src/config/roles';
 
+/**
+ * 
+ * @param {NewNewsType} payload 
+ * @param {mongoose.Types.ObjectId} userId 
+ * @param {mongoose.Types.ObjectId} organizationId 
+ * @returns {Promise<INewsDoc>} 
+ */
 export const createNews = async (
   payload: NewNewsType,
   userId: mongoose.Types.ObjectId,

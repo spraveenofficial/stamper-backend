@@ -27,10 +27,11 @@ const allRoles = {
   admin: ['profile'],
   moderator: [
     'profile',
+    'getEmployee',
+    'editLeaveStatus',
     'getClockinButtonStatus',
     'getAttendanceconfig',
     'getMyAttendance',
-    'getEmployees',
     'clockin',
     'clockout',
     'addHoliday',
