@@ -21,7 +21,10 @@ export const createNews = catchAsync(async (req: Request, res: Response) => {
 
   await newNewsQueue.add('sendNotifications', {
     userId,
-    organizationId: req.organization.id,
+    organizationId:
+      role === rolesEnum.organization
+        ? req.organization.id
+        : 'officeId' in req.organization && req.organization.organizationId,
     newsTitle: title,
     newsId: news!._id,
     targetRole: 'employee', // or based on your logic to target specific roles

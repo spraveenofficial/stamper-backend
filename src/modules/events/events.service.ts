@@ -10,12 +10,10 @@ export const createEvent = async (
 ): Promise<IEventDoc> => {
   const { date, ...restPayload } = payload; // Extract date to avoid duplicate property
 
-  const dateInUtc = moment(date, "DD/MM/YYYY").utc().toDate();
-
   return await Event.create({
     userId,
     type: type,
-    date: dateInUtc,
+    date: moment(date).toDate(),
     ...restPayload,
   });
 };
