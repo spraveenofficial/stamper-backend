@@ -6,6 +6,7 @@ import { officeHolidayInterfaces } from '../common/officeHolidays';
 
 const createLeaveTypeBody: Record<keyof leavePoliciesInterface.NewLeaveType, any> = {
   leaveType: Joi.string().required(),
+  officeId: Joi.string().custom(objectId).required(),
   isPaid: Joi.boolean().required(),
   unit: Joi.string()
     .valid(...Object.values(leavePoliciesInterface.LeaveUnit))

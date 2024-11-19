@@ -10,6 +10,11 @@ const leaveTypeSchema = new Schema<leavePoliciesInterface.ILeaveTypeDoc, leavePo
     required: true,
     ref: 'Organization',
   },
+  officeId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'Office',
+  },
   leaveType: {
     type: String,
     required: true,
@@ -40,8 +45,8 @@ const leaveTypeSchema = new Schema<leavePoliciesInterface.ILeaveTypeDoc, leavePo
   },
 });
 
-leaveTypeSchema.statics['isLeaveTypeExist'] = async function (leaveType: string, organizationId: string) {
-  return !!(await this.findOne({ leaveType, organizationId }));
+leaveTypeSchema.statics['isLeaveTypeExist'] = async function (leaveType: string, organizationId: mongoose.Types.ObjectId, officeId: mongoose.Types.ObjectId): Promise<boolean> {
+  return !!(await this.findOne({ leaveType, organizationId, officeId }));
 };
 
 const leavePolicySchema = new Schema<

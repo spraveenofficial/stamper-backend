@@ -32,13 +32,20 @@ export const createDepartment = async (
  */
 export const getDepartments = async (
   organizationId: mongoose.Types.ObjectId,
+  officeId: mongoose.Types.ObjectId,
   page: number = 1,
   limit: number = 10
 ): Promise<IDepartment[]> => {
   const skip = (page - 1) * limit;
-  const orgId = new mongoose.Types.ObjectId(organizationId);
+
+  let filter: any = {
+    organizationId: new mongoose.Types.ObjectId(organizationId),
+    officeId: new mongoose.Types.ObjectId(officeId),
+  };
+  
+  // const orgId = new mongoose.Types.ObjectId(organizationId);
   const departments = await Department.aggregate([
-    { $match: { organizationId: orgId } },
+    { $match: filter },
     { $lookup: { from: 'users', localField: 'departmentHeadId', foreignField: '_id', as: 'departmentHead' } },
     { $unwind: { path: '$departmentHead', preserveNullAndEmptyArrays: true } },
     { $lookup: { from: 'offices', localField: 'officeId', foreignField: '_id', as: 'office' } },
@@ -96,7 +103,6 @@ export const getDepartments = async (
   return departments[0] || { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
-
 export const getDeparmentById = async (departmentId: mongoose.Types.ObjectId): Promise<IDepartmentDoc | null> => {
   return await Department.findById(departmentId);
-}
+};

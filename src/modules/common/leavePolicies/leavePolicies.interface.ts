@@ -16,11 +16,12 @@ export enum DurationType {
 
 export interface ILeaveType {
   organizationId: mongoose.Types.ObjectId;
+  officeId: mongoose.Types.ObjectId;
   leaveType: string;
   isPaid: boolean;
   isEarned: boolean;
   isOperational: boolean;
-  policyId: string | null;
+  policyId: mongoose.Types.ObjectId | null;
   unit: LeaveUnit;
 }
 
@@ -40,7 +41,7 @@ export interface ILeavePolicyType {
 export interface ILeaveTypeDoc extends ILeaveType, Document {}
 
 export interface ILeaveTypeModel extends Model<ILeaveTypeDoc> {
-  isLeaveTypeExist(leaveType: string, organizationId: mongoose.Types.ObjectId): Promise<boolean>;
+  isLeaveTypeExist(leaveType: string, organizationId: mongoose.Types.ObjectId, officeId: mongoose.Types.ObjectId): Promise<boolean>;
 }
 
 export interface ILeavePolicyTypeDoc extends ILeavePolicyType, Document {}

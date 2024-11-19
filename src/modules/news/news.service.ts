@@ -50,6 +50,7 @@ export const getLatestNews = async (
         createdByName: '$createdByInfo.name',
         createdByEmail: '$createdByInfo.email',
         createdByProfilePic: '$createdByInfo.profilePic',
+        createdByUserId: '$createdByInfo._id',
       },
     },
     {

@@ -12,7 +12,7 @@ export const createLeaveType = async (
   leaveType: leavePoliciesInterface.ILeaveType,
   t: (key: string) => string
 ): Promise<leavePoliciesInterface.ILeaveTypeDoc> => {
-  if (await LeaveType.isLeaveTypeExist(leaveType.leaveType, new mongoose.Types.ObjectId(leaveType.organizationId))) {
+  if (await LeaveType.isLeaveTypeExist(leaveType.leaveType, new mongoose.Types.ObjectId(leaveType.organizationId), new mongoose.Types.ObjectId(leaveType.officeId))) {
     throw new Error(t('LeavePolicies.leaveTypeExist error'));
   }
   return await LeaveType.create(leaveType);
