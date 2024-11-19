@@ -8,6 +8,6 @@ const router: Router = express.Router();
 router
   .route('/add')
   .post(auth('addDepartment'), validate(departmentValidation.createDepartmentRequest), departmentController.addDepartment);
-router.route('/').get(auth('getDepartments'), departmentController.getDepartments);
+router.route('/').get(auth('getDepartments'), validate(departmentValidation.getDepartmentsRequest), departmentController.getDepartments);
 
 export default router;

@@ -32,18 +32,13 @@ export const createDepartment = async (
  */
 export const getDepartments = async (
   organizationId: mongoose.Types.ObjectId,
-  officeId: mongoose.Types.ObjectId,
-  page: number = 1,
-  limit: number = 10
+  officeId: mongoose.Types.ObjectId
 ): Promise<IDepartment[]> => {
-  const skip = (page - 1) * limit;
-
   let filter: any = {
     organizationId: new mongoose.Types.ObjectId(organizationId),
     officeId: new mongoose.Types.ObjectId(officeId),
   };
-  
-  // const orgId = new mongoose.Types.ObjectId(organizationId);
+
   const departments = await Department.aggregate([
     { $match: filter },
     { $lookup: { from: 'users', localField: 'departmentHeadId', foreignField: '_id', as: 'departmentHead' } },
@@ -72,36 +67,11 @@ export const getDepartments = async (
       },
     },
     { $sort: { createdAt: -1 } },
-    {
-      $facet: {
-        metadata: [
-          { $count: 'totalCount' }, // Count total documents
-          { $addFields: { page, limit } }, // Include page and limit in metadata
-        ],
-        data: [
-          { $skip: skip }, // Skip for pagination
-          { $limit: limit }, // Limit the number of results
-        ],
-      },
-    },
-    {
-      $unwind: '$metadata', // Unwind the metadata array
-    },
-    {
-      $project: {
-        results: '$data',
-        page: '$metadata.page',
-        limit: '$metadata.limit',
-        totalResults: '$metadata.totalCount',
-        totalPages: {
-          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
-        },
-      },
-    },
   ]);
 
-  return departments[0] || { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+  return departments;
 };
+
 
 export const getDeparmentById = async (departmentId: mongoose.Types.ObjectId): Promise<IDepartmentDoc | null> => {
   return await Department.findById(departmentId);

@@ -35,10 +35,8 @@ export const getDepartments = catchAsync(async (req: Request, res: Response) => 
   if (!organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, req.t('Departments.addOrganizationFirst'));
   }
-  const options: IOptions = pick(req.query, ['limit', 'page', 'officeId']);
-  const page = Math.max(1, +options.page! || 1); // Default to page 1
-  const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
+  const options: IOptions = pick(req.query, ['officeId']);
   const officeId = options.officeId ? new mongoose.Types.ObjectId(options.officeId) : null;
-  const departments = await departmentService.getDepartments(organization.id, officeId!, page, limit);
+  const departments = await departmentService.getDepartments(organization.id, officeId!);
   res.status(httpStatus.OK).json({ success: true, data: departments });
 });

@@ -55,7 +55,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
   const employeeInformations = await employeeService.addEmployee({
     ...employeeInformation,
     userId: employee.id as mongoose.Types.ObjectId,
-    managerId: req.user.id as mongoose.Types.ObjectId,
+    managerId: office.managerId as mongoose.Types.ObjectId,
     jobTitleId: jobTitle.id as mongoose.Types.ObjectId,
     organizationId: organization.id as mongoose.Types.ObjectId,
     officeId: office.id as mongoose.Types.ObjectId,

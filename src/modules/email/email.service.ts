@@ -160,7 +160,7 @@ export const sendSuccessfulRegistration = async (to: string, token: string, name
 export const sendAccountCreated = async (to: string, name: string): Promise<void> => {
   const subject = 'Account Created Successfully';
   // replace this url with the link to the email verification page of your front-end app
-  const loginUrl = `http://${config.clientUrl}/auth/login`;
+  const loginUrl = `http://${config.clientUrl}/login`;
   const text = `Hi ${name},
   Congratulations! Your account has been created successfully. 
   You can now login at: ${loginUrl}
@@ -175,6 +175,14 @@ export const sendAccountCreated = async (to: string, name: string): Promise<void
   <p><strong>Team</strong></p></div>`;
   await sendEmail(to, subject, text, html);
 };
+
+/**
+ * 
+ * @param {string} to 
+ * @param {string} name 
+ * @param {string} inviter 
+ * @param {string} token 
+ */
 
 export const inviteEmployee = async (to: string, name: string, inviter: string, token: string): Promise<void> => {
   const subject = 'Invitation to join Organization';
