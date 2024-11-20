@@ -119,13 +119,51 @@ export const getHolidaysForOffices = async (
   return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
-export const editHoliday = async (payload: UpdateHolidayPayloadType): Promise<IHolidayDoc> => {
-  const holiday = await Holiday.findById(payload.holidayId);
+export const editHoliday = async (holidayId: string, payload: UpdateHolidayPayloadType): Promise<IHolidayDoc> => {
+  const holiday = await Holiday.findById(new mongoose.Types.ObjectId(holidayId));
   if (!holiday) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Holiday not found');
   }
 
-  holiday.set(payload);
+  // Check if payload.holidayList items are unique
+  const dates = new Set<string>();
+  for (const item of payload.holidayList) {
+    const date = new Date(item.date).toISOString().split('T')[0];
+    if (dates.has(date!)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Holiday dates should be unique');
+    }
+    dates.add(date!);
+  }
+
+  // Extract current holiday dates from the database
+  const existingDates = new Set(holiday.holidayList.map((item) => new Date(item.date).toISOString().split('T')[0]));
+
+  // Find dates to be removed
+  const updatedDates = new Set(payload.holidayList.map((item) => new Date(item.date).toISOString().split('T')[0]));
+  const datesToRemove = [...existingDates].filter((date) => !updatedDates.has(date));
+
+  // Remove holidays from the database that are no longer in the list
+  holiday.holidayList = holiday.holidayList.filter(
+    (item) => !datesToRemove.includes(new Date(item.date).toISOString().split('T')[0])
+  );
+
+  // Add or update holidays in the list
+  for (const newItem of payload.holidayList) {
+    const existingHoliday = holiday.holidayList.find(
+      (item) => new Date(item.date).toISOString().split('T')[0] === new Date(newItem.date).toISOString().split('T')[0]
+    );
+
+    if (existingHoliday) {
+      // Update existing holiday
+      existingHoliday.description = newItem.description;
+      existingHoliday.note = newItem.note;
+    } else {
+      // Add new holiday
+      holiday.holidayList.push(newItem);
+    }
+  }
+
+  // Save the updated document
   await holiday.save();
   return holiday;
 };

@@ -24,15 +24,20 @@ export const createLeave = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Leave type not found');
   }
 
-  const managerId = await employeeService.getEmployeeByUserId(id)
+  const managerId = await employeeService.getEmployeeByUserId(id);
   const leave = await leaveService.createLeave(req.body, id, req.file);
   const user = await userService.getUserById(id);
 
-  if(role === rolesEnum.moderator){
-    const organization = await organizationService.getOrganizationById(managerId!.organizationId); 
+  if (role === rolesEnum.moderator) {
+    const organization = await organizationService.getOrganizationById(managerId!.organizationId);
 
     // console.log('Organization', organization);
-    await notificationServices.createLeaveRequestNotification(organization!.userId! as any, user!.name, user?._id, leave._id);
+    await notificationServices.createLeaveRequestNotification(
+      organization!.userId! as any,
+      user!.name,
+      user?._id,
+      leave._id
+    );
   }
 
   if (role === rolesEnum.employee) {
@@ -79,7 +84,7 @@ export const updateLeaveStatusForOrgAndMods = catchAsync(async (req: Request, re
   if (leave.status === LeaveStatus.APPROVED) {
     const user = await userService.getUserById(new mongoose.Types.ObjectId(leave?.employeeId as unknown as string));
     const managerInformation = await userService.getUserById(new mongoose.Types.ObjectId(id));
-    console.log(managerInformation)
+    console.log(managerInformation);
     await notificationServices.createLeaveApprovedNotification(
       user!.id,
       managerInformation!.name,
@@ -213,8 +218,11 @@ export const addHolidayForOffice = catchAsync(async (req: Request, res: Response
 });
 
 export const editHolidayForOffice = catchAsync(async (req: Request, res: Response) => {
-  const holiday = await officeHolidayServices.editHoliday(req.body);
-  res.status(httpStatus.OK).json({ success: true, message: 'Holiday updated successfully', data: holiday });
+  const { holidayId } = req.params;
+  if (typeof req.params['holidayId'] === 'string') {
+    const holiday = await officeHolidayServices.editHoliday(holidayId!, req.body);
+    res.status(httpStatus.OK).json({ success: true, message: 'Holiday updated successfully', data: holiday });
+  }
 });
 
 export const getOfficesHolidays = catchAsync(async (req: Request, res: Response) => {

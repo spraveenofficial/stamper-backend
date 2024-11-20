@@ -20,7 +20,7 @@ export const getNotifications = catchAsync(async (req: Request, res: Response) =
     options.sortBy = 'createdAt:desc';
 
     const notifications = await Notification.paginate(filter, options);
-    res.status(httpStatus.OK).json({ data: notifications });
+    res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data: notifications });
   } catch (error) {
     console.log(error);
     res.status(httpStatus.BAD_REQUEST).json({ error: 'Something went wrong' });
@@ -77,7 +77,6 @@ export const deleteAllNotifications = catchAsync(async (req: Request, res: Respo
     res.status(httpStatus.BAD_REQUEST).json({ error: 'Something went wrong' });
   }
 });
-
 
 /**
  * Mark All Notifications As Seen

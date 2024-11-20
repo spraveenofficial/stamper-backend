@@ -62,4 +62,13 @@ router
   .route('/organization/holiday')
   .get(auth(), organizationMiddleware.organizationMiddleware, leaveController.getOfficesHolidays);
 
+router
+  .route('/organization/holiday/:holidayId')
+  .put(
+    auth(),
+    validate(officeHolidayValidations.updateHolidayRequest),
+    organizationMiddleware.organizationMiddleware,
+    leaveController.editHolidayForOffice
+  );
+
 export default router;

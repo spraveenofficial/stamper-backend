@@ -23,6 +23,4 @@ export interface IHolidayModel extends Model<IHolidayDoc> {
 
 export type NewHolidayPayloadType = Omit<IHoliday, 'addedBy' | 'organizationId'>;
 
-export type UpdateHolidayPayloadType = Omit<IHoliday, 'addedBy' | 'organizationId' | 'officeId'> & {
-  holidayId: mongoose.Types.ObjectId;
-};
+export type UpdateHolidayPayloadType = Omit<IHoliday, 'addedBy' | 'organizationId' | 'officeId'>
