@@ -1,8 +1,9 @@
 import express, { Router } from 'express';
-// import { validate } from '../../modules/validate';
+import { validate } from '../../modules/validate';
 import { auth } from '../../modules/auth';
 import { attendanceController } from '../../modules/attendance';
 import { organizationMiddleware } from '../../modules/organization';
+import { attendanceOfficeConfigValidations } from '../../modules/common/attendanceOfficeConfig';
 
 const router: Router = express.Router();
 
@@ -10,8 +11,17 @@ router
   .route('/add-config')
   .post(
     auth('addAttendanceconfig'),
+    validate(attendanceOfficeConfigValidations.addAttendanceConfigRequest),
     organizationMiddleware.organizationMiddleware,
     attendanceController.createAttendanceConfigForOffice
+  );
+
+router
+  .route('/update-config')
+  .patch(
+    auth('updateAttendanceconfig'),
+    organizationMiddleware.organizationMiddleware,
+    attendanceController.updateAttendanceConfigForOffice
   );
 
 router
@@ -34,7 +44,6 @@ router
   .route('/my-attendance')
   .get(auth('getMyAttendance'), organizationMiddleware.organizationMiddleware, attendanceController.getMyAttendance);
 
-
 router
   .route('/clockin')
   .post(auth('clockin'), organizationMiddleware.organizationMiddleware, attendanceController.clockinEmployee);
@@ -43,10 +52,8 @@ router
   .route('/clockout')
   .post(auth('clockout'), organizationMiddleware.organizationMiddleware, attendanceController.clockoutEmployee);
 
-
 router
   .route('/month-summary')
   .get(auth(), organizationMiddleware.organizationMiddleware, attendanceController.getEmployeeMonthSummary);
 
 export default router;
-
