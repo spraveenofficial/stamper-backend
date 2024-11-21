@@ -2,6 +2,7 @@ import mongoose, { PipelineStage } from 'mongoose';
 import { EventType, IEventDoc, NewEvent } from './events.interfaces';
 import Event from './events.model';
 import moment from 'moment';
+import { Holiday } from '../common/officeHolidays';
 
 /**
  *
@@ -11,7 +12,11 @@ import moment from 'moment';
  * @returns {Promise<IEventDoc>}
  */
 
-export const createEvent = async (userId: mongoose.Types.ObjectId, payload: NewEvent, type: EventType): Promise<IEventDoc> => {
+export const createEvent = async (
+  userId: mongoose.Types.ObjectId,
+  payload: NewEvent,
+  type: EventType
+): Promise<IEventDoc> => {
   const { date, ...restPayload } = payload;
 
   // Create the event and capture the new event document
@@ -126,38 +131,43 @@ export const createEvent = async (userId: mongoose.Types.ObjectId, payload: NewE
   const formattedEvent = await Event.aggregate(pipeline);
 
   // Return the formatted event if found, or the created event as fallback
-  return formattedEvent.length ? formattedEvent[0] as IEventDoc : newEvent as IEventDoc;
+  return formattedEvent.length ? (formattedEvent[0] as IEventDoc) : (newEvent as IEventDoc);
 };
 
 interface EventFilterOptions {
   userId: mongoose.Types.ObjectId; // optional, if you want to filter by specific user ID
   startDate?: Date; // start date for filtering (for day, week, or month views)
   endDate?: Date; // end date for filtering
+  orgId?: mongoose.Types.ObjectId; // optional, if you want to filter by organization ID
 }
 
-export const getEventsByCalendarView = async (options: EventFilterOptions) => {
-  const { startDate, endDate, userId } = options;
+export const getCalendarViewData = async (options: EventFilterOptions) => {
+  const { startDate, endDate, userId, orgId } = options;
 
-  // Set up a match filter to add to the pipeline based on provided options
-  const matchFilter: any = {
-    userId: new mongoose.Types.ObjectId(userId),
-  };
+  // Convert userId and orgId to ObjectId
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const orgObjectId = new mongoose.Types.ObjectId(orgId);
 
-  // Convert date strings to Date objects if provided
+  // Date range conversion
   const start = startDate ? new Date(`${startDate}T00:00:00.000Z`) : undefined;
   const end = endDate ? new Date(`${endDate}T23:59:59.999Z`) : undefined;
 
+  // Match filter for events
+  const eventMatchFilter: any = {
+    userId: userObjectId,
+  };
+
   if (startDate && endDate) {
-    // When startDate and endDate are identical, handle it as a single-day range
-    matchFilter.date = startDate === endDate ? { $gte: start, $lte: end } : { $gte: start, $lte: end };
+    eventMatchFilter.date = startDate === endDate ? { $gte: start, $lte: end } : { $gte: start, $lte: end };
   } else if (startDate) {
-    matchFilter.date = { $gte: start };
+    eventMatchFilter.date = { $gte: start };
   } else if (endDate) {
-    matchFilter.date = { $lte: end };
+    eventMatchFilter.date = { $lte: end };
   }
 
-  const pipeline: PipelineStage[] = [
-    { $match: matchFilter },
+  // Event aggregation pipeline
+  const eventPipeline: mongoose.PipelineStage[] = [
+    { $match: eventMatchFilter },
     { $sort: { date: 1 } },
     {
       $lookup: {
@@ -168,33 +178,6 @@ export const getEventsByCalendarView = async (options: EventFilterOptions) => {
       },
     },
     { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'guests.userId',
-        foreignField: '_id',
-        as: 'guestDetails',
-      },
-    },
-    { $unwind: { path: '$guestDetails', preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        guestDetails: {
-          $mergeObjects: [
-            {
-              _id: '$guestDetails._id',
-              name: '$guestDetails.name',
-              email: '$guestDetails.email',
-            },
-            {
-              status: {
-                $arrayElemAt: ['$guests.status', { $indexOfArray: ['$guests.userId', '$guestDetails._id'] }],
-              },
-            },
-          ],
-        },
-      },
-    },
     {
       $addFields: {
         startDateTime: {
@@ -237,36 +220,21 @@ export const getEventsByCalendarView = async (options: EventFilterOptions) => {
         start: { $first: '$startDateTime' },
         end: { $first: '$endDateTime' },
         timeZone: { $first: '$timeZone' },
-        link: { $first: '$link' },
         location: { $first: '$location' },
-        note: { $first: '$note' },
-        guests: { $push: '$guestDetails' },
-      },
-    },
-    {
-      $addFields: {
-        guests: {
-          $cond: {
-            if: { $eq: ['$guests', [{}]] }, // Check if guests array is empty or contains empty object
-            then: [],
-            else: '$guests',
-          },
-        },
+        guests: { $push: '$guests' },
       },
     },
     {
       $project: {
-        id: '$_id', // Rename _id to id
-        _id: 0, // Exclude _id field
+        id: '$_id',
+        type: 1,
         title: 1,
         description: 1,
         date: 1,
         start: 1,
         end: 1,
         timeZone: 1,
-        link: 1,
         location: 1,
-        note: 1,
         guests: 1,
         'user.name': 1,
         'user.email': 1,
@@ -274,6 +242,90 @@ export const getEventsByCalendarView = async (options: EventFilterOptions) => {
     },
   ];
 
-  const events = await Event.aggregate(pipeline);
-  return events;
+  // Match filter for holidays
+  const holidayMatchFilter: any = {
+    organizationId: orgObjectId,
+  };
+
+  if (startDate || endDate) {
+    holidayMatchFilter['holidayList.date'] = {};
+    if (startDate) {
+      holidayMatchFilter['holidayList.date'].$gte = new Date(`${startDate}T00:00:00.000Z`);
+    }
+    if (endDate) {
+      holidayMatchFilter['holidayList.date'].$lte = new Date(`${endDate}T23:59:59.999Z`);
+    }
+  }
+
+  // Holiday aggregation pipeline
+  const holidayPipeline: mongoose.PipelineStage[] = [
+    { $match: holidayMatchFilter },
+    { $unwind: '$holidayList' },
+    {
+      $match: {
+        ...(startDate || endDate ? { 'holidayList.date': holidayMatchFilter['holidayList.date'] } : {}),
+      },
+    },
+    {
+      $addFields: {
+        startDateTime: {
+          $dateToString: {
+            format: '%Y-%m-%d %H:%M',
+            date: {
+              $dateFromParts: {
+                year: { $year: '$holidayList.date' },
+                month: { $month: '$holidayList.date' },
+                day: { $dayOfMonth: '$holidayList.date' },
+                hour: 0,
+                minute: 0,
+              },
+            },
+          },
+        },
+        endDateTime: {
+          $dateToString: {
+            format: '%Y-%m-%d %H:%M',
+            date: {
+              $dateFromParts: {
+                year: { $year: '$holidayList.date' },
+                month: { $month: '$holidayList.date' },
+                day: { $dayOfMonth: '$holidayList.date' },
+                hour: 23,
+                minute: 59,
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        type: EventType.ONHOLIDAY,
+        title: '$holidayList.description',
+        description: '$holidayList.note',
+        date: '$holidayList.date',
+        start: '$startDateTime',
+        end: '$endDateTime',
+        timeZone: 'UTC',
+        location: null,
+        guests: [], // Ensuring it matches the empty array structure for guests in events
+        user: {
+          name: 'Organization', // Adjust as per your requirements, e.g., default user for holidays
+          email: null,
+        },
+      },
+    },
+    { $sort: { date: 1 } },
+  ];
+
+  // Fetch events and holidays
+  const [events, holidays] = await Promise.all([Event.aggregate(eventPipeline), Holiday.aggregate(holidayPipeline)]);
+
+  // Combine results
+  const combinedResults = [...events, ...holidays];
+
+  // Sort by date
+  combinedResults.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  return combinedResults;
 };

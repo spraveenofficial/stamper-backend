@@ -29,7 +29,9 @@ export const getEvents = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User not found');
   }
 
-  const events = await eventServices.getEventsByCalendarView({ userId: user.id, startDate, endDate });
+  const orgId = req.organization.id;
+
+  const events = await eventServices.getCalendarViewData({ userId: user.id, startDate, endDate, orgId, });
 
   return res.status(httpStatus.OK).json({ success: true, message: 'Events fetched successfully', data: events });
 });

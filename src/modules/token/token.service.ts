@@ -152,7 +152,7 @@ export const generateResetPasswordToken = async (email: string, t: (key:string) 
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.userNotFound'));
   }
-  const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
+  const expires = moment().add(1, 'minutes');
   const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD, config.jwt.secret, user.role);
   await saveToken(resetPasswordToken, user.id, user.role, expires, tokenTypes.RESET_PASSWORD);
   return { name: user.name, token: resetPasswordToken };
