@@ -4,9 +4,9 @@
 PROJECT_DIR="/Users/praveenkumarsingh/Codes/myPrivate/stamper-backend"  # Replace with the path to your project directory
 TAR_FILE="project.tar.gz"
 REMOTE_USER="ubuntu"  # Replace with your remote server's username
-REMOTE_HOST="ec2-15-207-88-10.ap-south-1.compute.amazonaws.com"  # Replace with your AWS server's IP address or hostname
-REMOTE_PATH="/home/ubuntu/stamperApi"  # Replace with the desired path on the server
-PEM_FILE="/Users/praveenkumarsingh/Codes/myPrivate/stamper-backend/Stamper-pem.pem"  # Replace with the path to your .pem file
+REMOTE_HOST="ec2-15-207-98-129.ap-south-1.compute.amazonaws.com"  # Replace with your AWS server's IP address or hostname
+REMOTE_PATH="/home/ubuntu/stamperBackend"  # Replace with the desired path on the server
+PEM_FILE="/Users/praveenkumarsingh/Codes/myPrivate/stamper-backend/stamper.pem"  # Replace with the path to your .pem file
 
 # Create a tar.gz archive of the dist, package.json, and .env files
 echo "Compressing dist, package.json, and .env..."

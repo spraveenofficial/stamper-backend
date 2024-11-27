@@ -131,3 +131,4 @@ jobs:
 
             # Restart Nginx to apply reverse proxy changes
             sudo systemctl restart nginx
+          EOF
