@@ -30,15 +30,14 @@ export const login = catchAsync(async (req: Request, res: Response) => {
 
   const refreshMaxAge =
     tokens.refresh.expires instanceof Date ? tokens.refresh.expires.getTime() - Date.now() : tokens.refresh.expires;
-    const cookieOptions: CookieOptions = {
-      httpOnly: true,
-      secure: !isLocal, // Secure in production
-      sameSite: isLocal ? 'lax' : 'none', // Lax for local, None for cross-site
-      domain: isLocal ? undefined : 'stamper.tech', // Domain only for production
-      path: '/',
-      expires: new Date(Date.now() + accessMaxAge),
-    };
-    
+  const cookieOptions: CookieOptions = {
+    httpOnly: true,
+    secure: !isLocal, // Secure in production
+    sameSite: isLocal ? 'lax' : 'none', // Lax for local, None for cross-site
+    domain: isLocal ? undefined : 'stamper.tech', // Domain only for production
+    path: '/',
+    expires: new Date(Date.now() + accessMaxAge),
+  };
 
   // Ensure tokens are strings
   const accessToken = String(tokens.access.token);

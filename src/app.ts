@@ -33,7 +33,13 @@ app.use(helmet());
 // Enable CORS
 app.use(
   cors({
-    origin: [`https://${config.clientUrl}`, 'http://localhost:3000'],
+    origin: [
+      `https://${config.clientUrl}`,
+      'http://localhost:3000',
+      'https://localhost:3000',
+      'http://localhost:3001',
+      'https://localhost:3001',
+    ],
     credentials: true,
   })
 );
@@ -71,10 +77,10 @@ app.use((_req, _res, next) => {
 });
 
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "http://localhost:3000");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 
