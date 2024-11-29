@@ -36,10 +36,11 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: req.secure || !isLocal, // Secure for HTTPS in production
     domain: domain, // undefined for local, actual domain for production
-    sameSite: 'none', // Lax for local, None for cross-site
+    sameSite: isLocal ? 'lax' : 'none', // Lax for local, None for cross-site
     path: '/', // Cookies are accessible site-wide
     maxAge: accessMaxAge, // Ensure maxAge is in milliseconds
   };
+
   // Ensure tokens are strings
   const accessToken = String(tokens.access.token);
   const refreshToken = String(tokens.refresh.token);
