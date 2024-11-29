@@ -40,7 +40,6 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     path: '/', // Cookies are accessible site-wide
     maxAge: accessMaxAge, // Ensure maxAge is in milliseconds
   };
-
   // Ensure tokens are strings
   const accessToken = String(tokens.access.token);
   const refreshToken = String(tokens.refresh.token);

@@ -14,8 +14,8 @@ const createOfficeBody: Record<keyof NewAddOffice, any> = {
 
 const updateOfficeBody: Record<keyof UpdateOffice, any> = {
   officeId: Joi.string().required(),
-  timezone: Joi.string().optional(),
   name: Joi.string().optional(),
+  timezone: Joi.string().optional(),
   location: Joi.string().optional(),
   capacity: Joi.string().optional(),
   isOperational: Joi.boolean().optional(),
