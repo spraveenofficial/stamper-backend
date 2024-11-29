@@ -19,7 +19,6 @@ export const register = catchAsync(async (req: Request, res: Response) => {
 export const login = catchAsync(async (req: Request, res: Response) => {
   const host = req.headers.host ? req.headers.host.split(':')[0] : 'localhost';
   const isLocal = host!.includes('localhost');
-  const domain = isLocal ? undefined : 'stamper.tech'; // Use `undefined` for localhost
 
   const { email, password } = req.body;
   const user = await authService.loginUserWithEmailAndPassword(email, password, req.t);
@@ -31,15 +30,15 @@ export const login = catchAsync(async (req: Request, res: Response) => {
 
   const refreshMaxAge =
     tokens.refresh.expires instanceof Date ? tokens.refresh.expires.getTime() - Date.now() : tokens.refresh.expires;
-
-  const cookieOptions: CookieOptions = {
-    httpOnly: true,
-    secure: req.secure || !isLocal, // Secure for HTTPS in production
-    domain: domain, // undefined for local, actual domain for production
-    sameSite: isLocal ? 'lax' : 'none', // Lax for local, None for cross-site
-    path: '/', // Cookies are accessible site-wide
-    maxAge: accessMaxAge, // Ensure maxAge is in milliseconds
-  };
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: !isLocal, // Secure in production
+      sameSite: isLocal ? 'lax' : 'none', // Lax for local, None for cross-site
+      domain: isLocal ? undefined : 'stamper.tech', // Domain only for production
+      path: '/',
+      expires: new Date(Date.now() + accessMaxAge),
+    };
+    
 
   // Ensure tokens are strings
   const accessToken = String(tokens.access.token);
