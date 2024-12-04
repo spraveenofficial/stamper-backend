@@ -86,9 +86,9 @@ export const editOffice = async (officeId: mongoose.Types.ObjectId, payload: Par
   if (!office) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Office not found');
   }
-  if (await Office.isOfficeAddedByUser(office.organizationId, payload.name!)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'One organization cannot have more than one office of same name');
-  }
+  // if (await Office.isOfficeAddedByUser(office.organizationId, payload.name!)) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'One organization cannot have more than one office of same name');
+  // }
   await office.updateOne(payload);
   return office;
 };

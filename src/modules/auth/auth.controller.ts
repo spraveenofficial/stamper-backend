@@ -38,21 +38,21 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     path: '/',
     expires: new Date(Date.now() + accessMaxAge),
   };
-
   // Ensure tokens are strings
   const accessToken = String(tokens.access.token);
   const refreshToken = String(tokens.refresh.token);
 
   // Set cookies
   res.cookie('token', accessToken, cookieOptions);
-  res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: refreshMaxAge });
-
-  return res.status(httpStatus.OK).json({
-    success: true,
-    message: req.t('Auth.loginSuccess'),
-    user,
-    tokens,
-  });
+  res
+    .cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: refreshMaxAge })
+    .status(httpStatus.OK)
+    .json({
+      success: true,
+      message: req.t('Auth.loginSuccess'),
+      user,
+      tokens,
+    });
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {

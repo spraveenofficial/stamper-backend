@@ -33,14 +33,9 @@ app.use(helmet());
 // Enable CORS
 app.use(
   cors({
-    origin: [
-      `https://${config.clientUrl}`,
-      'http://localhost:3000',
-      'https://localhost:3000',
-      'http://localhost:3001',
-      'https://localhost:3001',
-    ],
-    credentials: true,
+    origin: ["http://localhost:3000", "https://stamper.tech"], // Allow the frontend origins
+    credentials: true, // Allow credentials (cookies) to be sent
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow these methods
   })
 );
 
