@@ -40,3 +40,8 @@ export const getDepartments = catchAsync(async (req: Request, res: Response) => 
   const departments = await departmentService.getDepartments(organization.id, officeId!);
   res.status(httpStatus.OK).json({ success: true, data: departments });
 });
+
+export const editDepartment = catchAsync(async (req: Request, res: Response) => {
+  const department = await departmentService.editDepartment(req.body.departmentId, req.body);
+  res.status(httpStatus.OK).json({ success: true, message: 'Successfully Executed', data: department });
+});

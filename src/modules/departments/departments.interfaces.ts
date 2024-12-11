@@ -1,5 +1,5 @@
-import mongoose, { Document, Model } from "mongoose";
-import { QueryResult } from "../paginate/paginate";
+import mongoose, { Document, Model } from 'mongoose';
+import { QueryResult } from '../paginate/paginate';
 
 export interface IDepartment {
   title: string;
@@ -10,7 +10,6 @@ export interface IDepartment {
   isOperational: boolean;
 }
 
-
 export interface IDepartmentDoc extends IDepartment, Document {}
 
 export interface IDepartmentModel extends Model<IDepartmentDoc> {
@@ -18,5 +17,6 @@ export interface IDepartmentModel extends Model<IDepartmentDoc> {
   isDepartmentExists(officeId: mongoose.Types.ObjectId, title: string): Promise<boolean>;
 }
 
-
 export type NewDepartmentType = Omit<IDepartment, 'organizationId' | 'isOperational' | 'departmentHeadId'>;
+
+export type UpdateDepartmentType = Partial<IDepartment> & { departmentId: mongoose.Types.ObjectId };

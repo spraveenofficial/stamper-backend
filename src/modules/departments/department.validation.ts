@@ -12,11 +12,21 @@ export const createDepartmentRequest = {
   body: Joi.object().keys(createDepartmentBody),
 };
 
-
 const getDepartmentsQuery = {
   officeId: Joi.string().custom(objectId).required(), // Ensure officeId is compulsory
 };
 
 export const getDepartmentsRequest = {
   query: Joi.object(getDepartmentsQuery).required(), // Make the query object itself compulsory
+};
+
+const editDepartmentBody = {
+  departmentId: Joi.string().custom(objectId).required(),
+  title: Joi.string().optional(),
+  description: Joi.string(),
+  officeId: Joi.string().custom(objectId).optional(),
+};
+
+export const editDepartmentRequest = {
+  body: Joi.object().keys(editDepartmentBody),
 };

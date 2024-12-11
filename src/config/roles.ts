@@ -9,6 +9,7 @@ const allRoles = {
     'getOffices',
     'editOffice',
     'addDepartment',
+    'editDepartment',
     'getDepartments',
     'addJobTitle',
     'getJobTitles',
@@ -35,6 +36,7 @@ const allRoles = {
     'clockin',
     'clockout',
     'addHoliday',
+    'editDepartment',
   ],
 };
 

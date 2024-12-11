@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IDepartment, IDepartmentDoc, NewDepartmentType } from './departments.interfaces';
+import { IDepartment, IDepartmentDoc, NewDepartmentType, UpdateDepartmentType } from './departments.interfaces';
 import Department from './departments.model';
 import { ApiError } from '../errors';
 
@@ -72,7 +72,28 @@ export const getDepartments = async (
   return departments;
 };
 
-
 export const getDeparmentById = async (departmentId: mongoose.Types.ObjectId): Promise<IDepartmentDoc | null> => {
   return await Department.findById(departmentId);
+};
+
+/**
+ *
+ * @param departmentId
+ * @param departmentBody
+ * @returns Promise<IDepartment>
+ */
+export const editDepartment = async (departmentId: mongoose.Types.ObjectId, departmentBody: UpdateDepartmentType) => {
+  const department = await Department.findById(departmentId);
+
+  if (!department) {
+    throw new ApiError(400, 'Department not found');
+  }
+
+  if (departmentBody.title) {
+    if (await Department.isDepartmentExists(department.officeId, departmentBody.title)) {
+      throw new ApiError(400, 'Department already exists');
+    }
+  }
+  
+  return await Department.findByIdAndUpdate(departmentId, departmentBody, { new: true });
 };
