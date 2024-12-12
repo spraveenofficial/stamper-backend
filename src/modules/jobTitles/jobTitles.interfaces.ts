@@ -18,4 +18,6 @@ export interface IJobTitleModel extends Model<IJobTitleDoc> {
   isJobTitleExists(officeId: mongoose.Types.ObjectId, title: string, organizationId: mongoose.Types.ObjectId): Promise<boolean>;
 }
 
-export type NewJobTitleType = Omit<IJobTitle, 'isOperational' | 'managerId' | 'organizationId'>;
+export type NewJobTitleType = Omit<IJobTitle, 'isOperational' | 'managerId' | 'organizationId'>
+
+export type UpdateJobTitleType = Partial<IJobTitle> & { jobTitleId: mongoose.Types.ObjectId };

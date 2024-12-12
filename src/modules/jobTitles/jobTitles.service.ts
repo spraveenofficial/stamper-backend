@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IJobTitleDoc, NewJobTitleType } from './jobTitles.interfaces';
+import { IJobTitleDoc, NewJobTitleType, UpdateJobTitleType } from './jobTitles.interfaces';
 import JobTitle from './jobTitles.model';
 import { ApiError } from '../errors';
 
@@ -126,7 +126,7 @@ export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Prom
  */
 export const editJobTitleById = async (
   jobTitleId: mongoose.Types.ObjectId,
-  jobTitleBody: NewJobTitleType
+  jobTitleBody:UpdateJobTitleType
 ): Promise<IJobTitleDoc | null> => {
   return await JobTitle.findByIdAndUpdate(jobTitleId, jobTitleBody, { new: true });
 };

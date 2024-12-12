@@ -14,4 +14,7 @@ router
   .route('/add')
   .post(auth('addJobTitle'), validate(jobTitleValidation.createJobTitleRequest), jobTitleController.addJobTitle);
 
+router
+  .route('/edit')
+  .put(auth('editJobTitle'), validate(jobTitleValidation.updateJobTitleRequest), jobTitleController.editJobTitle);
 export default router;

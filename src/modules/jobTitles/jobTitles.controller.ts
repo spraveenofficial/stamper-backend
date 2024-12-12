@@ -47,3 +47,9 @@ export const getJobTitles = catchAsync(async (req: Request, res: Response) => {
   }
   res.status(httpStatus.OK).json({ success: true, message: 'Job titles fetched successfully', data: jobTitles ?? [] });
 });
+
+
+export const editJobTitle = catchAsync(async (req: Request, res: Response) => {
+  const jobTitle = await jobTitleService.editJobTitleById(req.body.jobTitleId, req.body);
+  res.status(httpStatus.OK).json({ success: true, message: 'Successfully Executed', data: jobTitle });
+});
