@@ -30,6 +30,7 @@ const allRoles = {
   moderator: [
     'profile',
     'getEmployee',
+    'getEmployees',
     'editLeaveStatus',
     'getClockinButtonStatus',
     'getAttendanceconfig',
@@ -39,6 +40,7 @@ const allRoles = {
     'addHoliday',
     'editDepartment',
     'editJobTitle',
+    'getOffices'
   ],
 };
 

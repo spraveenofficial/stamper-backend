@@ -115,3 +115,11 @@ export const getEmployeeDirectory = catchAsync(async (req: Request, res: Respons
 
   res.status(httpStatus.OK).json({ success: true, message: 'Employee directory fetched successfully', data: directory });
 });
+
+
+export const getEmployeeDetailById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  console.log("ID", id);
+  const employee = await employeeService.getEmployeeInformation(id as any);
+  res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employee });  
+});

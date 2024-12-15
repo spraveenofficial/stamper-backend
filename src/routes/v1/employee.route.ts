@@ -11,4 +11,6 @@ router.route('/directory').get(auth(), organizationMiddleware.organizationMiddle
 router.route('/activate').post(auth(), validate(employeeValidation.acceptInvitation),employeeController.updateEmploeeAccountStatus);
 router.route('/reinvite').post(auth(), validate(employeeValidation.reinviteEmployee),employeeController.reinviteEmployee);
 router.route('/bulk-upload-dummy-excel').get(auth(), employeeController.generateBulkUploadEmployeeExcelExample);
+router.route('/info/:id').get(auth(), employeeController.getEmployeeDetailById);
+
 export default router;

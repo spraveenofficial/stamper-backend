@@ -9,9 +9,9 @@ export const addEmployee = async (employeeBody: IEmployee): Promise<IEmployeeDoc
 
 export const getEmployeeById = async (id: mongoose.Types.ObjectId): Promise<IEmployee | null> => Employee.findById(id);
 
-export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> =>{
+export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => {
   return await Employee.findOne({ userId });
-}
+};
 
 // Function to get employees by manager ID with modified response structure
 export const getEmployeesByOrgId = async (
@@ -347,7 +347,7 @@ export const getEmployeesByOrgIdWithoutLimit = async (
   targetRole?: rolesEnum | null
 ): Promise<any> => {
   let userMatchCriteria: any = {};
-  
+
   const matchCriteria: any = {
     organizationId: new mongoose.Types.ObjectId(orgId), // Match employees with the given organizationId
   };
@@ -364,7 +364,7 @@ export const getEmployeesByOrgIdWithoutLimit = async (
     matchCriteria.employeeStatus = employeeStatus;
   }
 
-  if(targetRole) {
+  if (targetRole) {
     userMatchCriteria.role = targetRole;
   }
 
@@ -406,10 +406,108 @@ export const getEmployeesByOrgIdWithoutLimit = async (
         __v: 0, // Exclude __v field
         userId: 0, // Exclude userId field
       },
-    }
+    },
   ];
 
   const employees = await Employee.aggregate(pipeline);
 
   return employees;
+};
+
+export const getEmployeeInformation = async (userId: mongoose.Types.ObjectId): Promise<any> => {
+  const pipeline = [
+    {
+      $match: { userId: new mongoose.Types.ObjectId(userId) },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userDetails',
+      },
+    },
+    {
+      $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $lookup: {
+        from: 'jobtitles',
+        localField: 'jobTitleId',
+        foreignField: '_id',
+        as: 'jobTitleDetails',
+      },
+    },
+    {
+      $unwind: { path: '$jobTitleDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $lookup: {
+        from: 'departments',
+        localField: 'departmentId',
+        foreignField: '_id',
+        as: 'departmentDetails',
+      },
+    },
+    {
+      $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $lookup: {
+        from: 'offices',
+        localField: 'officeId',
+        foreignField: '_id',
+        as: 'officeDetails',
+      },
+    },
+    {
+      $unwind: { path: '$officeDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $addFields: {
+        userInformation: {
+          id: '$userDetails._id',
+          name: '$userDetails.name',
+          email: '$userDetails.email',
+          profilePic: '$userDetails.profilePic',
+          lastUpdatedAt: '$userDetails.updatedAt',
+        },
+        officeInformation: {
+          officeId: '$officeDetails._id',
+          name: '$officeDetails.name',
+          location: '$officeDetails.location',
+        },
+        departmentInformation: {
+          departmentId: '$departmentDetails._id',
+          title: '$departmentDetails.title',
+        },
+        jobTitle: '$jobTitleDetails.jobTitle',
+        joiningDate: '$joiningDate',
+        department: '$departmentDetails.title',
+        office: '$officeDetails.location',
+        employeeStatus: '$employeeStatus',
+        accountStatus: '$accountStatus',
+        createdAt: '$createdAt',
+      },
+    },
+    {
+      $project: {
+        userDetails: 0,
+        jobTitleId: 0,
+        departmentId: 0,
+        officeId: 0,
+        organizationId: 0,
+        _id: 0,
+        updatedAt: 0,
+        __v: 0,
+        userId: 0,
+        jobTitleDetails: 0,
+        departmentDetails: 0,
+        officeDetails: 0,
+      },
+    },
+  ];
+
+  const employee = await Employee.aggregate(pipeline);
+  return employee.length ? employee[0] : null;
 };
