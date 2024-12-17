@@ -47,8 +47,12 @@ export interface IUserPersonalInfo {
 }
 
 export interface IUserPersonalInfoDoc extends IUserPersonalInfo, Document {}
-
 export interface IUserPersonalInfoModel extends Model<IUserPersonalInfoDoc> {}
 
+export interface IEmergencyContactDetailsDoc extends IEmergencyContactDetails, Document {}
+export interface IEmergenyContactDetailsModel extends Model<IEmergencyContactDetailsDoc> {}
+
+export interface IBankAccountDetailsDoc extends IBankAccountDetails, Document {}
+export interface IBankAccountDetailsModel extends Model<IBankAccountDetailsDoc> {}
 
 export type NewUserPersonalInfoPayload = Partial<IUserPersonalInfo>;

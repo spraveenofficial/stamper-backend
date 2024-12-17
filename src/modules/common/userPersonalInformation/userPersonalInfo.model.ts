@@ -1,8 +1,69 @@
 import mongoose from 'mongoose';
-import { GenderEnum, IUserPersonalInfoDoc, IUserPersonalInfoModel, MaritalStatusEnum } from './userPersonalInfo.interface';
-import { toJSON } from '@/modules/toJSON';
+import {
+  GenderEnum,
+  IBankAccountDetailsDoc,
+  IBankAccountDetailsModel,
+  IEmergencyContactDetailsDoc,
+  IEmergenyContactDetailsModel,
+  IUserPersonalInfoDoc,
+  IUserPersonalInfoModel,
+  MaritalStatusEnum,
+} from './userPersonalInfo.interface';
+import { toJSON } from '../../../modules/toJSON';
 
 const Schema = mongoose.Schema;
+
+const userEmergencyContactDetailsSchema = new Schema<IEmergencyContactDetailsDoc, IEmergenyContactDetailsModel>(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    relationship: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
+
+const userBankAccountDetailsSchema = new Schema<IBankAccountDetailsDoc, IBankAccountDetailsModel>(
+  {
+    bankName: {
+      type: String,
+      required: true,
+    },
+    accountNumber: {
+      type: String,
+      required: true,
+    },
+    accountHolderName: {
+      type: String,
+      required: true,
+    },
+    branchName: {
+      type: String,
+      required: true,
+    },
+    ifscCode: {
+      type: String,
+      required: true,
+    },
+    isPrimary: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true }
+);
 
 const userPersonalInfoSchema = new Schema<IUserPersonalInfoDoc, IUserPersonalInfoModel>(
   {
@@ -27,7 +88,7 @@ const userPersonalInfoSchema = new Schema<IUserPersonalInfoDoc, IUserPersonalInf
       type: String,
       enum: MaritalStatusEnum,
       required: false,
-      default: null,
+      // default: null,
     },
     personalEmail: {
       type: String,
@@ -70,54 +131,15 @@ const userPersonalInfoSchema = new Schema<IUserPersonalInfoDoc, IUserPersonalInf
       default: null,
     },
     bankAccountDetails: {
-      bankName: {
-        type: String,
-        required: false,
-        default: null,
-      },
-      accountNumber: {
-        type: String,
-        required: false,
-        default: null,
-      },
-      accountHolderName: {
-        type: String,
-        required: false,
-        default: null,
-      },
-      branchName: {
-        type: String,
-        required: false,
-        default: null,
-      },
-      ifscCode: {
-        type: String,
-        required: false,
-        default: null,
-      },
+      type: [userBankAccountDetailsSchema],
+      required: false,
+      default: [],
     },
     emergencyContactDetails: {
-      name: {
-        type: String,
-        required: false,
-        default: null,
-      },
-      relationship: {
-        type: String,
-        required: false,
-        default: null,
-      },
-      phone: {
-        type: String,
-        required: false,
-        default: null,
-      },
-      email: {
-        type: String,
-        required: false,
-        default: null,
-      },
-    },
+      type: [userEmergencyContactDetailsSchema],
+      required: false,
+      default: [],
+    }
   },
   { timestamps: true }
 );

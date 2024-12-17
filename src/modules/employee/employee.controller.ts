@@ -12,6 +12,7 @@ import config from '../../config/config';
 import mongoose from 'mongoose';
 import { excelServices } from '../common/services/excel-service';
 import { organizationService } from '../organization';
+import { userPersonalInformationService } from '../common/userPersonalInformation';
 
 export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: Response) => {
   const { body } = req;
@@ -131,4 +132,17 @@ export const getEmployeeDetailById = catchAsync(async (req: Request, res: Respon
   console.log('ID', id);
   const employee = await employeeService.getEmployeeInformation(id as any);
   res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employee });
+});
+
+export const updateEmployeePersonalInformation = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  console.log("ID", id);
+  const { body } = req;
+  if (typeof req.params['id'] === 'string') {
+    const employee = await userPersonalInformationService.updateOneUserPersonalInfo(
+      id! as unknown as mongoose.Types.ObjectId,
+      body
+    );
+    res.status(httpStatus.OK).json({ success: true, message: 'Employee updated successfully', data: employee });
+  }
 });

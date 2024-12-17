@@ -464,6 +464,17 @@ export const getEmployeeInformation = async (userId: mongoose.Types.ObjectId): P
       $unwind: { path: '$officeDetails', preserveNullAndEmptyArrays: true },
     },
     {
+      $lookup: {
+        from: 'userpersonalinfos',
+        localField: 'userId',
+        foreignField: 'userId',
+        as: 'personalInfo',
+      },
+    },
+    {
+      $unwind: { path: '$personalInfo', preserveNullAndEmptyArrays: true },
+    },
+    {
       $addFields: {
         userInformation: {
           id: '$userDetails._id',
@@ -488,6 +499,26 @@ export const getEmployeeInformation = async (userId: mongoose.Types.ObjectId): P
         employeeStatus: '$employeeStatus',
         accountStatus: '$accountStatus',
         createdAt: '$createdAt',
+        personalInfo: {
+          userTimezone: { $ifNull: ['$personalInfo.userTimezone', 'UTC'] },
+          gender: { $ifNull: ['$personalInfo.gender', null] },
+          maritalStatus: { $ifNull: ['$personalInfo.maritalStatus', null] },
+          personalEmail: { $ifNull: ['$personalInfo.personalEmail', null] },
+          dateOfBirth: { $ifNull: ['$personalInfo.dateOfBirth', null] },
+          address: { $ifNull: ['$personalInfo.address', null] },
+          country: { $ifNull: ['$personalInfo.country', null] },
+          state: { $ifNull: ['$personalInfo.state', null] },
+          city: { $ifNull: ['$personalInfo.city', null] },
+          zipCode: { $ifNull: ['$personalInfo.zipCode', null] },
+          nationality: { $ifNull: ['$personalInfo.nationality', null] },
+          personalTaxId: { $ifNull: ['$personalInfo.personalTaxId', null] },
+          emergencyContactDetails: {
+            $ifNull: ['$personalInfo.emergencyContactDetails', []],
+          },
+          bankAccountDetails: {
+            $ifNull: ['$personalInfo.bankAccountDetails', []],
+          },
+        },
       },
     },
     {
@@ -504,6 +535,9 @@ export const getEmployeeInformation = async (userId: mongoose.Types.ObjectId): P
         jobTitleDetails: 0,
         departmentDetails: 0,
         officeDetails: 0,
+        'personalInfo._id': 0, // Exclude _id from personalInfo
+        'personalInfo.__v': 0, // Exclude __v from personalInfo
+        'personalInfo.userId': 0, // Exclude userId from personalInfo
       },
     },
   ];
