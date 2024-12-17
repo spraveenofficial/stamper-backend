@@ -73,6 +73,7 @@ jobs:
           AWS_S3_ACCESS_KEY: ${{ vars.AWS_S3_ACCESS_KEY }}
           AWS_S3_KEY_SECRET: ${{ vars.AWS_S3_KEY_SECRET }}
           AWS_S3_PUBLIC_BUCKET: ${{ vars.AWS_S3_PUBLIC_BUCKET }}
+          CLOUDFRONT_DOMAIN: ${{ vars.CLOUDFRONT_DOMAIN }}
         run: |
           ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $SCP_USER@$SCP_IP << EOF
             # Navigate to the deployment directory
@@ -106,6 +107,7 @@ jobs:
             AWS_S3_ACCESS_KEY=$AWS_S3_ACCESS_KEY
             AWS_S3_KEY_SECRET=$AWS_S3_KEY_SECRET
             AWS_S3_PUBLIC_BUCKET=$AWS_S3_PUBLIC_BUCKET
+            CLOUDFRONT_DOMAIN=$CLOUDFRONT_DOMAIN
             EOT'
 
             # Ensure PM2 is installed

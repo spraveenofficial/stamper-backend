@@ -1,11 +1,14 @@
-import config from '../../config/config';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { logger } from '../logger';
-import S3 from 'aws-sdk/clients/s3.js'; 
+import config from '../../config/config';
 
-const s3 = new S3({
-  accessKeyId: config.AWS_S3_ACCESS_KEY,
-  secretAccessKey: config.AWS_S3_KEY_SECRET,
-  region: 'ap-south-1'
+// Initialize the S3 Client
+const s3Client = new S3Client({
+  region: 'ap-south-1',
+  credentials: {
+    accessKeyId: config.AWS_S3_ACCESS_KEY,
+    secretAccessKey: config.AWS_S3_KEY_SECRET,
+  },
 });
 
 /**
@@ -17,39 +20,44 @@ const s3 = new S3({
 export const uploadUserProfilePicture = async (file: Express.Multer.File, userId: string): Promise<string> => {
   const params = {
     Bucket: config.AWS_S3_PUBLIC_BUCKET,
-    Key: `users/${userId}/profilePicture/${file.originalname}`,
+    Key: `profilePicture/${userId}`,
     Body: file.buffer,
+    ContentType: file.mimetype,
   };
 
   try {
-    const { Location } = await s3.upload(params).promise();
-    return Location;
+    const command = new PutObjectCommand(params);
+    await s3Client.send(command);
+    const objectUrl = `https://${config.CLOUDFRONT_DOMAIN}/profilePicture/${userId}`;
+    return objectUrl;
   } catch (error) {
+    logger.error(`Error uploading file to S3: ${error}`);
     throw new Error('Error uploading file to S3');
   }
 };
 
-
 /**
- * Upload a Pdf, Image, or any file on leave request
+ * Upload a file for a leave request
  * @param {Express.Multer.File} file
  * @param {string} userId
  * @returns {Promise<string>}
  */
-
 export const uploadLeaveRequestFile = async (file: Express.Multer.File, userId: string): Promise<string> => {
   const params = {
     Bucket: config.AWS_S3_PUBLIC_BUCKET,
     Key: `users/${userId}/leaveRequest/${file.originalname}`,
     Body: file.buffer,
-    fileType: file.mimetype,
-    contentDisposition: 'inline',
+    ContentType: file.mimetype,
+    ContentDisposition: 'inline',
   };
+
   try {
-    const { Location } = await s3.upload(params).promise();
-    return Location;
+    const command = new PutObjectCommand(params);
+    await s3Client.send(command);
+    const objectUrl = `https://${config.CLOUDFRONT_DOMAIN}/users/${userId}/leaveRequest/${file.originalname}`;
+    return objectUrl;
   } catch (error) {
-    logger.error(`Error uploading file to S3 ========>: ${error}`);
+    logger.error(`Error uploading file to S3: ${error}`);
     throw new Error('Error uploading file to S3');
   }
 };

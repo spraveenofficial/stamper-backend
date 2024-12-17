@@ -22,6 +22,7 @@ const envVarsSchema = Joi.object()
     AWS_S3_KEY_SECRET: Joi.string().required().description('AWS S3 secret key'),
     AWS_S3_PUBLIC_BUCKET: Joi.string().required().description('AWS S3 public bucket name'),
     REDIS_URL: Joi.string().description('Redis URL'),
+    CLOUDFRONT_DOMAIN: Joi.string().required().description('Cloudfront domain'),
   })
   .unknown();
 
@@ -64,6 +65,7 @@ const config = {
   AWS_S3_KEY_SECRET: envVars.AWS_S3_KEY_SECRET,
   AWS_S3_PUBLIC_BUCKET: envVars.AWS_S3_PUBLIC_BUCKET,
   REDIS_URL: envVars.REDIS_URL,
+  CLOUDFRONT_DOMAIN: envVars.CLOUDFRONT_DOMAIN,
 };
 
 export default config;
