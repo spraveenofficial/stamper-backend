@@ -10,8 +10,8 @@ import { DevelopmentOptions, rolesEnum } from '../../config/roles';
 import { emailService } from '../email';
 import config from '../../config/config';
 import mongoose from 'mongoose';
-// import { organizationService } from '../organization';
 import { excelServices } from '../common/services/excel-service';
+import { organizationService } from '../organization';
 
 export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: Response) => {
   const { body } = req;
@@ -72,14 +72,24 @@ export const reinviteEmployee = catchAsync(async (req: Request, res: Response) =
   res.status(httpStatus.OK).json({ success: true, message: 'Employee re-invited successfully' });
 });
 
-export const generateBulkUploadEmployeeExcelExample = catchAsync(async (_req: Request, res: Response) => {
-  // const { id } = req.user;
-  // const organization = await organizationService.getOrganizationByUserId(id);
-  // if (!organization) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
-  // }
+export const generateBulkUploadEmployeeExcelExample = catchAsync(async (req: Request, res: Response) => {
+  const { role } = req.user;
 
-  const excel = await excelServices.generateSampleEmployeeBulkUploadExcelSheet();
+  let officeId;
+  let orgId;
+  if (role === rolesEnum.organization) {
+    orgId = req.organization.id;
+  } else if ('officeId' in req.organization) {
+    orgId = req.organization.organizationId;
+    officeId = req.organization.officeId;
+  }
+
+  const orgConfig = await organizationService.getOrgOfficeNDepartmentNJobTitle(orgId, officeId);
+  const excel = await excelServices.generateSampleEmployeeBulkUploadExcelSheet(
+    orgConfig.offices,
+    orgConfig.departments,
+    orgConfig.jobtitles
+  );
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', 'attachment; filename=employee-bulk-upload-example.xlsx');
   res.status(httpStatus.OK).send(excel);
@@ -100,7 +110,7 @@ export const getEmployeeDirectory = catchAsync(async (req: Request, res: Respons
     directory = await employeeService.getEmployeesByOrgId(
       req.organization.id,
       paginationOptions.page,
-      paginationOptions.limit,
+      paginationOptions.limit
     );
   } else {
     if ('officeId' in req.organization) {
@@ -116,10 +126,9 @@ export const getEmployeeDirectory = catchAsync(async (req: Request, res: Respons
   res.status(httpStatus.OK).json({ success: true, message: 'Employee directory fetched successfully', data: directory });
 });
 
-
 export const getEmployeeDetailById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log("ID", id);
+  console.log('ID', id);
   const employee = await employeeService.getEmployeeInformation(id as any);
-  res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employee });  
+  res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employee });
 });

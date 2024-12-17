@@ -25,6 +25,7 @@ export interface IBankAccountDetails {
   accountHolderName: string;
   branchName: string;
   ifscCode: string;
+  isPrimary: boolean;
 }
 
 export interface IUserPersonalInfo {
@@ -41,10 +42,13 @@ export interface IUserPersonalInfo {
   zipCode: string;
   nationality: string;
   personalTaxId: string;
-  emergencyContactDetails: IEmergencyContactDetails;
-  bankAccountDetails: IBankAccountDetails;
+  emergencyContactDetails: IEmergencyContactDetails[];
+  bankAccountDetails: IBankAccountDetails[];
 }
 
 export interface IUserPersonalInfoDoc extends IUserPersonalInfo, Document {}
 
 export interface IUserPersonalInfoModel extends Model<IUserPersonalInfoDoc> {}
+
+
+export type NewUserPersonalInfoPayload = Partial<IUserPersonalInfo>;

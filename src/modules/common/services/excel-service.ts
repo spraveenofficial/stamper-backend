@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 
 class ExcelServices {
-  async generateSampleEmployeeBulkUploadExcelSheet() {
+  async generateSampleEmployeeBulkUploadExcelSheet(offices: string[], departments: string[], jobTitles: string[]) {
     const workbook = new ExcelJS.Workbook();
     const ws = workbook.addWorksheet('Employee Upload');
     const hiddenSheet = workbook.addWorksheet('DropdownData');
@@ -12,15 +12,10 @@ class ExcelServices {
       name: 'John Doe',
       phoneNumber: '1234567890',
       email: 'john.doe@example.com',
-      offices: ['Office 1', 'Office 2'],
-      departments: ['Department 1', 'Department 2'],
-      jobTitles: ['Job Title 1', 'Job Title 2'],
+      offices: offices,
+      departments: departments,
+      jobTitles: jobTitles,
     };
-
-    // Dropdown data for Offices, Departments, and Job Titles
-    const offices = ['Head Office', 'Branch Office 1', 'Branch Office 2'];
-    const departments = ['Human Resources', 'Finance', 'Engineering'];
-    const jobTitles = ['Manager', 'Senior Manager', 'Engineer'];
 
     // Populate hidden sheet with dropdown values
     offices.forEach((office, index) => (hiddenSheet.getCell(`A${index + 1}`).value = office));

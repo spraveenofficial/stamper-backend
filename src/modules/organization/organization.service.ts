@@ -60,9 +60,6 @@ export const isEmployeeAndManagerInSameOrganization = async (
   if (!office) {
     return false;
   }
-
-  console.log(employeeId, office.managerId.toString());
-  // Compare the ObjectId values as strings
   return managerId.toString() === employeeId.toString();
 };
 
@@ -143,7 +140,7 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mo
   if (officeId) {
     matchFilter['_id'] = officeId;
   }
-  
+
   const organizationConfig = await Office.aggregate([
     {
       $match: matchFilter,
@@ -273,4 +270,75 @@ export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.Obje
     .catch((error) => {
       throw new Error('Error checking preconditions: ' + error.message);
     });
+};
+
+export const getOrgOfficeNDepartmentNJobTitle = async (
+  orgId: mongoose.Types.ObjectId,
+  officeId?: mongoose.Types.ObjectId
+): Promise<any> => {
+  let filter: any = {
+    organizationId: new mongoose.Types.ObjectId(orgId),
+  };
+
+  if (officeId) {
+    filter['_id'] = officeId;
+  }
+
+  const orgChart = await Office.aggregate([
+    {
+      $match: filter,
+    },
+    // Lookup departments for each office
+    {
+      $lookup: {
+        from: 'departments',
+        localField: '_id',
+        foreignField: 'officeId',
+        as: 'departments',
+      },
+    },
+    // Unwind departments to access individual department data
+    {
+      $unwind: {
+        path: '$departments',
+        preserveNullAndEmptyArrays: true, // Handle offices with no departments
+      },
+    },
+    // Lookup job titles for each department
+    {
+      $lookup: {
+        from: 'jobtitles',
+        localField: 'departments._id',
+        foreignField: 'departmentId',
+        as: 'jobTitles',
+      },
+    },
+    // Unwind job titles to access individual job title data
+    {
+      $unwind: {
+        path: '$jobTitles',
+        preserveNullAndEmptyArrays: true, // Handle departments with no job titles
+      },
+    },
+    // Group data to collect all offices, departments, and job titles
+    {
+      $group: {
+        _id: null, // No grouping by office here; collect everything globally
+        offices: { $addToSet: '$name' }, // Collect unique office names
+        departments: { $addToSet: '$departments.title' }, // Collect unique department names
+        jobtitles: { $addToSet: '$jobTitles.jobTitle' }, // Collect unique job titles
+      },
+    },
+    // Final cleanup to project the result
+    {
+      $project: {
+        _id: 0,
+        offices: 1,
+        departments: 1,
+        jobtitles: 1,
+      },
+    },
+  ]);
+
+  return orgChart.length ? orgChart[0] : { offices: [], departments: [], jobtitles: [] };
 };

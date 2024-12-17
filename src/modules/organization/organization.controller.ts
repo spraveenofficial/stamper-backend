@@ -96,10 +96,10 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
     name: name || null,
   };
 
-  if(req.user.role === rolesEnum.moderator){
+  if (req.user.role === rolesEnum.moderator) {
     if ('officeId' in req.organization) {
-      filterOptions.officeId = req.organization.officeId
-      filterOptions.orgId = req.organization.organizationId
+      filterOptions.officeId = req.organization.officeId;
+      filterOptions.orgId = req.organization.organizationId;
     }
   }
 
@@ -117,7 +117,7 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
 });
 
 export const getOrganizationChart = catchAsync(async (req: Request, res: Response) => {
-  const {id} = req.organization;
+  const { id } = req.organization;
 
   const data = await organizationService.getOrgChartById(id as mongoose.Types.ObjectId);
 
