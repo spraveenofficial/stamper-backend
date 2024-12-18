@@ -1,12 +1,15 @@
 import mongoose from 'mongoose';
-import { employeeAccountStatus, IEmployee, IEmployeeDoc, EmployeeStatus } from './employee.interfaces';
+import { employeeAccountStatus, IEmployee, IEmployeeDoc, EmployeeStatus, employeeStatus } from './employee.interfaces';
 import Employee from './employee.model';
 import { rolesEnum } from '../../config/roles';
 
-export const addEmployee = async (employeeBody: IEmployee): Promise<IEmployeeDoc> => {
+export const addEmployee = async (employeeBody: any): Promise<IEmployeeDoc> => {
   return Employee.create(employeeBody);
 };
 
+export const addEmployeesBulk = async (employees: any[]): Promise<any[]> => {
+  return Employee.insertMany(employees);
+}
 export const getEmployeeById = async (id: mongoose.Types.ObjectId): Promise<IEmployee | null> => Employee.findById(id);
 
 export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => {
@@ -191,6 +194,7 @@ export const updateEmployeeAccountStatus = async (userId: string, accountStatus:
     { userId },
     {
       accountStatus,
+      employeeStatus: employeeStatus.Active,
     },
     { new: true }
   );
@@ -482,6 +486,13 @@ export const getEmployeeInformation = async (userId: mongoose.Types.ObjectId): P
           email: '$userDetails.email',
           profilePic: '$userDetails.profilePic',
           lastUpdatedAt: '$userDetails.updatedAt',
+          phoneNumber: {
+            $cond: {
+              if: { $eq: ['$userDetails.phoneNumber', ''] },
+              then: null,
+              else: '$userDetails.phoneNumber',
+            },
+          },
         },
         officeInformation: {
           officeId: '$officeDetails._id',

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import User from './user.model';
 import ApiError from '../errors/ApiError';
 import { IOptions, QueryResult } from '../paginate/paginate';
-import { NewCreatedUser, UpdateUserBody, IUserDoc } from './user.interfaces';
+import { NewCreatedUser, UpdateUserBody, IUserDoc, NewUserAsEmployee } from './user.interfaces';
 import { rolesEnum } from '../../config/roles';
 
 /**
@@ -25,12 +25,22 @@ export const createUserAsOrganization = async (userBody: NewCreatedUser, t: (key
  * @returns {Promise<IUserDoc>}
  */
 
-export const createUserAsEmployee = async (userBody: NewCreatedUser, t:(key: string) =>string): Promise<IUserDoc> => {
+export const createUserAsEmployee = async (
+  userBody: NewUserAsEmployee,
+  t?: (key: string) => string // Make t optional
+): Promise<IUserDoc> => {
   if (await User.isEmailTaken(userBody.email)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.emailAlreadyExists'));
+    // If t is provided, use it; otherwise, fall back to a default message in English
+    const errorMessage = t ? t('Auth.emailAlreadyExists') : 'Email already exists';
+    throw new ApiError(httpStatus.BAD_REQUEST, errorMessage);
   }
   return User.create({ ...userBody, role: rolesEnum.employee });
 };
+
+export const createUsersAsEmployees = async (users: NewUserAsEmployee[]): Promise<IUserDoc[]> => {
+  return User.insertMany(users);
+}
+
 
 /**
  * Query for users

@@ -12,12 +12,13 @@ import { ApiError, errorConverter, errorHandler } from './modules/errors';
 import routes from './routes/v1';
 import cookieParser from 'cookie-parser';
 import { i18n } from './i18n/init';
-import { connectRedis } from './modules/redis/init';
+// import { connectRedis } from './modules/redis/init';
+import bodyParser from 'body-parser';
 
 const app: Express = express();
 
 // Connect to Redis
-connectRedis();
+// connectRedis();
 
 if (config.env !== 'test') {
   app.use(morgan.successHandler);
@@ -26,6 +27,7 @@ if (config.env !== 'test') {
 
 // Parse cookies
 app.use(cookieParser());
+app.use(bodyParser({limit: '50mb'}));
 
 // Set security HTTP headers
 app.use(helmet());

@@ -14,10 +14,15 @@ router
   .route('/activate')
   .post(auth(), validate(employeeValidation.acceptInvitation), employeeController.updateEmploeeAccountStatus);
 router.route('/reinvite').post(auth(), validate(employeeValidation.reinviteEmployee), employeeController.reinviteEmployee);
+
 router
   .route('/bulk-upload-dummy-excel')
   .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.generateBulkUploadEmployeeExcelExample);
-  
+
+router
+  .route('/bulk-upload')
+  .post(auth(), organizationMiddleware.organizationMiddleware, employeeController.bulkUploadEmployees);
+
 router.route('/info/:id').get(auth(), employeeController.getEmployeeDetailById);
 
 router

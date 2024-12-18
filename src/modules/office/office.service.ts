@@ -106,3 +106,12 @@ export const getOfficeByOrgAndEmpId = async (
     managerId: new mongoose.Types.ObjectId(empId),
   });
 };
+
+
+export const getAllOffices = async (): Promise<IOfficeDoc[]> => {
+  return await Office.find();
+}
+
+export const getOfficesByIds = async (officeIds: mongoose.Types.ObjectId[]): Promise<IOfficeDoc[]> => {
+  return await Office.find({ _id: { $in: officeIds } });
+}

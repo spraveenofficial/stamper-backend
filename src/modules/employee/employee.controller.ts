@@ -13,6 +13,8 @@ import mongoose from 'mongoose';
 import { excelServices } from '../common/services/excel-service';
 import { organizationService } from '../organization';
 import { userPersonalInformationService } from '../common/userPersonalInformation';
+import { bulkUploadQueue } from '../bullmqs/employeeBulkUpload.process';
+import { BULL_AVAILABLE_JOBS, queueDBServices } from '../bullmqs';
 
 export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: Response) => {
   const { body } = req;
@@ -30,8 +32,8 @@ export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: R
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }
 
-  const token_for = await tokenService.generateOrganizationInvitationToken(user);
-  console.log('Token:', token_for);
+  // const token_for = await tokenService.generateOrganizationInvitationToken(user);
+  // console.log('Token:', token_for);
   const updatePassword = await userService.updateUserById(user.id, body);
   await employeeService.updateEmployeeAccountStatus(user.id, employeeAccountStatus.Active);
   await tokenService.deleteToken(token as string);
@@ -136,7 +138,7 @@ export const getEmployeeDetailById = catchAsync(async (req: Request, res: Respon
 
 export const updateEmployeePersonalInformation = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log("ID", id);
+  console.log('ID', id);
   const { body } = req;
   if (typeof req.params['id'] === 'string') {
     const employee = await userPersonalInformationService.updateOneUserPersonalInfo(
@@ -145,4 +147,33 @@ export const updateEmployeePersonalInformation = catchAsync(async (req: Request,
     );
     res.status(httpStatus.OK).json({ success: true, message: 'Employee updated successfully', data: employee });
   }
+});
+
+export const bulkUploadEmployees = catchAsync(async (req: Request, res: Response) => {
+  const { role, id } = req.user;
+  const { employees } = req.body;
+
+  let orgId;
+  if (role === rolesEnum.organization) {
+    orgId = req.organization.id;
+  } else if ('officeId' in req.organization) {
+    orgId = req.organization.organizationId;
+  }
+
+  const job = await bulkUploadQueue.add('bulk_upload', {
+    organizationId: orgId,
+    userId: id,
+    employees,
+    // translation: req.t,
+    type: BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
+  });
+
+  const newTask = await queueDBServices.createNewQueueTask({
+    userId: req.user.id,
+    data: employees,
+    jobType: BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
+    jobId: job.id as string,
+  });
+
+  res.status(httpStatus.OK).json({ success: true, message: 'Employee uploaded successfully', data: newTask });
 });

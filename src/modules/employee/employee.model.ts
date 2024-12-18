@@ -38,7 +38,7 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
     employeeStatus: {
       type: String,
       enum: employeeStatus,
-      default: employeeStatus.Active,
+      default: employeeStatus.Inactive,
     },
     accountStatus: {
       type: String,

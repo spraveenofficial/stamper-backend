@@ -2,7 +2,7 @@ import { createClient } from 'redis';
 import { logger } from '../logger';
 
 const redisConfig = {
-url: 'redis://default:K6153aBnDfguJ0ulA2LiKN9TtjoxMFbN@redis-12284.c325.us-east-1-4.ec2.redns.redis-cloud.com:12284'
+  url: 'redis://default:K6153aBnDfguJ0ulA2LiKN9TtjoxMFbN@redis-12284.c325.us-east-1-4.ec2.redns.redis-cloud.com:12284',
 };
 
 // Create a Redis client with proper configuration for production
@@ -15,7 +15,6 @@ client.on('error', (err) => {
 // client.on('connect', async () => {
 //     await client.sendCommand(['CONFIG', 'SET', 'maxmemory-policy', 'noeviction']);
 // });
-
 
 const connectRedis = async () => {
   try {

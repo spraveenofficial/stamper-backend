@@ -97,3 +97,12 @@ export const editDepartment = async (departmentId: mongoose.Types.ObjectId, depa
   
   return await Department.findByIdAndUpdate(departmentId, departmentBody, { new: true });
 };
+
+
+export const getAllDepartments = async (): Promise<IDepartmentDoc[]> => {
+  return await Department.find();
+}
+
+export const getDepartmentsByIds = async (departmentIds: mongoose.Types.ObjectId[]): Promise<IDepartmentDoc[]> => {
+  return await Department.find({ _id: { $in: departmentIds } });
+}

@@ -5,6 +5,7 @@ export interface IEmployee {
   userId: mongoose.Types.ObjectId;
   employeeStatus: employeeStatus;
   accountStatus: employeeAccountStatus;
+  managerId: mongoose.Types.ObjectId;
   joiningDate: Date;
   jobTitleId: mongoose.Types.ObjectId;
   departmentId: mongoose.Types.ObjectId;
@@ -33,5 +34,15 @@ export enum employeeAccountStatus {
 
 export type NewEmployee = Omit<
   IEmployee,
-  'userId' | 'accountStatus' | 'employeeStatus' | 'organizationId'
+  'userId' | 'accountStatus' | 'employeeStatus' | 'organizationId' | 'managerId'
 >;
+
+
+export interface IEmployeeBulkUploadPayload {
+  name: string;
+  email: string;
+  jobTitle: string;
+  department: string;
+  office: string;
+  joiningDate: string;
+}

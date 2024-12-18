@@ -115,6 +115,7 @@ export const getJobTitles = async (
 };
 
 export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Promise<IJobTitleDoc | null> => {
+  console.log("Made request to get job title by id")
   return await JobTitle.findById(jobTitleId);
 };
 
@@ -130,3 +131,13 @@ export const editJobTitleById = async (
 ): Promise<IJobTitleDoc | null> => {
   return await JobTitle.findByIdAndUpdate(jobTitleId, jobTitleBody, { new: true });
 };
+
+
+export const getAllJobTitles = async (): Promise<IJobTitleDoc[]> => {
+  return await JobTitle.find();
+};
+
+
+export const getJobTitlesByIds = async (jobTitleIds: mongoose.Types.ObjectId[]): Promise<IJobTitleDoc[]> => {
+  return await JobTitle.find({ _id: { $in: jobTitleIds } });
+}
