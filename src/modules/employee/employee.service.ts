@@ -24,7 +24,7 @@ export const getEmployeesByOrgId = async (
   officeId?: string | null,
   accountStatus?: employeeAccountStatus | null,
   employeeStatus?: EmployeeStatus | null,
-  employeeName?: string | null // Optional employeeName filter
+  employeeName?: string | null
 ): Promise<any> => {
   const skip = (page - 1) * limit;
 
@@ -44,12 +44,36 @@ export const getEmployeesByOrgId = async (
     matchCriteria.employeeStatus = employeeStatus;
   }
 
-  if (employeeName) {
-    matchCriteria['userDetails.name'] = { $regex: employeeName, $options: 'i' };
-  }
+  // Pre-filter employees by name using $lookup
+  const nameFilterLookup: any[] = employeeName
+    ? [
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $match: {
+                  name: { $regex: employeeName, $options: 'i' },
+                },
+              },
+            ],
+            as: 'filteredUserDetails',
+          },
+        },
+        {
+          $match: { filteredUserDetails: { $ne: [] } },
+        },
+        {
+          $unset: 'filteredUserDetails',
+        },
+      ]
+    : [];
 
   const pipeline: any[] = [
     { $match: matchCriteria },
+    ...nameFilterLookup,
     {
       $lookup: {
         from: 'users',
@@ -142,14 +166,8 @@ export const getEmployeesByOrgId = async (
     },
     {
       $facet: {
-        metadata: [
-          { $count: 'totalCount' },
-          { $addFields: { page, limit } },
-        ],
-        data: [
-          { $skip: skip },
-          { $limit: limit },
-        ],
+        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
+        data: [{ $skip: skip }, { $limit: limit }],
       },
     },
     {
@@ -170,10 +188,10 @@ export const getEmployeesByOrgId = async (
 
   const employees = await Employee.aggregate(pipeline);
 
-  return employees.length
-    ? employees[0]
-    : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+  return employees.length ? employees[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
+
+
 
 /**
  * Function to update employee account status

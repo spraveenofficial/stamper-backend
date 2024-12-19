@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
       trim: true,
       default: null,
       validate: {
-        validator: function (value : any) {
+        validator: function (value: any) {
           // Allow null or string values
           return value === null || typeof value === 'string';
         },
@@ -121,6 +121,9 @@ userSchema.post('save', async function (user, next) {
   }
   next();
 });
+
+userSchema.index({ email: 1 });
+userSchema.index({ name: 'text', email: 'text' });
 
 const User = mongoose.model<IUserDoc, IUserModel>('User', userSchema);
 
