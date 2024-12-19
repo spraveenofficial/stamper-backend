@@ -39,8 +39,7 @@ export const createUserAsEmployee = async (
 
 export const createUsersAsEmployees = async (users: NewUserAsEmployee[]): Promise<IUserDoc[]> => {
   return User.insertMany(users);
-}
-
+};
 
 /**
  * Query for users

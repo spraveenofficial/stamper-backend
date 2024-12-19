@@ -29,7 +29,7 @@ export const getEmployeesByOrgId = async (
   const skip = (page - 1) * limit;
 
   const matchCriteria: any = {
-    organizationId: new mongoose.Types.ObjectId(orgId), // Match employees with the given organizationId
+    organizationId: new mongoose.Types.ObjectId(orgId),
   };
 
   if (officeId) {
@@ -44,77 +44,67 @@ export const getEmployeesByOrgId = async (
     matchCriteria.employeeStatus = employeeStatus;
   }
 
-  const pipeline: any[] = [
-    {
-      $match: { ...matchCriteria }, // Stage 1: Match employees with the given organizationId
-    },
-    {
-      $lookup: {
-        from: 'users', // Collection to join with
-        localField: 'userId', // Field from the Employee collection
-        foreignField: '_id', // Field from the User collection
-        as: 'userDetails', // Output array field
-      },
-    },
-    {
-      $lookup: {
-        from: 'jobtitles', // Collection to join with
-        localField: 'jobTitleId', // Field from the Employee collection
-        foreignField: '_id', // Field from the JobTitle collection
-        as: 'jobTitleDetails', // Output array field
-      },
-    },
-    {
-      $lookup: {
-        from: 'departments', // Collection to join with
-        localField: 'departmentId', // Field from the Employee collection
-        foreignField: '_id', // Field from the Department collection
-        as: 'departmentDetails', // Output array field
-      },
-    },
-    {
-      $lookup: {
-        from: 'offices', // Collection to join with
-        localField: 'officeId', // Field from the Employee collection
-        foreignField: '_id', // Field from the Office collection
-        as: 'officeDetails', // Output array field
-      },
-    },
-    {
-      $lookup: {
-        from: 'users', // Collection to join with
-        localField: 'officeDetails.managerId', // Field from the Employee collection
-        foreignField: '_id', // Field from the User collection
-        as: 'managerDetails', // Output array field
-      },
-    },
-    {
-      $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true }, // Unwind the userDetails array
-    },
-    {
-      $unwind: { path: '$managerDetails', preserveNullAndEmptyArrays: true }, // Unwind the managerDetails array
-    },
-    {
-      $unwind: { path: '$jobTitleDetails', preserveNullAndEmptyArrays: true }, // Unwind the jobTitleDetails array
-    },
-    {
-      $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true }, // Unwind the departmentDetails array
-    },
-    {
-      $unwind: { path: '$officeDetails', preserveNullAndEmptyArrays: true }, // Unwind the officeDetails array
-    },
-  ];
-
-  // Add employeeName filter if provided
   if (employeeName) {
-    pipeline.push({
-      $match: {
-        'userDetails.name': { $regex: employeeName, $options: 'i' }, // Case-insensitive partial match on employee name
-      },
-    });
+    matchCriteria['userDetails.name'] = { $regex: employeeName, $options: 'i' };
   }
 
-  pipeline.push(
+  const pipeline: any[] = [
+    { $match: matchCriteria },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userDetails',
+      },
+    },
+    {
+      $lookup: {
+        from: 'jobtitles',
+        localField: 'jobTitleId',
+        foreignField: '_id',
+        as: 'jobTitleDetails',
+      },
+    },
+    {
+      $lookup: {
+        from: 'departments',
+        localField: 'departmentId',
+        foreignField: '_id',
+        as: 'departmentDetails',
+      },
+    },
+    {
+      $lookup: {
+        from: 'offices',
+        localField: 'officeId',
+        foreignField: '_id',
+        as: 'officeDetails',
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'officeDetails.managerId',
+        foreignField: '_id',
+        as: 'managerDetails',
+      },
+    },
+    {
+      $unwind: { path: '$userDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $unwind: { path: '$managerDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $unwind: { path: '$jobTitleDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $unwind: { path: '$officeDetails', preserveNullAndEmptyArrays: true },
+    },
     {
       $addFields: {
         employeeId: '$userDetails._id',
@@ -134,54 +124,57 @@ export const getEmployeesByOrgId = async (
     },
     {
       $project: {
-        officeDetails: 0, // Exclude the original officeDetails field
-        jobTitleId: 0, // Exclude the original jobTitleId field
-        deparmentId: 0, // Exclude the original departmentId field
-        officeId: 0, // Exclude the original officeId field
-        organizationId: 0, // Exclude the original organizationId field
-        userDetails: 0, // Exclude the original userDetails field
-        managerDetails: 0, // Exclude the original managerDetails field
-        managerId: 0, // Exclude managerId field
-        _id: 0, // Exclude _id field
-        updatedAt: 0, // Exclude updatedAt field
-        __v: 0, // Exclude __v field
-        userId: 0, // Exclude userId field
-        jobTitleDetails: 0, // Exclude jobTitleDetails field
+        _id: 0,
+        officeDetails: 0,
+        jobTitleId: 0,
+        departmentId: 0,
+        officeId: 0,
+        organizationId: 0,
+        userDetails: 0,
+        managerDetails: 0,
+        managerId: 0,
+        updatedAt: 0,
+        __v: 0,
+        userId: 0,
+        jobTitleDetails: 0,
         departmentDetails: 0,
       },
     },
     {
       $facet: {
         metadata: [
-          { $count: 'totalCount' }, // Count total documents
-          { $addFields: { page, limit } }, // Include page and limit in metadata
+          { $count: 'totalCount' },
+          { $addFields: { page, limit } },
         ],
         data: [
-          { $skip: skip }, // Skip for pagination
-          { $limit: limit }, // Limit the number of results
+          { $skip: skip },
+          { $limit: limit },
         ],
       },
     },
     {
-      $unwind: '$metadata', // Unwind the metadata array
+      $unwind: '$metadata',
     },
     {
       $project: {
-        results: '$data', // Include data field
+        results: '$data',
         page: '$metadata.page',
         limit: '$metadata.limit',
         totalPages: {
-          $ceil: { $divide: ['$metadata.totalCount', limit] }, // Calculate totalPages
+          $ceil: { $divide: ['$metadata.totalCount', limit] },
         },
         totalResults: '$metadata.totalCount',
       },
-    }
-  );
+    },
+  ];
 
   const employees = await Employee.aggregate(pipeline);
 
-  return employees.length ? employees[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 }; // Return formatted response
+  return employees.length
+    ? employees[0]
+    : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
+
 
 /**
  * Function to update employee account status

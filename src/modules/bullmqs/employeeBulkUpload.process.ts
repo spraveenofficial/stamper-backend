@@ -88,9 +88,10 @@ const processJob = async (job: Job) => {
 
       // Process employees in parallel
       const userPromises = employeeDatas.map(async (employeeData, index) => {
-        const user: NewUserAsEmployee = {
+        const user: NewUserAsEmployee & {phoneNumber: any} = {
           email: employeeData.email,
           name: employeeData.name,
+          phoneNumber: employeeData.phoneNumber,
         };
 
         const employeeInformation: Partial<NewEmployee> = {

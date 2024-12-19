@@ -45,4 +45,5 @@ export interface IEmployeeBulkUploadPayload {
   department: string;
   office: string;
   joiningDate: string;
+  phoneNumber: string;
 }

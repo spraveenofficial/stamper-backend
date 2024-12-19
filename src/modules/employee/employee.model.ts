@@ -51,7 +51,10 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
   }
 );
 
+employeeSchema.index({ userId: 1, organizationId: 1 }, { unique: true });
+
 employeeSchema.plugin(toJSON);
+
 employeeSchema.plugin(paginate);
 
 const Employee = mongoose.model('Employee', employeeSchema);
