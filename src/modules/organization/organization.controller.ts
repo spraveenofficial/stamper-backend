@@ -28,7 +28,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
   }
 
   // Check if department is exist in organization
-  const department = await departmentService.getDeparmentById(employeeInformation.departmentId);
+  const department = await departmentService.getDeparmentByIdAndOrgId(employeeInformation.departmentId, organization.id);
 
   if (!department) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Department not found');

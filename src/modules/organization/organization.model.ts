@@ -72,6 +72,9 @@ organizationSchema.static(
   }
 );
 
+// Indexes
+organizationSchema.index({ userId: 1 });
+
 const Organization = mongoose.model<IOrganizationDoc, IOrganizationModel>('Organization', organizationSchema);
 
 export default Organization;

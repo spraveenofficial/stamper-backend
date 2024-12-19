@@ -72,8 +72,8 @@ export const getDepartments = async (
   return departments;
 };
 
-export const getDeparmentById = async (departmentId: mongoose.Types.ObjectId): Promise<IDepartmentDoc | null> => {
-  return await Department.findById(departmentId);
+export const getDeparmentByIdAndOrgId = async (departmentId: mongoose.Types.ObjectId, orgId: mongoose.Types.ObjectId): Promise<IDepartmentDoc | null> => {
+  return await Department.findOne({ _id: departmentId, organizationId: orgId });
 };
 
 /**

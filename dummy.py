@@ -20,7 +20,7 @@ offices = [
 # Generate 200 dummy users with the same structure as the example
 dummy_users = []
 
-for _ in range(10000):
+for _ in range(10):
     user = {
         "name": fake.name(),
         "email": fake.email(),

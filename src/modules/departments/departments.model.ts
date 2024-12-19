@@ -40,6 +40,9 @@ departmentSchema.static('isDepartmentExists', async function (officeId: mongoose
   return !!department;
 });
 
+
+departmentSchema.index({ officeId: 1, title: 1 }, { unique: true });
+
 departmentSchema.plugin(toJSON);
 
 const Department = mongoose.model<IDepartmentDoc, IDepartmentModel>('Department', departmentSchema);

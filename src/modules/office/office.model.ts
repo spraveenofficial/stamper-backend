@@ -79,4 +79,6 @@ officeSchema.static('isHeadQuarterAdded', async function (organizationId: mongoo
 officeSchema.plugin(toJSON);
 officeSchema.plugin(paginate);
 
+officeSchema.index({ organizationId: 1, name: 1 }, { unique: true });
+
 export default mongoose.model<IOfficeDoc, IOfficeModel>('Office', officeSchema);

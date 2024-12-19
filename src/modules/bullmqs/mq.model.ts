@@ -53,6 +53,8 @@ const mqSchema = new Schema<IQueueTasksDoc, IQueueTasksModel>(
 
 mqSchema.index({ status: 1 });
 
+mqSchema.index({ userId: 1, jobId: 1 });
+
 mqSchema.plugin(toJSON);
 
 export const QueueTasks = mongoose.model<IQueueTasksDoc, IQueueTasksModel>('QueueTasks', mqSchema);

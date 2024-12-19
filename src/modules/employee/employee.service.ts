@@ -9,7 +9,7 @@ export const addEmployee = async (employeeBody: any): Promise<IEmployeeDoc> => {
 
 export const addEmployeesBulk = async (employees: any[]): Promise<any[]> => {
   return Employee.insertMany(employees);
-}
+};
 export const getEmployeeById = async (id: mongoose.Types.ObjectId): Promise<IEmployee | null> => Employee.findById(id);
 
 export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => {
@@ -174,7 +174,6 @@ export const getEmployeesByOrgId = async (
     ? employees[0]
     : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
-
 
 /**
  * Function to update employee account status

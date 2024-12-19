@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import {
-  GenderEnum,
   IBankAccountDetailsDoc,
   IBankAccountDetailsModel,
   IEmergencyContactDetailsDoc,
@@ -29,7 +28,7 @@ const userEmergencyContactDetailsSchema = new Schema<IEmergencyContactDetailsDoc
     },
     email: {
       type: String,
-      required: true,
+      required: false,
     },
   },
   { timestamps: true }
@@ -80,7 +79,7 @@ const userPersonalInfoSchema = new Schema<IUserPersonalInfoDoc, IUserPersonalInf
     },
     gender: {
       type: String,
-      enum: GenderEnum,
+      // enum: Object.values(GenderEnum),
       required: false,
       default: null,
     },

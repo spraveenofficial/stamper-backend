@@ -17,6 +17,7 @@ import { NewUserAsEmployee } from '../user/user.interfaces';
 import redis from 'redis';
 import { QueueTasks } from './mq.model';
 import config from '../../config/config';
+import { QueueJobsStatus } from './types';
 
 // Create Redis client
 let redisClient = redis.createClient(redisConfig);
@@ -61,6 +62,7 @@ const processJob = async (job: Job) => {
     successCount: 0,
     failureCount: 0,
     errors: [] as { employee: string; error: string }[],
+    userId: null,
   };
 
   try {
@@ -68,27 +70,27 @@ const processJob = async (job: Job) => {
 
     if (data.type === BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD) {
       const { organizationId, userId } = data;
-      console.log('userId', userId, job.id);
-      const queueTask = await QueueTasks.findOne({ userId: new mongoose.Types.ObjectId(userId) });
-
+      const queueTask = await QueueTasks.findOne({ userId: new mongoose.Types.ObjectId(userId), jobId: job.id });
+      
       console.log('result from db', queueTask);
       const employeeDatas: IEmployeeBulkUploadPayload[] = data.employees;
+      result.userId = userId;
 
       // Collect department, office, and jobTitle IDs to fetch in batch
-      const departmentIds = employeeDatas.map(emp => emp.department);
-      const officeIds = employeeDatas.map(emp => emp.office);
-      const jobTitleIds = employeeDatas.map(emp => emp.jobTitle);
+      const departmentIds = employeeDatas.map((emp) => emp.department);
+      const officeIds = employeeDatas.map((emp) => emp.office);
+      const jobTitleIds = employeeDatas.map((emp) => emp.jobTitle);
 
       // Fetch data in bulk from Redis
       const [departmentsData, officesData, jobTitlesData] = await Promise.all([
-        getMultipleFromRedis(departmentIds.map(id => `department:${id}`)),
-        getMultipleFromRedis(officeIds.map(id => `office:${id}`)),
-        getMultipleFromRedis(jobTitleIds.map(id => `jobTitle:${id}`)),
+        getMultipleFromRedis(departmentIds.map((id) => `department:${id}`)),
+        getMultipleFromRedis(officeIds.map((id) => `office:${id}`)),
+        getMultipleFromRedis(jobTitleIds.map((id) => `jobTitle:${id}`)),
       ]);
 
       // Process employees in parallel
       const userPromises = employeeDatas.map(async (employeeData, index) => {
-        const user: NewUserAsEmployee & {phoneNumber: any} = {
+        const user: NewUserAsEmployee & { phoneNumber: any } = {
           email: employeeData.email,
           name: employeeData.name,
           phoneNumber: employeeData.phoneNumber,
@@ -102,17 +104,23 @@ const processJob = async (job: Job) => {
         };
 
         try {
-          const department = departmentsData[index] ? JSON.parse(departmentsData[index] as string): await departmentService.getDeparmentById(employeeInformation.departmentId!);
+          const department = departmentsData[index]
+            ? JSON.parse(departmentsData[index] as string)
+            : await departmentService.getDeparmentByIdAndOrgId(employeeInformation.departmentId!, organizationId);
           if (!department) {
             throw new ApiError(httpStatus.BAD_REQUEST, 'Department not found');
           }
 
-          const office = officesData[index] ? JSON.parse(officesData[index] as string) : await officeServices.getOfficeById(employeeInformation.officeId!);
+          const office = officesData[index]
+            ? JSON.parse(officesData[index] as string)
+            : await officeServices.getOfficeById(employeeInformation.officeId!);
           if (!office) {
             throw new ApiError(httpStatus.BAD_REQUEST, 'Office not found');
           }
 
-          const jobTitle = jobTitlesData[index] ? JSON.parse(jobTitlesData[index] as string) : await jobTitleService.getJobTitleById(employeeInformation.jobTitleId!);
+          const jobTitle = jobTitlesData[index]
+            ? JSON.parse(jobTitlesData[index] as string)
+            : await jobTitleService.getJobTitleById(employeeInformation.jobTitleId!);
           if (!jobTitle) {
             throw new ApiError(httpStatus.BAD_REQUEST, 'Job title not found');
           }
@@ -188,17 +196,17 @@ const queueEvents = new QueueEvents(bulk_upload_name, {
 });
 
 queueEvents.on('completed', async (jobId: any, result: any) => {
-//   await QueueTasks.findOneAndUpdate(
-//     { userId: new mongoose.Types.ObjectId(jobId) },
-//     {
-//       $set: {
-//         status: 'completed',
-//         progress: 100,
-//         result,
-//         error: result.errors,
-//       },
-//     }
-//   );
+  await QueueTasks.findOneAndUpdate(
+    { userId: new mongoose.Types.ObjectId(jobId.returnvalue.userId), jobId: jobId.jobId },
+    {
+      $set: {
+        status: QueueJobsStatus.Completed,
+        progress: 100,
+        result,
+        error: result.errors,
+      },
+    }
+  );
   console.log(`Job ${JSON.stringify(jobId)} has completed with result:`, JSON.stringify(result));
 });
 
