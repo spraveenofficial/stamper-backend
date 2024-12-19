@@ -124,6 +124,7 @@ userSchema.post('save', async function (user, next) {
 
 userSchema.index({ email: 1 });
 userSchema.index({ name: 'text', email: 'text' });
+userSchema.index({ _id: 1, name: 1 });
 
 const User = mongoose.model<IUserDoc, IUserModel>('User', userSchema);
 

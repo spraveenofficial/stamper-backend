@@ -20,7 +20,7 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
     capacity: {
       type: String,
       required: false,
-      default: "1-10"
+      default: '1-10',
     },
     addedBy: {
       type: Schema.Types.ObjectId,
@@ -37,8 +37,8 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
       required: true,
     },
     isOperational: {
-        type: Boolean,
-        default: true,
+      type: Boolean,
+      default: true,
     },
     isHeadQuarter: {
       type: Boolean,
@@ -65,10 +65,13 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
 );
 
 // Add a pre-save hook that check if the office is already added by the user
-officeSchema.static('isOfficeAddedByUser', async function (organizationId: mongoose.Types.ObjectId, name: string): Promise<boolean> {
-  const office = await this.findOne({ organizationId, name });
-  return !!office;
-});
+officeSchema.static(
+  'isOfficeAddedByUser',
+  async function (organizationId: mongoose.Types.ObjectId, name: string): Promise<boolean> {
+    const office = await this.findOne({ organizationId, name });
+    return !!office;
+  }
+);
 
 // Check if this organization has already a headquarter
 officeSchema.static('isHeadQuarterAdded', async function (organizationId: mongoose.Types.ObjectId): Promise<boolean> {
@@ -80,5 +83,6 @@ officeSchema.plugin(toJSON);
 officeSchema.plugin(paginate);
 
 officeSchema.index({ organizationId: 1, name: 1 }, { unique: true });
+officeSchema.index({ managerId: 1 });
 
 export default mongoose.model<IOfficeDoc, IOfficeModel>('Office', officeSchema);
