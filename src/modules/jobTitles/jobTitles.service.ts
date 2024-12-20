@@ -24,6 +24,13 @@ export const createJobTitle = async (
   return await JobTitle.create({ ...jobTitleBody, managerId, officeId, organizationId });
 };
 
+/**
+ * 
+ * @param organizationId 
+ * @param officeId 
+ * @returns 
+ */
+
 export const getJobTitles = async (
   organizationId: mongoose.Types.ObjectId,
   officeId: mongoose.Types.ObjectId
