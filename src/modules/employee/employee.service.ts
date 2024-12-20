@@ -348,7 +348,7 @@ export const getEmployeeInformation = async (userId: mongoose.Types.ObjectId): P
         accountStatus: '$accountStatus',
         createdAt: '$createdAt',
         personalInfo: {
-          userTimezone: { $ifNull: ['$personalInfo.userTimezone', 'UTC'] },
+          userTimezone: { $ifNull: ['$personalInfo.userTimezone', 'UTC+00:00'] },
           gender: { $ifNull: ['$personalInfo.gender', null] },
           maritalStatus: { $ifNull: ['$personalInfo.maritalStatus', null] },
           personalEmail: { $ifNull: ['$personalInfo.personalEmail', null] },

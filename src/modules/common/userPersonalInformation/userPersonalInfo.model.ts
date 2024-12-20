@@ -75,7 +75,7 @@ const userPersonalInfoSchema = new Schema<IUserPersonalInfoDoc, IUserPersonalInf
     userTimezone: {
       type: String,
       required: false,
-      default: 'UTC',
+      default: 'UTC +00:00',
     },
     gender: {
       type: String,

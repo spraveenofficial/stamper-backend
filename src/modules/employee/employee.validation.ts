@@ -80,3 +80,10 @@ export const getEmployeeRequestValidation = {
       }), // Optional name filter, max length of 100 characters, allow empty
   }),
 };
+
+
+export const employeeInformationRequestValidation = {
+  params: Joi.object().keys({
+    id: Joi.string().required()
+  }),
+};

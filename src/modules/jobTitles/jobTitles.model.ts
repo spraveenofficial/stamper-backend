@@ -45,6 +45,8 @@ jobTitleSchema.static('isJobTitleExists', async function (officeId: mongoose.Typ
 
 jobTitleSchema.plugin(toJSON);
 
+jobTitleSchema.index({ officeId: 1, title: 1, organizationId: 1 }, { unique: true });
+
 
 const JobTitle = mongoose.model<IJobTitleDoc, IJobTitleModel>('JobTitle', jobTitleSchema);
 

@@ -131,14 +131,28 @@ export const getEmployeeDirectory = catchAsync(async (req: Request, res: Respons
 
 export const getEmployeeDetailById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log('ID', id);
+
+  if (!mongoose.Types.ObjectId.isValid(id!)) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      success: false,
+      message: 'Something went wrong',
+    });
+  }
+
   const employee = await employeeService.getEmployeeInformation(id as any);
-  res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employee });
+
+  if (!employee) {
+    return res.status(httpStatus.NOT_FOUND).json({
+      success: false,
+      message: 'Employee not found',
+    });
+  }
+
+  return res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employee });
 });
 
 export const updateEmployeePersonalInformation = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log('ID', id);
   const { body } = req;
   if (typeof req.params['id'] === 'string') {
     const employee = await userPersonalInformationService.updateOneUserPersonalInfo(

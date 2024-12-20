@@ -31,34 +31,34 @@ export const getJobTitles = async (
   limit: number = 10
 ): Promise<IJobTitleDoc[]> => {
   const skip = (page - 1) * limit;
-  const orgId = new mongoose.Types.ObjectId(organizationId);
   const jobTitles = await JobTitle.aggregate([
-    { $match: { organizationId: orgId, officeId: new mongoose.Types.ObjectId(officeId) } },
+    { $match: { organizationId: new mongoose.Types.ObjectId(organizationId), officeId: new mongoose.Types.ObjectId(officeId) } },
     { $lookup: { from: 'departments', localField: 'departmentId', foreignField: '_id', as: 'department' } },
     { $unwind: { path: '$department', preserveNullAndEmptyArrays: true } },
     { $lookup: { from: 'users', localField: 'managerId', foreignField: '_id', as: 'manager' } },
     { $unwind: { path: '$manager', preserveNullAndEmptyArrays: true } },
-    { $lookup: { from: 'offices', localField: 'officeId', foreignField: '_id', as: 'office' } },
-    { $unwind: { path: '$office', preserveNullAndEmptyArrays: true } },
-    // Find number of employees in each job title
+  
+    // Corrected lookup for employees with count aggregation
     {
       $lookup: {
         from: 'employees',
         let: { jobTitleId: '$_id' },
-        pipeline: [{ $match: { $expr: { $eq: ['$jobTitleId', '$$jobTitleId'] } } }, { $count: 'count' }],
+        pipeline: [
+          { $match: { $expr: { $eq: ['$jobTitleId', '$$jobTitleId'] } } },
+          { $group: { _id: null, count: { $sum: 1 } } }, // Aggregate the count
+        ],
         as: 'employees',
       },
     },
-    // Check if employees array is empty if so set count to 0
+  
+    // Extract employee count directly or default to 0
     {
       $addFields: {
-        employees: {
-          $cond: [{ $eq: [{ $size: '$employees' }, 0] }, [{ count: 0 }], '$employees'],
+        employeeCount: {
+          $ifNull: [{ $arrayElemAt: ['$employees.count', 0] }, 0],
         },
       },
     },
-    { $addFields: { employeeCount: { $arrayElemAt: ['$employees.count', 0] } } },
-    { $addFields: { officeName: '$office.name', officeLocation: '$office.location' } },
     {
       $addFields: {
         jobTitleId: '$_id',
@@ -71,7 +71,6 @@ export const getJobTitles = async (
       $project: {
         departmentId: 0,
         organizationId: 0,
-        officeId: 0,
         department: 0,
         managerId: 0,
         manager: 0,
@@ -79,7 +78,7 @@ export const getJobTitles = async (
         __v: 0,
         updatedAt: 0,
         createdAt: 0,
-        office: 0,
+        officeId: 0,
         employees: 0,
       },
     },
@@ -87,18 +86,16 @@ export const getJobTitles = async (
     {
       $facet: {
         metadata: [
-          { $count: 'totalCount' }, // Count total documents
-          { $addFields: { page, limit } }, // Include page and limit in metadata
+          { $count: 'totalCount' },
+          { $addFields: { page, limit } },
         ],
         data: [
-          { $skip: skip }, // Skip for pagination
-          { $limit: limit }, // Limit the number of results
+          { $skip: skip },
+          { $limit: limit },
         ],
       },
     },
-    {
-      $unwind: '$metadata', // Unwind the metadata array
-    },
+    { $unwind: '$metadata' },
     {
       $project: {
         results: '$data',
@@ -111,7 +108,9 @@ export const getJobTitles = async (
       },
     },
   ]);
+  
   return jobTitles[0] || { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+  
 };
 
 export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Promise<IJobTitleDoc | null> => {

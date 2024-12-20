@@ -23,7 +23,7 @@ router
   .route('/bulk-upload')
   .post(auth(), organizationMiddleware.organizationMiddleware, employeeController.bulkUploadEmployees);
 
-router.route('/info/:id').get(auth(), employeeController.getEmployeeDetailById);
+router.route('/info/:id').get(auth(), validate(employeeValidation.employeeInformationRequestValidation), employeeController.getEmployeeDetailById);
 
 router
   .route('/edit/:id')

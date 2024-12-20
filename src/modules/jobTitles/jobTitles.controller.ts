@@ -42,7 +42,7 @@ export const getJobTitles = catchAsync(async (req: Request, res: Response) => {
     jobTitles = await jobTitleService.getJobTitles(req.organization.id, officeId, pageTonFn, limitToFn);
   } else {
     if ('officeId' in req.organization) {
-      jobTitles = await jobTitleService.getJobTitles(req.organization.organizationId, officeId, page, limit);
+      jobTitles = await jobTitleService.getJobTitles(req.organization.organizationId, req.organization.officeId, page, limit);
     }
   }
   res.status(httpStatus.OK).json({ success: true, message: 'Job titles fetched successfully', data: jobTitles ?? [] });
