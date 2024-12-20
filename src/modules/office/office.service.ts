@@ -27,13 +27,19 @@ export const changeOfficeOperationalStatus = async (
 
 export const getOffices = async (
   orgId: mongoose.Types.ObjectId,
+  officeId?: mongoose.Types.ObjectId,
   page: number = 1,
   limit: number = 10
 ): Promise<IOffice[]> => {
   const skip = (page - 1) * limit;
-  const organizationId = new mongoose.Types.ObjectId(orgId);
+  let query: any = { organizationId: new mongoose.Types.ObjectId(orgId) };
+
+  if (officeId) {
+    query._id = new mongoose.Types.ObjectId(officeId);
+  }
+
   const offices = await Office.aggregate([
-    { $match: { organizationId: organizationId } },
+    { $match: query },
     { $lookup: { from: 'users', localField: 'managerId', foreignField: '_id', as: 'managerDetails' } },
     { $unwind: { path: '$managerDetails', preserveNullAndEmptyArrays: true } },
     { $addFields: { officeId: '$_id', managerName: '$managerDetails.name', managerEmail: '$managerDetails.email' } },
@@ -107,11 +113,10 @@ export const getOfficeByOrgAndEmpId = async (
   });
 };
 
-
 export const getAllOffices = async (): Promise<IOfficeDoc[]> => {
   return await Office.find();
-}
+};
 
 export const getOfficesByIds = async (officeIds: mongoose.Types.ObjectId[]): Promise<IOfficeDoc[]> => {
   return await Office.find({ _id: { $in: officeIds } });
-}
+};

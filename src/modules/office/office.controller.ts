@@ -22,28 +22,42 @@ export const addOffice = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getOffices = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { role } = req.user;
   const options: IOptions = pick(req.query, ['limit', 'page']);
-  const organization = await organizationService.getOrganizationByUserId(id);
-  if (!organization) {
-    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Please add organization first' });
+  let organizationId;
+  let officeId;
+  if (role === rolesEnum.organization) {
+    organizationId = req.organization._id;
+  } else {
+    if ('officeId' in req.organization) {
+      organizationId = req.organization.organizationId;
+      officeId = req.organization.officeId;
+    }
   }
-
   // Set default values for pagination
   const page = Math.max(1, +options.page! || 1); // Default to page 1
   const limit = Math.max(1, +options.limit! || 10); // Default to limit 10
-  const response = await officeServices.getOffices(organization.id, page, limit);
+  const response = await officeServices.getOffices(organizationId, officeId, page, limit);
   res.status(httpStatus.OK).json({ success: true, message: 'Success', data: response });
 });
 
 export const editOffice = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { role } = req.user;
   // Check if user has rights to edit the office
-  const organization = await organizationService.getOrganizationByUserId(id);
-  if (!organization) {
-    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Please add organization first' });
-  }
+  let organizationId;
+  let userOfficeId;
+  if (role === rolesEnum.organization) {
+    organizationId = req.organization._id;
+  } else {
+    if ('officeId' in req.organization) {
+      organizationId = req.organization.organizationId;
+      userOfficeId = req.organization.officeId;
+    }
 
+    if (userOfficeId?.toString() !== req.body.officeId.toString()) {
+      throw res.status(httpStatus.BAD_REQUEST).json({ message: 'You are not authorized to edit this office' });
+    }
+  }
   // Check if the office exists
   const office = await officeServices.getOfficeById(req.body.officeId);
 
@@ -52,7 +66,7 @@ export const editOffice = catchAsync(async (req: Request, res: Response) => {
   }
 
   // Check if the office belongs to the organization
-  if (office.organizationId.toString() !== organization.id.toString()) {
+  if (office.organizationId.toString() !== organizationId.toString()) {
     throw res.status(httpStatus.BAD_REQUEST).json({ message: 'This office does not belong to the organization' });
   }
 

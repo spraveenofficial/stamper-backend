@@ -40,7 +40,10 @@ const allRoles = {
     'addHoliday',
     'editDepartment',
     'editJobTitle',
-    'getOffices'
+    'getOffices',
+    'editOffice',
+    'getDepartments',
+    'getJobTitles'
   ],
 };
 

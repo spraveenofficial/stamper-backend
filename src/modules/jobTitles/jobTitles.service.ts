@@ -26,18 +26,15 @@ export const createJobTitle = async (
 
 export const getJobTitles = async (
   organizationId: mongoose.Types.ObjectId,
-  officeId: mongoose.Types.ObjectId,
-  page: number = 1,
-  limit: number = 10
+  officeId: mongoose.Types.ObjectId
 ): Promise<IJobTitleDoc[]> => {
-  const skip = (page - 1) * limit;
   const jobTitles = await JobTitle.aggregate([
     { $match: { organizationId: new mongoose.Types.ObjectId(organizationId), officeId: new mongoose.Types.ObjectId(officeId) } },
     { $lookup: { from: 'departments', localField: 'departmentId', foreignField: '_id', as: 'department' } },
     { $unwind: { path: '$department', preserveNullAndEmptyArrays: true } },
     { $lookup: { from: 'users', localField: 'managerId', foreignField: '_id', as: 'manager' } },
     { $unwind: { path: '$manager', preserveNullAndEmptyArrays: true } },
-  
+
     // Corrected lookup for employees with count aggregation
     {
       $lookup: {
@@ -50,7 +47,7 @@ export const getJobTitles = async (
         as: 'employees',
       },
     },
-  
+
     // Extract employee count directly or default to 0
     {
       $addFields: {
@@ -83,34 +80,9 @@ export const getJobTitles = async (
       },
     },
     { $sort: { createdAt: -1 } },
-    {
-      $facet: {
-        metadata: [
-          { $count: 'totalCount' },
-          { $addFields: { page, limit } },
-        ],
-        data: [
-          { $skip: skip },
-          { $limit: limit },
-        ],
-      },
-    },
-    { $unwind: '$metadata' },
-    {
-      $project: {
-        results: '$data',
-        page: '$metadata.page',
-        limit: '$metadata.limit',
-        totalResults: '$metadata.totalCount',
-        totalPages: {
-          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
-        },
-      },
-    },
   ]);
-  
-  return jobTitles[0] || { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
-  
+
+  return jobTitles;
 };
 
 export const getJobTitleById = async (jobTitleId: mongoose.Types.ObjectId): Promise<IJobTitleDoc | null> => {

@@ -6,13 +6,16 @@ import { organizationMiddleware } from '../../modules/organization';
 
 const router: Router = express.Router();
 
+router.route('/').get(auth('getJobTitles'), organizationMiddleware.organizationMiddleware, jobTitleController.getJobTitles);
 
 router
-  .route('/')
-  .get(auth('getJobTitles'), organizationMiddleware.organizationMiddleware, jobTitleController.getJobTitles);
-router
   .route('/add')
-  .post(auth('addJobTitle'), validate(jobTitleValidation.createJobTitleRequest), jobTitleController.addJobTitle);
+  .post(
+    auth('addJobTitle'),
+    validate(jobTitleValidation.createJobTitleRequest),
+    organizationMiddleware.organizationMiddleware,
+    jobTitleController.addJobTitle
+  );
 
 router
   .route('/edit')

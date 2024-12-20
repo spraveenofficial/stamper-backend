@@ -3,12 +3,14 @@ import { Request, Response } from 'express';
 import { catchAsync, pick } from '../utils';
 import { officeServices } from '../office';
 import { ApiError } from '../errors';
-import { organizationService } from '../organization';
 import { jobTitleService } from '.';
 import { rolesEnum } from '../../config/roles';
 
 export const addJobTitle = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { id, role } = req.user;
+
+  let organizationId;
+  let officeId;
 
   const office = await officeServices.getOfficeById(req.body.officeId);
 
@@ -20,29 +22,36 @@ export const addJobTitle = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Office is not operational');
   }
 
-  const organization = await organizationService.getOrganizationByUserId(id);
-  if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
+  if (role === rolesEnum.organization) {
+    organizationId = req.organization.id;
+    officeId = req.body.officeId;
+  } else {
+    if ('officeId' in req.organization) {
+      organizationId = req.organization.organizationId;
+      officeId = req.organization.officeId;
+    }
   }
 
-  const jobTitle = await jobTitleService.createJobTitle(req.body, id, office.id, organization.id);
+  if(officeId?.toString() !== req.body.officeId.toString()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You are not authorized to add job title to this office');
+  }
+
+  const jobTitle = await jobTitleService.createJobTitle(req.body, id, officeId, organizationId);
 
   //   TODO: FIX Multiple entry of job title
   res.status(httpStatus.CREATED).json({ success: true, data: jobTitle });
 });
 
 export const getJobTitles = catchAsync(async (req: Request, res: Response) => {
-  const { limit, page, officeId } = pick(req.query, ['limit', 'page', 'officeId']);
+  const { officeId } = pick(req.query, ['officeId']);
   
-  const pageTonFn = Math.max(1, +page! || 1); // Default to page 1
-  const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
   let jobTitles;
 
   if (req.user.role === rolesEnum.organization) {
-    jobTitles = await jobTitleService.getJobTitles(req.organization.id, officeId, pageTonFn, limitToFn);
+    jobTitles = await jobTitleService.getJobTitles(req.organization.id, officeId);
   } else {
     if ('officeId' in req.organization) {
-      jobTitles = await jobTitleService.getJobTitles(req.organization.organizationId, req.organization.officeId, page, limit);
+      jobTitles = await jobTitleService.getJobTitles(req.organization.organizationId, req.organization.officeId);
     }
   }
   res.status(httpStatus.OK).json({ success: true, message: 'Job titles fetched successfully', data: jobTitles ?? [] });
