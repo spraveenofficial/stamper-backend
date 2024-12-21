@@ -13,6 +13,7 @@ import documentsRoute from './documents.route'
 import newsRoute from './news.route';
 import attendanceRoute from "./attendance.route"; 
 import eventRoute from "./events.route";
+import chatRoute from './chat.route'
 
 import config from '../../config/config';
 
@@ -75,6 +76,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: "/event",
     route: eventRoute,
+  },
+  {
+    path: "/chat",
+    route: chatRoute,
   }
 ];
 

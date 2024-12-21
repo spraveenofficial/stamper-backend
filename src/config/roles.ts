@@ -24,8 +24,9 @@ const allRoles = {
     'getAttendanceconfig',
     'addHoliday',
     'editJobTitle',
+    'sendMessage'
   ],
-  employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin', 'clockout'],
+  employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin', 'clockout','sendMessage'],
   admin: ['profile'],
   moderator: [
     'profile',
@@ -43,7 +44,8 @@ const allRoles = {
     'getOffices',
     'editOffice',
     'getDepartments',
-    'getJobTitles'
+    'getJobTitles',
+    'sendMessage'
   ],
 };
 
