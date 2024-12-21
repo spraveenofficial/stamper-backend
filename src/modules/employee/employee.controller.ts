@@ -184,7 +184,7 @@ export const bulkUploadEmployees = catchAsync(async (req: Request, res: Response
 
   const newTask = await queueDBServices.createNewQueueTask({
     userId: req.user.id,
-    data: employees,
+    data: [],
     jobType: BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
     jobId: job.id as string,
   });
