@@ -94,6 +94,11 @@ const userPersonalInfoSchema = new Schema<IUserPersonalInfoDoc, IUserPersonalInf
       required: false,
       default: null,
     },
+    personalTaxId: {
+      type: String,
+      required: false,
+      default: null,
+    },
     dateOfBirth: {
       type: Date,
       required: false,
