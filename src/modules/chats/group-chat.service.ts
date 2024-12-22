@@ -2,13 +2,14 @@ import mongoose from 'mongoose';
 import { IGroupDoc, ParticipantAction, ParticipantRole } from './group-chat.interfaces';
 import { Group, ParticipantLog } from './group-chat.model';
 
-export const createGroup = async (userId: mongoose.Types.ObjectId, payload: any): Promise<IGroupDoc> => {
+export const createGroup = async (payload: any, userId: mongoose.Types.ObjectId): Promise<IGroupDoc> => {
+  const user = new mongoose.Types.ObjectId(userId);
   const group = await Group.create({
     ...payload,
-    creator: userId,
+    creator: user,
     participants: [
       {
-        user: userId,
+        user: user,
         role: ParticipantRole.ADMIN,
         joinedAt: new Date(),
       },
@@ -18,9 +19,9 @@ export const createGroup = async (userId: mongoose.Types.ObjectId, payload: any)
   // Log the creator as the first participant
   await ParticipantLog.create({
     group: group._id,
-    user: userId,
+    user: user,
     action: ParticipantAction.ADDED,
-    performedBy: userId,
+    performedBy: user,
     timestamp: new Date(),
   });
 

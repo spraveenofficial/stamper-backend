@@ -24,4 +24,4 @@ export interface IMessageModel extends Model<IMessageDoc> {
   paginate(filter: Record<string, any>, options: Record<string, any>): Promise<QueryResult>;
 }
 
-export type NewMessageType = Omit<IMessage, 'from' | 'seen' | 'seenAt' | 'reaction' | 'deletedAt' | 'groupId'>;
+export type NewMessageType = Omit<IMessage, 'from' | 'seen' | 'seenAt' | 'reaction' | 'deletedAt'>;

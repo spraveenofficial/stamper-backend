@@ -25,8 +25,8 @@ const mqSchema = new Schema<IQueueTasksDoc, IQueueTasksModel>(
       default: [],
     },
     error: {
-      type: [String],
-      required: true,
+      type: [],
+      required: false,
       default: [],
     },
     status: {

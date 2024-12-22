@@ -7,16 +7,14 @@ import {
   ParticipantAction,
   ParticipantRole,
 } from './group-chat.interfaces';
+import { toJSON } from '../toJSON';
 
-const ParticipantSchema = new mongoose.Schema(
-  {
-    user: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
-    role: { type: String, enum: Object.values(ParticipantRole), required: true },
-    joinedAt: { type: Date, default: Date.now },
-    removedAt: { type: Date, default: null },
-  },
-  { _id: false }
-);
+const ParticipantSchema = new mongoose.Schema({
+  user: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
+  role: { type: String, enum: Object.values(ParticipantRole), required: true },
+  joinedAt: { type: Date, default: Date.now },
+  removedAt: { type: Date, default: null },
+});
 
 const GroupSchema = new mongoose.Schema(
   {
@@ -39,6 +37,10 @@ const ParticipantLogSchema = new mongoose.Schema(
   },
   { timestamps: false }
 );
+
+GroupSchema.plugin(toJSON);
+ParticipantLogSchema.plugin(toJSON);
+ParticipantSchema.plugin(toJSON);
 
 export const ParticipantLog = mongoose.model<IParticipantLogDoc, IParticipantLogModel>(
   'ParticipantLog',

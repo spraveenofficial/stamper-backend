@@ -5,9 +5,8 @@ import { objectId } from '../validate';
 const createChatBody: Record<keyof NewMessageType, any> = {
     content: Joi.string().required(),
     type: Joi.string().required(),
-    to: Joi.string().custom(objectId).required(),
-
-
+    to: Joi.string().optional().custom(objectId),
+    groupId: Joi.string().optional().custom(objectId),
 }
 
 export const createChatRequest = {

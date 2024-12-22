@@ -18,7 +18,7 @@ export const createUserMessage = catchAsync(async (req: Request, res: Response) 
 
 export const getMyMessage = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-  const messages = await chatServices.getMyRecentChats(id);
+  const messages = await chatServices.getRecentChats(id);
 
   res.status(httpStatus.OK).json({ success: true, message: 'Success', data: messages });
 });

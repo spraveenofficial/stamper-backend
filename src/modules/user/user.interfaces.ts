@@ -26,7 +26,7 @@ export type UpdateUserBody = Partial<IUser>;
 
 export type NewRegisteredUser = Omit<IUser, 'role' | 'isEmailVerified' | 'profilePic' | 'phoneNumber'>;
 
-export type NewUserAsEmployee = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'password' | 'role' | 'phoneNumber'>;
+export type NewUserAsEmployee = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'password' | 'role'>;
 
 export type NewCreatedUser = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'phoneNumber'>;
 

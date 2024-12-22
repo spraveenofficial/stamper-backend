@@ -15,6 +15,7 @@ export const organizationRegisterBody: Record<keyof NewCreateOrganization, any> 
 export const addUserAsEmployeeBody : Record<keyof NewUserAsEmployee, any> = {
   name: Joi.string().required(),
   email: Joi.string().required(),
+  phoneNumber: Joi.string().optional(),
 }
 
 export const addEmployeeBody = {
