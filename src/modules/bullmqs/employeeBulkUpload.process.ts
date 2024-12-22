@@ -61,7 +61,7 @@ const processJob = async (job: Job) => {
   const result = {
     successCount: 0,
     failureCount: 0,
-    errors: [] as { employee: string; position: number; error: string }[],
+    errors: [] as { employeeName: string; email: string; error: string }[],
     userId: null,
   };
 
@@ -91,10 +91,7 @@ const processJob = async (job: Job) => {
         try {
           const existingUser = await userService.getUserByEmail(employeeData.email);
           if (existingUser) {
-            throw new ApiError(
-              httpStatus.BAD_REQUEST,
-              `${employeeData.email} already exists at position ${index + 1}`
-            );
+            throw new ApiError(httpStatus.BAD_REQUEST, `${employeeData.email} already exists.`);
           }
 
           const employeeInformation: Partial<NewEmployee> = {
@@ -146,15 +143,12 @@ const processJob = async (job: Job) => {
         } catch (error: any) {
           result.failureCount++;
           result.errors.push({
-            employee: employeeData.email || 'Unknown',
-            position: index + 1,
+            employeeName: employeeData.name || 'Unknown',
+            email: employeeData.email,
             error: error.message,
           });
 
-          await queueTask.updateOne({
-            $push: { error: `${error.message} (Position: ${index + 1})` },
-            $set: { progress: (result.successCount / employeeDatas.length) * 100 },
-          });
+          await queueTask.updateOne({ $set: { progress: (result.successCount / employeeDatas.length) * 100, failureCount: result.failureCount } });
         }
       });
 
@@ -190,8 +184,8 @@ queueEvents.on('completed', async ({ jobId, returnvalue }: { jobId: string; retu
         $set: {
           status: QueueJobsStatus.Completed,
           progress: 100,
-          result: returnvalue,
           error: returnvalue.errors,
+          failureCount: returnvalue.failureCount,
         },
       }
     );
@@ -236,7 +230,6 @@ queueEvents.on('progress', async ({ jobId, data }: { jobId: string; data: number
   }
 });
 
-
 queueEvents.on('waiting', async (jobId: any) => {
   console.log(`Job ${jobId} is waiting`);
 });
@@ -248,7 +241,6 @@ queueEvents.on('active', async (jobId: any) => {
 queueEvents.on('stalled', async (jobId: any) => {
   console.log(`Job ${jobId} has stalled`);
 });
-
 
 console.log('Bulk upload worker started');
 

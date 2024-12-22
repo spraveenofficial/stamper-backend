@@ -184,10 +184,47 @@ export const bulkUploadEmployees = catchAsync(async (req: Request, res: Response
 
   const newTask = await queueDBServices.createNewQueueTask({
     userId: req.user.id,
+    dataToProcess: employees.length,
     data: [],
     jobType: BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
     jobId: job.id as string,
   });
 
   res.status(httpStatus.OK).json({ success: true, message: 'Employee uploaded successfully', data: newTask });
+});
+
+export const myBulkUploads = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const { page, limit } = pick(req.query, ['page', 'limit']);
+
+  const paginationOptions = {
+    page: Math.max(1, +page || 1),
+    limit: Math.max(1, +limit || 10),
+  };
+
+  const tasks = await queueDBServices.getQueueTasksByUserId(
+    id,
+    BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
+    paginationOptions.page,
+    paginationOptions.limit
+  );
+
+  res.status(httpStatus.OK).json({ success: true, message: 'Successfully Fetched', data: tasks });
+});
+
+export const getEachBulkUploadInformation = catchAsync(async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const { id } = req.params;
+
+  if (typeof req.params['id'] === 'string') {
+
+    console.log('id:', id);
+    const task = await queueDBServices.getBulkUploadInformationForEachTask(userId, id as unknown as mongoose.Types.ObjectId);
+
+    if (!task) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Task not found');
+    }
+
+    res.status(httpStatus.OK).json({ success: true, message: 'Successfully Fetched', data: task });
+  }
 });

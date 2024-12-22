@@ -10,6 +10,7 @@ const router: Router = express.Router();
 router
   .route('/directory')
   .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.getEmployeeDirectory);
+
 router
   .route('/activate')
   .post(auth(), validate(employeeValidation.acceptInvitation), employeeController.updateEmploeeAccountStatus);
@@ -23,7 +24,21 @@ router
   .route('/bulk-upload')
   .post(auth(), organizationMiddleware.organizationMiddleware, employeeController.bulkUploadEmployees);
 
-router.route('/info/:id').get(auth(), validate(employeeValidation.employeeInformationRequestValidation), employeeController.getEmployeeDetailById);
+router
+  .route('/bulk-upload/list')
+  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.myBulkUploads);
+
+router
+  .route('/bulk-upload/:id')
+  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.getEachBulkUploadInformation);
+
+router
+  .route('/info/:id')
+  .get(
+    auth(),
+    validate(employeeValidation.employeeInformationRequestValidation),
+    employeeController.getEmployeeDetailById
+  );
 
 router
   .route('/edit/:id')

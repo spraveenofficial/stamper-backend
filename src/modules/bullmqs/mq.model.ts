@@ -24,6 +24,16 @@ const mqSchema = new Schema<IQueueTasksDoc, IQueueTasksModel>(
       required: true,
       default: [],
     },
+    dataToProcess: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    failureCount: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     error: {
       type: [],
       required: false,
@@ -32,7 +42,7 @@ const mqSchema = new Schema<IQueueTasksDoc, IQueueTasksModel>(
     status: {
       type: String,
       required: false,
-      enum: QueueJobsStatus,
+      enum: Object.values(QueueJobsStatus),
       default: QueueJobsStatus.Active,
     },
     progress: {

@@ -14,7 +14,9 @@ export interface IQueueTasks {
   userId: mongoose.Types.ObjectId;
   jobId: string;
   jobType: string;
-  data: any;
+  dataToProcess: number;
+  failureCount: number;
+  data: any[];
   error: string[];
   status: QueueJobsStatus;
   progress: number;
@@ -28,4 +30,4 @@ export interface IQueueTasksModel extends Model<IQueueTasks> {
 }
 
 
-export type NewQueueTask = Omit<IQueueTasks, | 'status' | 'progress' | 'attemptsMade' | 'error'>;
+export type NewQueueTask = Omit<IQueueTasks, | 'status' | 'progress' | 'attemptsMade' | 'error' | 'failureCount'>;
