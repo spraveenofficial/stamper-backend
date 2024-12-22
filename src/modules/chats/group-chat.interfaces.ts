@@ -3,6 +3,7 @@ import mongoose, { Document, Model } from 'mongoose';
 export interface IGroup {
   name: string; // Group name
   description?: string; // Optional group description
+  groupProfilePic: string | null; // URL of the group profile picture
   creator: mongoose.Types.ObjectId; // User who created the group
   participants: IParticipant[]; // List of participants
   createdAt: Date; // Timestamp of group creation

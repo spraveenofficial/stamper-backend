@@ -22,6 +22,7 @@ const GroupSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     description: { type: String },
+    groupProfilePic: { type: String, required: false, default: null },
     creator: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
     participants: { type: [ParticipantSchema], default: [] },
   },
