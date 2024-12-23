@@ -25,6 +25,7 @@ const editDepartmentBody = {
   title: Joi.string().optional(),
   description: Joi.string(),
   officeId: Joi.string().custom(objectId).optional(),
+  isOperational: Joi.boolean().optional(),
 };
 
 export const editDepartmentRequest = {
