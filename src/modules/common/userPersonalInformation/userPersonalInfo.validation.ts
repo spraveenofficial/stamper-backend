@@ -25,6 +25,7 @@ const userPersonalInfoValidation = Joi.object<any>({
   emergencyContactDetails: Joi.array()
     .items(
       Joi.object({
+        _id: Joi.string().optional(), // Optional within the array if present
         name: Joi.string().required(), // Required within the array if present
         relationship: Joi.string().required(), // Required within the array if present
         phone: Joi.string().required(), // Required within the array if present
@@ -35,6 +36,7 @@ const userPersonalInfoValidation = Joi.object<any>({
   bankAccountDetails: Joi.array()
     .items(
       Joi.object({
+        _id: Joi.string().optional(), // Optional within the array if present
         bankName: Joi.string().required(), // Required within the array if present
         accountNumber: Joi.string().required(), // Required within the array if present
         accountHolderName: Joi.string().required(), // Required within the array if present
