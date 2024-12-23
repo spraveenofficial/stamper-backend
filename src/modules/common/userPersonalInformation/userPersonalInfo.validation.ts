@@ -1,13 +1,17 @@
 import Joi from 'joi';
-import { GenderEnum, MaritalStatusEnum, NewUserPersonalInfoPayload } from './userPersonalInfo.interface'; // Path to your interface
+import { GenderEnum, MaritalStatusEnum} from './userPersonalInfo.interface'; // Path to your interface
 
-export const userPersonalInfoValidationSchema = Joi.object<NewUserPersonalInfoPayload>({
-  userTimezone: Joi.string().optional().default('UTC'), // Optional with default value
+const userPersonalInfoValidation = Joi.object<any>({
+  name: Joi.string().optional(), // Required string
+  phoneNumber: Joi.string().optional(), // Optional string
+  userTimezone: Joi.string().optional(), // Optional with default value
   gender: Joi.string()
     .valid(...Object.values(GenderEnum)) // Replace with GenderEnum values
+    .allow(null) // Allow null if needed
     .optional(),
   maritalStatus: Joi.string()
     .valid(...Object.values(MaritalStatusEnum)) // Replace with MaritalStatusEnum values
+    .allow(null) // Allow null if needed
     .optional(),
   personalEmail: Joi.string().email().optional(), // Optional email
   dateOfBirth: Joi.date().iso().optional(), // Optional ISO date
@@ -21,21 +25,27 @@ export const userPersonalInfoValidationSchema = Joi.object<NewUserPersonalInfoPa
   emergencyContactDetails: Joi.array()
     .items(
       Joi.object({
-        name: Joi.string(),
-        relationship: Joi.string(),
-        phone: Joi.string(),
+        name: Joi.string().required(), // Required within the array if present
+        relationship: Joi.string().required(), // Required within the array if present
+        phone: Joi.string().required(), // Required within the array if present
+        email: Joi.string().email().required(), // Required within the array if present
       })
     )
     .optional(),
   bankAccountDetails: Joi.array()
     .items(
       Joi.object({
-        bankName: Joi.string(),
-        accountNumber: Joi.string(),
-        accountHolderName: Joi.string(),
-        branchName: Joi.string(),
-        ifscCode: Joi.string(),
+        bankName: Joi.string().required(), // Required within the array if present
+        accountNumber: Joi.string().required(), // Required within the array if present
+        accountHolderName: Joi.string().required(), // Required within the array if present
+        branchName: Joi.string().required(), // Required within the array if present
+        ifscCode: Joi.string().required(), // Required within the array if present
+        isPrimary: Joi.boolean().required(), // Required within the array if present
       })
     )
     .optional(),
 });
+
+export const userPersonalInfoValidationSchema = {
+  body: userPersonalInfoValidation,
+};

@@ -100,7 +100,7 @@ export const generateBulkUploadEmployeeExcelExample = catchAsync(async (req: Req
 
 export const getEmployeeDirectory = catchAsync(async (req: Request, res: Response) => {
   const { role } = req.user;
-  const { page, limit } = pick(req.query, ['page', 'limit']);
+  const { page, limit, name } = pick(req.query, ['page', 'limit', 'name']);
 
   const paginationOptions = {
     page: Math.max(1, +page || 1),
@@ -113,7 +113,11 @@ export const getEmployeeDirectory = catchAsync(async (req: Request, res: Respons
     directory = await employeeService.getEmployeesByOrgId(
       req.organization.id,
       paginationOptions.page,
-      paginationOptions.limit
+      paginationOptions.limit,
+      null,
+      null,
+      null,
+      name as string
     );
   } else {
     if ('officeId' in req.organization) {
@@ -121,7 +125,10 @@ export const getEmployeeDirectory = catchAsync(async (req: Request, res: Respons
         req.organization.organizationId,
         paginationOptions.page,
         paginationOptions.limit,
-        req.organization.officeId.toString()
+        req.organization.officeId.toString(),
+        null,
+        null,
+        name as string
       );
     }
   }
@@ -174,13 +181,20 @@ export const bulkUploadEmployees = catchAsync(async (req: Request, res: Response
     orgId = req.organization.organizationId;
   }
 
-  const job = await bulkUploadQueue.add('bulk_upload', {
-    organizationId: orgId,
-    userId: id,
-    employees,
-    // translation: req.t,
-    type: BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
-  });
+  const job = await bulkUploadQueue.add(
+    'bulk_upload',
+    {
+      organizationId: orgId,
+      userId: id,
+      employees,
+      // translation: req.t,
+      type: BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
+    },
+    {
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
+  );
 
   const newTask = await queueDBServices.createNewQueueTask({
     userId: req.user.id,
@@ -217,7 +231,6 @@ export const getEachBulkUploadInformation = catchAsync(async (req: Request, res:
   const { id } = req.params;
 
   if (typeof req.params['id'] === 'string') {
-
     console.log('id:', id);
     const task = await queueDBServices.getBulkUploadInformationForEachTask(userId, id as unknown as mongoose.Types.ObjectId);
 
