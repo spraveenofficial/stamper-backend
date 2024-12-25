@@ -1,27 +1,29 @@
 import mongoose from 'mongoose';
 import { toJSON } from '../toJSON';
-import { IMessageDoc, IMessageModel, MessageType } from './chat.interfaces';
+import { IMessageDoc, IMessageModel, MessageType, ReactionType } from './chat.interfaces';
 
 const messageSchema = new mongoose.Schema<IMessageDoc, IMessageModel>(
   {
     from: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
     },
     to: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: false,
     },
-    groupId: {
+    chatId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'ChatGroup',
+      ref: 'Group',
       required: false,
       default: null,
     },
     type: {
       type: String,
-      enum: MessageType,
-      required: false,
+      enum: Object.values(MessageType),
+      required: true,
       default: MessageType.TEXT,
     },
     content: {
@@ -30,22 +32,20 @@ const messageSchema = new mongoose.Schema<IMessageDoc, IMessageModel>(
     },
     seen: {
       type: Boolean,
-      required: false,
       default: false,
     },
     seenAt: {
       type: Date,
-      required: false,
       default: null,
     },
-    reaction: {
-      type: String,
-      required: false,
-      default: null,
-    },
+    reaction: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        type: { type: String, enum: Object.values(ReactionType) },
+      },
+    ],
     deletedAt: {
       type: Date,
-      required: false,
       default: null,
     },
   },
@@ -53,8 +53,7 @@ const messageSchema = new mongoose.Schema<IMessageDoc, IMessageModel>(
     timestamps: true,
   }
 );
-
 messageSchema.plugin(toJSON);
-const Message = mongoose.model<IMessageDoc, IMessageModel>('Messeges', messageSchema);
+const Message = mongoose.model<IMessageDoc, IMessageModel>('Messages', messageSchema);
 
 export default Message;

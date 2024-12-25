@@ -8,6 +8,7 @@ export interface IGroup {
   participants: IParticipant[]; // List of participants
   createdAt: Date; // Timestamp of group creation
   updatedAt: Date; // Timestamp of last group update
+  deletedAt?: Date | null; // Timestamp of deletion (null if not deleted)
 }
 
 export interface IParticipant {

@@ -23,6 +23,7 @@ const GroupSchema = new mongoose.Schema(
     groupProfilePic: { type: String, required: false, default: null },
     creator: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
     participants: { type: [ParticipantSchema], default: [] },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -47,4 +48,4 @@ export const ParticipantLog = mongoose.model<IParticipantLogDoc, IParticipantLog
   ParticipantLogSchema
 );
 
-export const Group = mongoose.model<IGroupDoc, IGroupModel>('ChatGroup', GroupSchema);
+export const Group = mongoose.model<IGroupDoc, IGroupModel>('Group', GroupSchema);

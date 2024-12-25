@@ -1,8 +1,8 @@
 import Joi from 'joi';
-import { NewMessageType } from './chat.interfaces';
+// import { NewMessageType } from './chat.interfaces';
 import { objectId } from '../validate';
 
-const createChatBody: Record<keyof NewMessageType, any> = {
+const createChatBody: any = {
     content: Joi.string().required(),
     type: Joi.string().required(),
     to: Joi.string().optional().custom(objectId),
