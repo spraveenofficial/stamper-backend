@@ -7,6 +7,8 @@ import { rolesEnum } from '../../config/roles';
 import { IUserDoc, IUserModel } from './user.interfaces';
 import { plansInterfaces } from '../common/plans';
 import { userCapService } from '../common/userCap';
+import { defaultPermissions } from '../rbac/constants';
+import { Permission } from '../rbac/rbac.model';
 
 const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
   {
@@ -65,6 +67,12 @@ const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
         message: 'Expected a string or null for phoneNumber',
       },
     },
+    permissions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'UserPermission',
+      },
+    ],
   },
   {
     timestamps: true,
@@ -121,6 +129,39 @@ userSchema.post('save', async function (user, next) {
   }
   next();
 });
+
+// Pre-save hook to assign default permissions
+userSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    const role = this.role as rolesEnum; // Cast to RolesEnum
+
+    if (Object.values(rolesEnum).includes(role)) {
+      const defaultPerms = defaultPermissions[role];
+
+      if (defaultPerms && defaultPerms.length) {
+        const permissions = await Permission.find({
+          name: { $in: defaultPerms },
+        });
+
+        if (permissions.length) {
+          this.permissions = [
+            ...new Set([...this.permissions, ...permissions.map((p) => p._id)]),
+          ];
+        }
+      }
+    } else {
+      console.error(`Invalid role: ${this.role}`);
+    }
+  }
+  next();
+});
+
+// 
+userSchema.pre(['find', 'findOne'], function (next) {
+  this.populate('permissions')
+  next();
+});
+
 
 userSchema.index({ email: 1 });
 userSchema.index({ name: 'text', email: 'text' });

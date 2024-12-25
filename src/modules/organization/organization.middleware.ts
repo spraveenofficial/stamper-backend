@@ -11,7 +11,6 @@ const organizationMiddleware = async (req: Request, res: Response, next: NextFun
     if (!req.user || !req.user.id) {
       return res.status(httpStatus.UNAUTHORIZED).json({ message: 'Please authenticate' });
     }
-
     const { id, role } = req.user;
     let organization: IOrganizationDoc | IEmployeeDoc | null = null;
 
@@ -29,10 +28,10 @@ const organizationMiddleware = async (req: Request, res: Response, next: NextFun
     if ('officeId' in organization) {
       console.log("Employee's office ID:", organization.officeId); // Access fields specific to IEmployeeDoc
     } else {
-      console.log("Organization-specific data:", organization.companyName); // Access fields specific to IOrganizationDoc
+      console.log('Organization-specific data:', organization.companyName); // Access fields specific to IOrganizationDoc
     }
 
-    console.log("Console log organization middleware:", organization);
+    console.log('Console log organization middleware:', organization);
     req.organization = organization;
     return next();
   } catch (error) {

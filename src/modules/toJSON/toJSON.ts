@@ -50,6 +50,12 @@ const toJSON = (schema: any) => {
       // delete ret.createdAt;
       // // eslint-disable-next-line no-param-reassign
       delete ret.updatedAt;
+
+      // Now apply your custom transformation
+      if (ret.permissions && Array.isArray(ret.permissions)) {
+        ret.permissions = ret.permissions.map((perm: any) => perm.name);
+      }
+      
       if (transform) {
         return transform(doc, ret, options);
       }

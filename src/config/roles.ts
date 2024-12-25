@@ -24,9 +24,9 @@ const allRoles = {
     'getAttendanceconfig',
     'addHoliday',
     'editJobTitle',
-    'sendMessage'
+    'sendMessage',
   ],
-  employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin', 'clockout','sendMessage'],
+  employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin', 'clockout', 'sendMessage'],
   admin: ['profile'],
   moderator: [
     'profile',
@@ -45,7 +45,7 @@ const allRoles = {
     'editOffice',
     'getDepartments',
     'getJobTitles',
-    'sendMessage'
+    'sendMessage',
   ],
 };
 
@@ -62,4 +62,11 @@ export enum rolesEnum {
   employee = 'employee',
   admin = 'admin',
   moderator = 'moderator',
+}
+
+export enum ActionEnum {
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
 }
