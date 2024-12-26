@@ -14,6 +14,12 @@ router
 router
   .route('/activate')
   .post(auth(), validate(employeeValidation.acceptInvitation), employeeController.updateEmploeeAccountStatus);
+
+//Employee Search
+router
+  .route('/search')
+  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.searchEmployeeBasedOnNameAndEmail);
+
 router.route('/reinvite').post(auth(), validate(employeeValidation.reinviteEmployee), employeeController.reinviteEmployee);
 
 router
@@ -34,11 +40,7 @@ router
 
 router
   .route('/info/:id')
-  .get(
-    auth(),
-    validate(employeeValidation.employeeInformationRequestValidation),
-    employeeController.getEmployeeDetailById
-  );
+  .get(auth(), validate(employeeValidation.employeeInformationRequestValidation), employeeController.getEmployeeDetailById);
 
 router
   .route('/edit/:id')

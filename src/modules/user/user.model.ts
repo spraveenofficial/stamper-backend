@@ -164,7 +164,7 @@ userSchema.pre(['find', 'findOne'], function (next) {
 
 
 userSchema.index({ email: 1 });
-userSchema.index({ name: 'text', email: 'text' });
+userSchema.index({ name: 1, email: 1 })
 userSchema.index({ _id: 1, name: 1 });
 
 const User = mongoose.model<IUserDoc, IUserModel>('User', userSchema);

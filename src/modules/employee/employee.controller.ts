@@ -241,3 +241,39 @@ export const getEachBulkUploadInformation = catchAsync(async (req: Request, res:
     res.status(httpStatus.OK).json({ success: true, message: 'Successfully Fetched', data: task });
   }
 });
+
+export const searchEmployeeBasedOnNameAndEmail = catchAsync(async (req: Request, res: Response) => {
+  const { role, id } = req.user;
+  const { page, limit, search } = pick(req.query, ['page', 'limit', 'search']);
+
+  const paginationOptions = {
+    page: Math.max(1, +page || 1),
+    limit: Math.max(1, +limit || 10),
+  };
+
+  let employees: any;
+
+  if (role === rolesEnum.organization) {
+    employees = await employeeService.searchEmployeeByNameAndEmail(
+      req.organization.id,
+      id,
+      null,
+      paginationOptions.page,
+      paginationOptions.limit,
+      search as string,
+    );
+  } else {
+    if ('officeId' in req.organization) {
+      employees = await employeeService.searchEmployeeByNameAndEmail(
+        req.organization.organizationId,
+        id,
+        req.organization.officeId,
+        paginationOptions.page,
+        paginationOptions.limit,
+        search as string
+      );
+    }
+  }
+
+  res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employees });
+});

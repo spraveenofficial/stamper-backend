@@ -53,6 +53,7 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
 
 employeeSchema.index({ userId: 1 });
 employeeSchema.index({ organizationId: 1 }, { unique: true });
+employeeSchema.index({ userId: 1, organizationId: 1, officeId: 1 })
 
 employeeSchema.index({ jobTitleId: 1, organizationId: 1, officeId: 1 }, { unique: true });
 employeeSchema.plugin(toJSON);

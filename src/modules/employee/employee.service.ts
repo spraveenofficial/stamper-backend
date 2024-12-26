@@ -172,12 +172,96 @@ export const updateEmployeeAccountStatus = async (userId: string, accountStatus:
   return employee;
 };
 
-
 export const getEmployeeByOfficeIdAndEmpId = async (
   officeId: mongoose.Types.ObjectId,
   empId: mongoose.Types.ObjectId
 ): Promise<IEmployeeDoc | null> => {
   return await Employee.findOne({ officeId, userId: empId });
+};
+
+export const searchEmployeeByNameAndEmail = async (
+  organizationId: mongoose.Types.ObjectId,
+  currentUserId: mongoose.Types.ObjectId,
+  officeId?: mongoose.Types.ObjectId | null,
+  page: number = 1,
+  limit: number = 10,
+  searchQuery?: string | null
+): Promise<any> => {
+  const skip = (page - 1) * limit;
+
+  // Start with Users collection for text search
+  const pipeline: any[] = [
+    // First match users based on search query
+    {
+      $match: searchQuery
+        ? {
+            $or: [{ name: { $regex: searchQuery, $options: 'i' } }, { email: { $regex: searchQuery, $options: 'i' } }],
+          }
+        : {},
+    },
+    // Look up matching employees
+    {
+      $lookup: {
+        from: 'employees',
+        localField: '_id',
+        foreignField: 'userId',
+        pipeline: [
+          {
+            $match: {
+              organizationId: new mongoose.Types.ObjectId(organizationId),
+              ...(officeId && { officeId: new mongoose.Types.ObjectId(officeId) }),
+            },
+          },
+        ],
+        as: 'employeeDetails',
+      },
+    },
+    // Filter out users who aren't employees in the organization
+    {
+      $match: {
+        employeeDetails: { $ne: [
+          { userId: currentUserId },
+        ] },
+      },
+    },
+    // Unwind the employee details
+    {
+      $unwind: '$employeeDetails',
+    },
+    // Shape the final output
+    {
+      $project: {
+        id: '$_id',
+        name: '$name',
+        email: '$email',
+        profilePic: '$profilePic',
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+      }
+    },
+    // Pagination
+    { $skip: skip },
+    { $limit: limit },
+  ];
+
+  // Execute the main query
+  const employees = await User.aggregate(pipeline);
+
+  // Count total results with the same criteria but without pagination
+  const countPipeline = [...pipeline];
+  countPipeline.splice(-2); // Remove skip and limit stages
+  const [{ count: totalCount } = { count: 0 }] = await User.aggregate([...countPipeline, { $count: 'count' }]);
+
+  return {
+    results: employees,
+    page,
+    limit,
+    totalResults: totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+  };
 };
 
 export const getEmployeesByOrgIdWithoutLimit = async (
@@ -256,7 +340,6 @@ export const getEmployeesByOrgIdWithoutLimit = async (
 };
 
 export const getEmployeeInformation = async (userId: mongoose.Types.ObjectId): Promise<any> => {
-  
   const pipeline = [
     {
       $match: { userId: new mongoose.Types.ObjectId(userId) },
