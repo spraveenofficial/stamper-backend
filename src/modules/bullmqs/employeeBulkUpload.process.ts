@@ -1,8 +1,6 @@
 import { Queue, Worker, Job, QueueEvents } from 'bullmq';
 import mongoose from 'mongoose';
-import redis from 'redis';
-import { redisConfig } from '../redis/init';
-import { BULL_AVAILABLE_JOBS } from './constants';
+import { Redis } from 'ioredis';
 import { ApiError } from '../errors';
 import { departmentService } from '../departments';
 import { officeServices } from '../office';
@@ -12,171 +10,305 @@ import { employeeService } from '../employee';
 import { tokenService } from '../token';
 import { emailService } from '../email';
 import { QueueTasks } from './mq.model';
-import { IEmployeeBulkUploadPayload, NewEmployee } from '../employee/employee.interfaces';
-import { NewUserAsEmployee } from '../user/user.interfaces';
+import { IEmployeeBulkUploadPayload } from '../employee/employee.interfaces';
 import { QueueJobsStatus } from './types';
 import config from '../../config/config';
 import { DevelopmentOptions } from '../../config/roles';
 import httpStatus from 'http-status';
+import { BULL_AVAILABLE_JOBS } from './constants';
 
-const bulk_upload_name = 'bulk_upload';
+// Constants
+const QUEUE_NAME = 'bulk_upload';
+const BATCH_SIZE = 10;
+const CACHE_TTL = 60 * 60 * 24; // 24 hours in seconds
 
-// Redis Client
-let redisClient = redis.createClient(redisConfig);
+// Redis connection
+const redisConfig = {
+  host: 'redis-12284.c325.us-east-1-4.ec2.redns.redis-cloud.com',
+  port: 12284,
+  username: 'default',
+  password: 'K6153aBnDfguJ0ulA2LiKN9TtjoxMFbN',
+  maxRetriesPerRequest: null,
+  retryStrategy: (times: number) => Math.min(times * 50, 2000),
+};
 
-// Ensure Redis connection
-const ensureRedisConnection = async () => {
-  if (!redisClient.isOpen) {
+const redis = new Redis(redisConfig);
+
+// Redis cache helpers
+class RedisCache {
+  private static async getFromCache<T>(key: string): Promise<T | null> {
     try {
-      await redisClient.connect();
-      console.log('Connected to Redis');
-    } catch (err) {
-      console.error('Error connecting to Redis:', err);
-      throw new Error('Failed to connect to Redis');
+      const data = await redis.get(key);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error(`Redis cache error for key ${key}:`, error);
+      return null;
     }
   }
-};
 
-// Multi-fetch from Redis
-const getMultipleFromRedis = async (keys: string[]) => {
-  try {
-    await ensureRedisConnection();
-    const multi = redisClient.multi();
-    keys.forEach((key) => multi.get(key));
-    const results = await multi.exec();
-    return results;
-  } catch (err) {
-    console.error('Error in multi-get:', err);
-    throw err;
+  private static async setInCache(key: string, data: any): Promise<void> {
+    try {
+      await redis.setex(key, CACHE_TTL, JSON.stringify(data));
+    } catch (error) {
+      console.error(`Redis cache set error for key ${key}:`, error);
+    }
   }
-};
 
-const bulkUploadQueue = new Queue(bulk_upload_name, {
-  connection: redisConfig,
-});
+  static async batchGet(keys: string[]): Promise<(string | null)[]> {
+    if (!keys.length) return [];
+    try {
+      return await redis.mget(keys);
+    } catch (error) {
+      console.error('Redis batch get error:', error);
+      return keys.map(() => null);
+    }
+  }
 
-// Process bulk upload job
-const processJob = async (job: Job) => {
+  static async getDepartment(id: string, organizationId: mongoose.Types.ObjectId) {
+    const cacheKey = `department:${id}`;
+    const cachedData = await this.getFromCache<any>(cacheKey);
+    
+    if (cachedData) {
+      return cachedData;
+    }
+
+    const department = await departmentService.getDeparmentByIdAndOrgId(
+      id as unknown as mongoose.Types.ObjectId,
+      organizationId
+    );
+
+    if (department) {
+      await this.setInCache(cacheKey, department);
+    }
+
+    return department;
+  }
+
+  static async getOffice(id: string) {
+    const cacheKey = `office:${id}`;
+    const cachedData = await this.getFromCache<any>(cacheKey);
+    
+    if (cachedData) {
+      console.log("Offied cached data", cachedData);
+      return cachedData;
+    }
+
+    const office = await officeServices.getOfficeById(id as unknown as mongoose.Types.ObjectId);
+    
+    if (office) {
+      await this.setInCache(cacheKey, office);
+    }
+
+    return office;
+  }
+
+  static async getJobTitle(id: string) {
+    const cacheKey = `jobTitle:${id}`;
+    const cachedData = await this.getFromCache<any>(cacheKey);
+    
+    if (cachedData) {
+      return cachedData;
+    }
+
+    const jobTitle = await jobTitleService.getJobTitleById(id as unknown as mongoose.Types.ObjectId);
+    
+    if (jobTitle) {
+      await this.setInCache(cacheKey, jobTitle);
+    }
+
+    return jobTitle;
+  }
+}
+
+// Process single employee
+async function processEmployee(
+  employeeData: IEmployeeBulkUploadPayload,
+  organizationId: string,
+  cachedData: {
+    department?: any;
+    office?: any;
+    jobTitle?: any;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const existingUser = await userService.getUserByEmail(employeeData.email);
+    if (existingUser) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `${employeeData.email} already exists`);
+    }
+
+    // Validate and get related entities with caching
+    const department = cachedData.department || 
+      await RedisCache.getDepartment(
+        employeeData.department as string,
+        organizationId as unknown as mongoose.Types.ObjectId
+      );
+    if (!department) throw new ApiError(httpStatus.BAD_REQUEST, 'Department not found');
+
+    const office = cachedData.office || 
+      await RedisCache.getOffice(employeeData.office as string);
+    if (!office) throw new ApiError(httpStatus.BAD_REQUEST, 'Office not found');
+
+    const jobTitle = cachedData.jobTitle || 
+      await RedisCache.getJobTitle(employeeData.jobTitle as string);
+    if (!jobTitle) throw new ApiError(httpStatus.BAD_REQUEST, 'Job title not found');
+
+    // Create user and employee
+    const user = await userService.createUserAsEmployee({
+      email: employeeData.email,
+      name: employeeData.name,
+      phoneNumber: employeeData.phoneNumber,
+    });
+
+    await employeeService.addEmployee({
+      userId: user.id,
+      departmentId: department.id,
+      officeId: office.id,
+      jobTitleId: jobTitle.id,
+      joiningDate: employeeData.joiningDate,
+      organizationId,
+    });
+
+    if (config.env === DevelopmentOptions.production) {
+      const token = await tokenService.generateOrganizationInvitationToken(user);
+      await emailService.inviteEmployee(user.email, user.name, user.name, token);
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || 'Failed to process employee',
+    };
+  }
+}
+
+// Process job implementation
+async function processJob(job: Job) {
   const { data } = job;
   const result = {
     successCount: 0,
     failureCount: 0,
     errors: [] as { employeeName: string; email: string; error: string }[],
-    userId: null,
+    userId: data.userId,
   };
 
-  try {
-    if (data.type === BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD) {
-      const { organizationId, userId } = data;
-      result.userId = userId;
+  if (data.type !== BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD) {
+    throw new Error('Invalid job type');
+  }
 
-      const queueTask = await QueueTasks.findOne({ userId, jobId: job.id });
-      if (!queueTask) {
-        throw new ApiError(httpStatus.NOT_FOUND, 'Queue task not found');
-      }
+  const queueTask = await QueueTasks.findOne({
+    userId: data.userId,
+    jobId: job.id,
+  });
 
-      const employeeDatas: IEmployeeBulkUploadPayload[] = data.employees;
+  if (!queueTask) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Queue task not found');
+  }
 
-      const departmentIds = employeeDatas.map((emp) => emp.department);
-      const officeIds = employeeDatas.map((emp) => emp.office);
-      const jobTitleIds = employeeDatas.map((emp) => emp.jobTitle);
+  const employees: IEmployeeBulkUploadPayload[] = data.employees;
+  const totalEmployees = employees.length;
 
-      const [departmentsData, officesData, jobTitlesData] = await Promise.all([
-        getMultipleFromRedis(departmentIds.map((id) => `department:${id}`)),
-        getMultipleFromRedis(officeIds.map((id) => `office:${id}`)),
-        getMultipleFromRedis(jobTitleIds.map((id) => `jobTitle:${id}`)),
-      ]);
+  // Process in batches
+  for (let i = 0; i < totalEmployees; i += BATCH_SIZE) {
+    const batch = employees.slice(i, i + BATCH_SIZE);
 
-      const userPromises = employeeDatas.map(async (employeeData, index) => {
-        try {
-          const existingUser = await userService.getUserByEmail(employeeData.email);
-          if (existingUser) {
-            throw new ApiError(httpStatus.BAD_REQUEST, `${employeeData.email} already exists.`);
-          }
+    // Pre-fetch cache data for the batch
+    const departmentIds = batch.map((emp) => emp.department);
+    const officeIds = batch.map((emp) => emp.office);
+    const jobTitleIds = batch.map((emp) => emp.jobTitle);
 
-          const employeeInformation: Partial<NewEmployee> = {
-            departmentId: employeeData.department as unknown as mongoose.Types.ObjectId,
-            officeId: employeeData.office as unknown as mongoose.Types.ObjectId,
-            jobTitleId: employeeData.jobTitle as unknown as mongoose.Types.ObjectId,
-            joiningDate: new Date(employeeData.joiningDate),
-          };
+    const [departmentsData, officesData, jobTitlesData] = await Promise.all([
+      RedisCache.batchGet(departmentIds.map((id) => `department:${id}`)),
+      RedisCache.batchGet(officeIds.map((id) => `office:${id}`)),
+      RedisCache.batchGet(jobTitleIds.map((id) => `jobTitle:${id}`)),
+    ]);
 
-          const user: NewUserAsEmployee & { phoneNumber: any } = {
-            email: employeeData.email,
-            name: employeeData.name,
-            phoneNumber: employeeData.phoneNumber,
-          };
+    // Process batch
+    await Promise.all(
+      batch.map(async (employeeData, index) => {
+        const cachedData = {
+          department: departmentsData[index] ? JSON.parse(departmentsData[index]!) : null,
+          office: officesData[index] ? JSON.parse(officesData[index]!) : null,
+          jobTitle: jobTitleIds[index] ? JSON.parse(jobTitlesData[index]!) : null,
+        };
 
-          const department = departmentsData[index]
-            ? JSON.parse(departmentsData[index] as string)
-            : await departmentService.getDeparmentByIdAndOrgId(employeeInformation.departmentId!, organizationId);
-          if (!department) throw new ApiError(httpStatus.BAD_REQUEST, 'Department not found');
+        const processResult = await processEmployee(employeeData, data.organizationId, cachedData);
 
-          const office = officesData[index]
-            ? JSON.parse(officesData[index] as string)
-            : await officeServices.getOfficeById(employeeInformation.officeId!);
-          if (!office) throw new ApiError(httpStatus.BAD_REQUEST, 'Office not found');
-
-          const jobTitle = jobTitlesData[index]
-            ? JSON.parse(jobTitlesData[index] as string)
-            : await jobTitleService.getJobTitleById(employeeInformation.jobTitleId!);
-          if (!jobTitle) throw new ApiError(httpStatus.BAD_REQUEST, 'Job title not found');
-
-          const employee = await userService.createUserAsEmployee(user, organizationId);
-
-          await employeeService.addEmployee({
-            userId: employee.id,
-            departmentId: department.id,
-            officeId: office.id,
-            jobTitleId: jobTitle.id,
-            joiningDate: employeeData.joiningDate,
-            organizationId,
-          });
-
-          const token = await tokenService.generateOrganizationInvitationToken(employee);
-          if (config.env === DevelopmentOptions.production) {
-            await emailService.inviteEmployee(employee.email, employee.name, employee.name, token);
-          }
-
+        if (processResult.success) {
           result.successCount++;
-          await queueTask.updateOne({ $set: { progress: (result.successCount / employeeDatas.length) * 100 } });
-        } catch (error: any) {
+        } else {
           result.failureCount++;
           result.errors.push({
             employeeName: employeeData.name || 'Unknown',
             email: employeeData.email,
-            error: error.message,
+            error: processResult.error || 'Unknown error',
           });
-
-          await queueTask.updateOne({ $set: { progress: (result.successCount / employeeDatas.length) * 100, failureCount: result.failureCount } });
         }
-      });
 
-      await Promise.all(userPromises);
-    }
-  } catch (error) {
-    console.error('Error processing job:', error);
-    throw error;
+        // Update progress after each employee
+        const progress = ((i + index + 1) / totalEmployees) * 100;
+        await job.updateProgress(progress);
+        await queueTask.updateOne({
+          $set: {
+            progress,
+            failureCount: result.failureCount,
+          },
+        });
+      })
+    );
   }
+
   return result;
-};
+}
 
-export const bulkUploadWorker = new Worker(
-  bulk_upload_name,
-  async (job) => {
-    const result = await processJob(job);
-    job.updateProgress(result);
-    return result;
+// Rest of the code remains the same...
+const bulkUploadQueue = new Queue(QUEUE_NAME, {
+  connection: redis,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 1000,
+    },
+    removeOnComplete: true,
+    removeOnFail: false,
   },
-  {
-    connection: redisConfig,
-    concurrency: 20,
+});
+
+export const bulkUploadWorker = new Worker(QUEUE_NAME, processJob, {
+  connection: redis,
+  concurrency: 1,
+  limiter: {
+    max: 1000,
+    duration: 5000,
+  },
+});
+
+const queueEvents = new QueueEvents(QUEUE_NAME, { connection: redis });
+
+// Event handlers...
+queueEvents.on('waiting', async ({ jobId, data }: any) => {
+  console.log("Job waiting", jobId, data);
+});
+
+queueEvents.on('progress', async ({ jobId, data, progress }: any) => {
+  try {
+    await QueueTasks.findOneAndUpdate({ jobId, userId: data.userId }, { $set: { progress } });
+  } catch (error) {
+    console.error(`Error updating DB for job ${jobId}:`, error);
   }
-);
+});
 
-const queueEvents = new QueueEvents(bulk_upload_name, { connection: redisConfig });
+queueEvents.on('active', async ({ jobId }: any) => {
+  console.log("Job is active", jobId);
+  try {
+    await QueueTasks.findOneAndUpdate({ jobId }, { $set: { status: QueueJobsStatus.Active } });
+  } catch (error) {
+    console.error(`Error updating DB for active job ${jobId}:`, error);
+  }
+});
 
-queueEvents.on('completed', async ({ jobId, returnvalue }: { jobId: string; returnvalue: any }) => {
+queueEvents.on('completed', async ({ jobId, returnvalue }: any) => {
   try {
     await QueueTasks.findOneAndUpdate(
       { jobId, userId: returnvalue.userId },
@@ -189,13 +321,12 @@ queueEvents.on('completed', async ({ jobId, returnvalue }: { jobId: string; retu
         },
       }
     );
-    console.log(`Job ${jobId} has completed with result:`, JSON.stringify(returnvalue));
   } catch (error) {
     console.error(`Error updating DB for completed job ${jobId}:`, error);
   }
 });
 
-queueEvents.on('failed', async ({ jobId, failedReason }: { jobId: string; failedReason: string }) => {
+queueEvents.on('failed', async ({ jobId, failedReason }) => {
   try {
     await QueueTasks.findOneAndUpdate(
       { jobId },
@@ -206,42 +337,20 @@ queueEvents.on('failed', async ({ jobId, failedReason }: { jobId: string; failed
         },
       }
     );
-    console.error(`Job ${jobId} has failed:`, failedReason);
-  } catch (dbError) {
-    console.error(`Error updating DB for failed job ${jobId}:`, dbError);
-  }
-});
-
-queueEvents.on('progress', async ({ jobId, data }: { jobId: string; data: number | object }) => {
-  try {
-    // Ensure `data` is a number before updating progress
-    const progress = typeof data === 'number' ? data : 0; // Default to 0 if data is not a number
-
-    await QueueTasks.findOneAndUpdate(
-      { jobId },
-      {
-        $set: { progress },
-      }
-    );
-
-    console.log(`Job ${jobId} progress: ${progress}%`);
   } catch (error) {
-    console.error(`Error updating DB for progress event on job ${jobId}:`, error);
+    console.error(`Error updating DB for failed job ${jobId}:`, error);
   }
 });
 
-queueEvents.on('waiting', async (jobId: any) => {
-  console.log(`Job ${jobId} is waiting`);
-});
+async function shutdown() {
+  await bulkUploadQueue.close();
+  await bulkUploadWorker.close();
+  await redis.quit();
+}
 
-queueEvents.on('active', async (jobId: any) => {
-  console.log(`Job ${jobId} is active`);
-});
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
-queueEvents.on('stalled', async (jobId: any) => {
-  console.log(`Job ${jobId} has stalled`);
-});
-
-console.log('Bulk upload worker started');
+console.log('Bulk upload queue is running');
 
 export { bulkUploadQueue };
