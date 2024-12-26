@@ -156,16 +156,26 @@ export const getMessages = async (userId: mongoose.Types.ObjectId, page: number 
             if: { $eq: ['$type', 'group'] },
             then: '$groupName',
             else: {
-              $first: {
-                $filter: {
-                  input: '$participantDetails.name',
-                  as: 'p',
-                  cond: { $ne: ['$$p._id', userObjectId] },
+              $arrayElemAt: [
+                {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: '$participantDetails',
+                        as: 'p',
+                        cond: { $ne: ['$$p._id', userObjectId] },
+                      },
+                    },
+                    as: 'filteredParticipant',
+                    in: '$$filteredParticipant.name',
+                  },
                 },
-              },
+                0,
+              ],
             },
           },
         },
+        
         // groupName: {
         //   $cond: {
         //     if: { $eq: ['$type', 'group'] },
@@ -217,6 +227,9 @@ export const getMessages = async (userId: mongoose.Types.ObjectId, page: number 
           $ifNull: [{ $first: '$messageStats.unseenCount' }, 0],
         },
         updatedAt: 1,
+        lastMessageSentByYou: {
+          $eq: ['$lastMessage.sender', userObjectId],
+        },
         // participantsCount: { $size: '$participants' },
       },
     },
