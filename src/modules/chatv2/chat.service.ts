@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { PipelineStage } from 'mongoose';
 import { Chat, Message } from './chat.model';
 import { ChatType, IMessageDoc } from './chat.interfaces';
 import { ApiError } from '../errors';
@@ -46,10 +46,11 @@ export const createGroupChat = async (
   });
 };
 
-export const getMessages = async (userId: mongoose.Types.ObjectId) => {
+export const getMessages = async (userId: mongoose.Types.ObjectId, page: number = 1, limit: number = 10) => {
   const userObjectId = new mongoose.Types.ObjectId(userId);
+  const skip = (page - 1) * limit;
 
-  return await Chat.aggregate([
+  const pipeline: PipelineStage[] = [
     // Match chats where user is an active participant
     {
       $match: {
@@ -151,19 +152,19 @@ export const getMessages = async (userId: mongoose.Types.ObjectId) => {
         chatId: '$_id',
         chatType: '$type',
         chatName: {
-            $cond: {
-                if: { $eq: ['$type', 'group'] },
-                then: '$groupName',
-                else: {
-                $first: {
-                    $filter: {
-                    input: '$participantDetails.name',
-                    as: 'p',
-                    cond: { $ne: ['$$p._id', userObjectId] },
-                    },
+          $cond: {
+            if: { $eq: ['$type', 'group'] },
+            then: '$groupName',
+            else: {
+              $first: {
+                $filter: {
+                  input: '$participantDetails.name',
+                  as: 'p',
+                  cond: { $ne: ['$$p._id', userObjectId] },
                 },
-                },
+              },
             },
+          },
         },
         // groupName: {
         //   $cond: {
@@ -209,9 +210,9 @@ export const getMessages = async (userId: mongoose.Types.ObjectId) => {
             else: '$groupProfilePic',
           },
         },
-        lastMessage: "$lastMessage.content",
-        lastMessageAt: "$lastMessage.createdAt",
-        lastMessageType: "$lastMessage.messageType",
+        lastMessage: '$lastMessage.content',
+        lastMessageAt: '$lastMessage.createdAt',
+        lastMessageType: '$lastMessage.messageType',
         unseenCount: {
           $ifNull: [{ $first: '$messageStats.unseenCount' }, 0],
         },
@@ -219,13 +220,36 @@ export const getMessages = async (userId: mongoose.Types.ObjectId) => {
         // participantsCount: { $size: '$participants' },
       },
     },
-
     {
       $sort: {
         updatedAt: -1,
       },
     },
-  ]);
+    {
+      $facet: {
+        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
+        data: [{ $skip: skip }, { $limit: limit }],
+      },
+    },
+    {
+      $unwind: { path: '$metadata', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        results: '$data',
+        page: '$metadata.page',
+        limit: '$metadata.limit',
+        totalResults: { $ifNull: ['$metadata.totalCount', 0] },
+        totalPages: {
+          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
+        },
+      },
+    },
+  ];
+
+  const response = await Chat.aggregate(pipeline);
+
+  return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
 export const updateLastMessage = async (chatId: mongoose.Types.ObjectId, message: IMessageDoc) => {

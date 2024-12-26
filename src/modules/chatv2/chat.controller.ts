@@ -1,13 +1,13 @@
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync } from '../utils';
+import { catchAsync, pick } from '../utils';
 import { chatService } from '.';
 import mongoose from 'mongoose';
 
 export const sendMessage = catchAsync(async (req: Request, res: Response) => {
   try {
     const { id } = req.user;
-    const { receiverId, groupId, } = req.body;
+    const { receiverId, groupId } = req.body;
 
     let result;
     if (groupId) {
@@ -34,11 +34,13 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
 export const getMyMessage = catchAsync(async (req: Request, res: Response) => {
   try {
     const { id } = req.user;
+    const { limit, page } = pick(req.query, ['limit', 'page']);
 
-    console.log('id', id);
-    const messages = await chatService.getMessages(new mongoose.Types.ObjectId(id));
+    const pageToFn = Math.max(1, +page! || 1); // Default to page 1
+    const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
+    const messages = await chatService.getMessages(new mongoose.Types.ObjectId(id), pageToFn, limitToFn);
 
-    return res.status(200).json(messages);
+    return res.status(httpStatus.OK).json({ success: true, message: 'Success', data: messages });
   } catch (error: any) {
     console.log('Error: ', error);
     return res.status(httpStatus.SERVICE_UNAVAILABLE).json({ error: error.message });
