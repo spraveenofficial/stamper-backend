@@ -28,7 +28,6 @@ export const getQueueTasksByUserId = async (
   limit: number = 10
 ): Promise<any> => {
   const user = await new mongoose.Types.ObjectId(userId);
-  const skip = (page - 1) * limit;
 
   const pipeline: PipelineStage[] = [
     {
@@ -43,42 +42,44 @@ export const getQueueTasksByUserId = async (
       },
     },
     {
-      $skip: (page - 1) * limit,
-    },
-    {
-      $addFields: {
-        id: '$_id',
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        error: 0,
-        __v: 0,
-        userId: 0,
-        data: 0,
-      },
-    },
-    {
-      $limit: limit,
-    },
-    {
       $facet: {
-        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
-        data: [{ $skip: skip }, { $limit: limit }],
+        // Get total count before pagination
+        metadata: [{ $count: 'totalCount' }],
+        // Get paginated data
+        data: [
+          { $skip: (page - 1) * limit },
+          { $limit: limit },
+          {
+            $addFields: {
+              id: '$_id',
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              error: 0,
+              __v: 0,
+              userId: 0,
+              data: 0,
+            },
+          },
+        ],
       },
     },
     {
-      $unwind: '$metadata',
+      $unwind: {
+        path: '$metadata',
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $project: {
         results: '$data',
-        page: '$metadata.page',
-        limit: '$metadata.limit',
-        totalResults: '$metadata.totalCount',
+        page: { $literal: page },
+        limit: { $literal: limit },
+        totalResults: { $ifNull: ['$metadata.totalCount', 0] },
         totalPages: {
-          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
+          $ifNull: [{ $ceil: { $divide: ['$metadata.totalCount', limit] } }, 0],
         },
       },
     },
