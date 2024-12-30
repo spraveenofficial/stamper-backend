@@ -3,6 +3,7 @@ import { employeeAccountStatus, IEmployee, IEmployeeDoc, EmployeeStatus, employe
 import Employee from './employee.model';
 import { rolesEnum } from '../../config/roles';
 import { User } from '../user';
+import { IUserDoc } from '../user/user.interfaces';
 
 export const addEmployee = async (employeeBody: any): Promise<IEmployeeDoc> => {
   return Employee.create(employeeBody);
@@ -25,10 +26,11 @@ export const getEmployeesByOrgId = async (
   officeId?: string | null,
   accountStatus?: employeeAccountStatus | null,
   employeeStatus?: EmployeeStatus | null,
-  employeeName?: string | null
+  searchQuery?: string | null
 ): Promise<any> => {
   const skip = (page - 1) * limit;
 
+  // Initialize match criteria with mandatory fields
   const matchCriteria: any = {
     organizationId: new mongoose.Types.ObjectId(orgId),
   };
@@ -45,15 +47,29 @@ export const getEmployeesByOrgId = async (
     matchCriteria.employeeStatus = employeeStatus;
   }
 
-  // Pre-fetch userIds if name is provided
-  const userIds =
-    employeeName &&
-    (await User.find({ name: { $regex: employeeName, $options: 'i' } }).select('_id')).map((user) => user._id);
+  // Handle searching by name or email
+  if (searchQuery) {
+    const userIds = await User.find({
+      $or: [{ name: { $regex: searchQuery, $options: 'i' } }, { email: { $regex: searchQuery, $options: 'i' } }],
+    })
+      .select('_id -permissions')
+      .lean()
+      .exec();
 
-  if (userIds && userIds.length > 0) {
-    matchCriteria.userId = { $in: userIds };
+    if (!userIds.length) {
+      return {
+        results: [],
+        page,
+        limit,
+        totalResults: 0,
+        totalPages: 0,
+      };
+    }
+
+    matchCriteria.userId = { $in: userIds.map((user: IUserDoc) => new mongoose.Types.ObjectId(user._id)) };
   }
 
+  // Define the aggregation pipeline
   const pipeline: any[] = [
     { $match: matchCriteria },
     {
@@ -142,7 +158,7 @@ export const getEmployeesByOrgId = async (
 
   const employees = await Employee.aggregate(pipeline);
 
-  // Count total separately
+  // Count total documents separately for pagination
   const totalCount = await Employee.countDocuments(matchCriteria);
 
   return {
@@ -219,9 +235,7 @@ export const searchEmployeeByNameAndEmail = async (
     // Filter out users who aren't employees in the organization
     {
       $match: {
-        employeeDetails: { $ne: [
-          { userId: currentUserId },
-        ] },
+        employeeDetails: { $ne: [{ userId: currentUserId }] },
       },
     },
     // Unwind the employee details
@@ -240,7 +254,7 @@ export const searchEmployeeByNameAndEmail = async (
     {
       $project: {
         _id: 0,
-      }
+      },
     },
     // Pagination
     { $skip: skip },
