@@ -9,9 +9,6 @@ export const addEmployee = async (employeeBody: any): Promise<IEmployeeDoc> => {
   return Employee.create(employeeBody);
 };
 
-export const addEmployeesBulk = async (employees: any[]): Promise<any[]> => {
-  return Employee.insertMany(employees);
-};
 export const getEmployeeById = async (id: mongoose.Types.ObjectId): Promise<IEmployee | null> => Employee.findById(id);
 
 export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => {
@@ -23,7 +20,7 @@ export const getEmployeesByOrgId = async (
   orgId: mongoose.Types.ObjectId,
   page: number = 1,
   limit: number = 10,
-  officeId?: string | null,
+  officeId?: string | null, 
   accountStatus?: employeeAccountStatus | null,
   employeeStatus?: EmployeeStatus | null,
   searchQuery?: string | null

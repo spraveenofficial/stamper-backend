@@ -60,3 +60,24 @@ export const createGroupChat = catchAsync(async (req: Request, res: Response) =>
     return res.status(httpStatus.SERVICE_UNAVAILABLE).json({ error: error.message });
   }
 });
+
+export const getMessageByChatId = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { id } = req.user;
+    const { limit, page, chatId } = pick(req.query, ['limit', 'page', 'chatId']);
+
+    const pageToFn = Math.max(1, +page! || 1); // Default to page 1
+    const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
+    const messages = await chatService.getMessagesByChatId(
+      new mongoose.Types.ObjectId(id),
+      new mongoose.Types.ObjectId(chatId),
+      pageToFn,
+      limitToFn
+    );
+
+    return res.status(httpStatus.OK).json({ success: true, message: 'Success', data: messages });
+  } catch (error: any) {
+    console.log('Error: ', error);
+    return res.status(httpStatus.SERVICE_UNAVAILABLE).json({ error: error.message });
+  }
+});

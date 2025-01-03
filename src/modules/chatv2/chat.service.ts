@@ -175,7 +175,7 @@ export const getMessages = async (userId: mongoose.Types.ObjectId, page: number 
             },
           },
         },
-        
+
         // groupName: {
         //   $cond: {
         //     if: { $eq: ['$type', 'group'] },
@@ -366,4 +366,103 @@ export const sendMessage = async (senderId: mongoose.Types.ObjectId, receiverId:
     console.log('Error sending message: ', error);
     throw new ApiError(500, 'Error sending message');
   }
+};
+
+export const getMessagesByChatId = async (
+  userId: mongoose.Types.ObjectId,
+  chatId: mongoose.Types.ObjectId,
+  page: number = 1,
+  limit: number = 10
+) => {
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const skip = (page - 1) * limit;
+
+  const pipeline: PipelineStage[] = [
+    {
+      $match: {
+        _id: chatId,
+        participants: {
+          $elemMatch: {
+            user: userObjectId,
+            removedAt: { $exists: false },
+          },
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: 'chatmessages',
+        let: { chatId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$chatId', '$$chatId'] },
+            },
+          },
+          {
+            $sort: {
+              createdAt: -1,
+            },
+          },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+          {
+            $lookup: {
+              from: 'users',
+              let: { senderId: '$sender' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ['$_id', '$$senderId'] },
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                  },
+                },
+              ],
+              as: 'senderDetails',
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              messageId: '$_id',
+              content: 1,
+              sender: {
+                $arrayElemAt: ['$senderDetails', 0],
+              },
+              createdAt: 1,
+              messageType: 1,
+              seenBy: {
+                $filter: {
+                  input: '$seenBy',
+                  as: 'seen',
+                  cond: { $eq: ['$$seen.user', userObjectId] },
+                },
+              },
+            },
+          },
+        ],
+        as: 'messages',
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        chatId: '$_id',
+        messages: 1,
+      },
+    },
+  ];
+
+  const response = await Chat.aggregate(pipeline);
+
+  return response.length ? response[0] : { chatId, messages: [] };
 };
