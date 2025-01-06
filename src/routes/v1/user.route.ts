@@ -1,30 +1,31 @@
 import express, { Router } from 'express';
-import { validate } from '../../modules/validate';
 import { auth } from '../../modules/auth';
+import { organizationMiddleware } from '../../modules/organization';
 import { userController, userValidation } from '../../modules/user';
 import { upload } from '../../modules/utils/multer';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
-// router
-//   .route('/')
-//   .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
-//   .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
-
 router.route('/profile').get(auth('profile'), userController.getSelfUser);
+
 router.route('/edit-profile').patch(auth('profile'), userController.updateSelfUser);
-// router.route('/:userId').get(auth('getUsers'), validate(userValidation.getUser), userController.getUsers);
-// .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
-// .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+
 router
   .route('/profile-picture')
-  .patch(auth('profile'), upload.single('file'), validate(userValidation.updateProfilePicture), userController.updateProfilePicture);
+  .patch(
+    auth('profile'),
+    upload.single('file'),
+    validate(userValidation.updateProfilePicture),
+    userController.updateProfilePicture
+  );
 
+router
+  .route('/change-password')
+  .patch(auth('profile'), validate(userValidation.changePassword), userController.changePassword);
 
-router.route('/change-password').patch(auth('profile'), validate(userValidation.changePassword), userController.changePassword);
+router.route('/cap-check').get(auth(), organizationMiddleware.organizationMiddleware, userController.getUserCapLimits);
 
-router.route('/cap-check').get(auth(), userController.getUserCapLimits);
-  
 export default router;
 
 /**

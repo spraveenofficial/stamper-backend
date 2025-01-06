@@ -1,8 +1,7 @@
 import mongoose, { Document, Model } from 'mongoose';
 
 export interface ICapLimits {
-  userId: mongoose.Types.ObjectId;
-  parentLimitId: mongoose.Types.ObjectId | null,
+  organizationId: mongoose.Types.ObjectId;
   addOffice: number;
   addDepartment: number;
   addJobTitle: number;
@@ -13,10 +12,10 @@ export interface ICapLimits {
   canSubscribeToPlan: boolean;
 }
 
-export interface ICapLimitsDoc extends ICapLimits, Document {}
+export interface ICapLimitsDoc extends ICapLimits, Document { }
 
 export interface ICapLimitsModel extends Model<ICapLimitsDoc> {
   isCapLimitExist(userId: mongoose.Types.ObjectId): Promise<boolean>;
 }
 
-export type NewUserCap = Pick<ICapLimits, 'userId'>;
+export type NewUserCap = Partial<ICapLimits>;

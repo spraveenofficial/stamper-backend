@@ -1,8 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose, { CallbackError } from 'mongoose';
 import { industryType, IOrganizationDoc, IOrganizationModel } from './organization.interfaces';
 import { toJSON } from '../toJSON/index';
 import validator from 'validator';
 import { paginate } from '../paginate';
+import { rolesEnum } from '../../config/roles';
+import { plansInterfaces } from '../common/plans';
+import { userCapService } from '../common/userCap';
 
 export const organizationSchema = new mongoose.Schema<IOrganizationDoc, IOrganizationModel>(
   {
@@ -74,6 +77,18 @@ organizationSchema.static(
 
 // Indexes
 organizationSchema.index({ userId: 1 });
+
+organizationSchema.post('save', async function (doc: IOrganizationDoc, next) {
+  try {
+    const role = rolesEnum.organization;
+    const plan = plansInterfaces.SubscriptionPlanEnum.FREE;
+    await userCapService.addUserCapBasedOnRoleAndPlan(doc._id, role, plan);
+  } catch (error) {
+    next(error as CallbackError);
+    return;
+  }
+  next();
+});
 
 const Organization = mongoose.model<IOrganizationDoc, IOrganizationModel>('Organization', organizationSchema);
 

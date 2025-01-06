@@ -43,7 +43,7 @@ const MAX_CAP_LIMITS: Record<plansInterfaces.SubscriptionPlanEnum, ICapLimitsTyp
   },
 };
 
-const ROLE_LIMITS : Record<rolesEnum, (keyof ICapLimitsType)[]> = {
+const ROLE_LIMITS: Record<rolesEnum, (keyof ICapLimitsType)[]> = {
   organization: [
     'ADD_OFFICE',
     'ADD_DEPARTMENT',
@@ -69,4 +69,5 @@ const CAP_LIMITS_MAPPING: Record<keyof ICapLimitsType, keyof userCapInterfaces.I
   ADD_DOCUMENT: 'addDocument',
 };
 
-export { MAX_CAP_LIMITS, ROLE_LIMITS, CAP_LIMITS_MAPPING };
+export { CAP_LIMITS_MAPPING, MAX_CAP_LIMITS, ROLE_LIMITS };
+

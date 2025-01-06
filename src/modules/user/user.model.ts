@@ -1,9 +1,7 @@
 import bcrypt from 'bcryptjs';
-import mongoose, { CallbackError } from 'mongoose';
+import mongoose from 'mongoose';
 import validator from 'validator';
 import { rolesEnum } from '../../config/roles';
-import { plansInterfaces } from '../common/plans';
-import { userCapService } from '../common/userCap';
 import paginate from '../paginate/paginate';
 import { defaultPermissions } from '../rbac/constants';
 import { Permission } from '../rbac/rbac.model';
@@ -112,24 +110,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-/**
- * Post-save hook to create user cap limits based on role and plan
- */
-userSchema.post('save', async function (user, next) {
-  try {
-    // Assign the role and default plan (e.g., FREE plan)
-    const role = user.role;
-    const plan = plansInterfaces.SubscriptionPlanEnum.FREE; // You can set the default plan
-
-    // Call the function to add cap limits for the user
-    await userCapService.addUserCapBasedOnRoleAndPlan(user._id as mongoose.Types.ObjectId, role as rolesEnum, plan);
-  } catch (error) {
-    next(error as CallbackError); // Cast error to CallbackError to ensure correct type
-    return; // Ensure the middleware does not continue if an error occurred
-  }
-  next();
-});
-
 // Pre-save hook to assign default permissions
 userSchema.pre('save', async function (next) {
   if (this.isNew) {
@@ -156,7 +136,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// 
 userSchema.pre(['find', 'findOne'], function (next) {
   this.populate('permissions')
   next();

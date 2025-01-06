@@ -19,7 +19,7 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
   const { id, role } = req.user;
 
-  console.log("Current user id: ", id);
+  console.log('Current user id: ', id);
   const user = await userService.getUserById(id);
 
   if (role === rolesEnum.organization) {
@@ -82,8 +82,16 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
 });
 
 export const getUserCapLimits = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-  const capLimits = await userCapService.getCapLimitsByUserId(id);
+  const { role } = req.user;
+
+  let capLimits;
+  if (role === rolesEnum.organization) {
+    capLimits = await userCapService.getCapLimitsByOrgId(req.organization.id);
+  } else {
+    if ('officeId' in req.organization) {
+      capLimits = await userCapService.getCapLimitsByOrgId(req.organization.organizationId);
+    }
+  }
 
   const response = {
     limit: capLimits,
