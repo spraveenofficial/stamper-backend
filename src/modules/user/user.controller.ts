@@ -1,15 +1,15 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import catchAsync from '../utils/catchAsync';
-import pick from '../utils/pick';
-import { IOptions } from '../paginate/paginate';
-import * as userService from './user.service';
-import { employeeService } from '../employee';
-import { organizationService } from '../organization';
-import { s3Services } from '../s3';
-import { ApiError } from '../errors';
+import httpStatus from 'http-status';
 import { rolesEnum } from '../../config/roles';
 import { userCapService } from '../common/userCap';
+import { employeeService } from '../employee';
+import { ApiError } from '../errors';
+import { organizationService } from '../organization';
+import { IOptions } from '../paginate/paginate';
+import { s3Services } from '../s3';
+import catchAsync from '../utils/catchAsync';
+import pick from '../utils/pick';
+import * as userService from './user.service';
 
 export const createUser = catchAsync(async (req: Request, res: Response) => {
   const user = await userService.createUserAsOrganization(req.body, req.t);
@@ -19,6 +19,7 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
   const { id, role } = req.user;
 
+  console.log("Current user id: ", id);
   const user = await userService.getUserById(id);
 
   if (role === rolesEnum.organization) {

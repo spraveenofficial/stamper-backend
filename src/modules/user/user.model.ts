@@ -1,14 +1,14 @@
+import bcrypt from 'bcryptjs';
 import mongoose, { CallbackError } from 'mongoose';
 import validator from 'validator';
-import bcrypt from 'bcryptjs';
-import toJSON from '../toJSON/toJSON';
-import paginate from '../paginate/paginate';
 import { rolesEnum } from '../../config/roles';
-import { IUserDoc, IUserModel } from './user.interfaces';
 import { plansInterfaces } from '../common/plans';
 import { userCapService } from '../common/userCap';
+import paginate from '../paginate/paginate';
 import { defaultPermissions } from '../rbac/constants';
 import { Permission } from '../rbac/rbac.model';
+import toJSON from '../toJSON/toJSON';
+import { IUserDoc, IUserModel } from './user.interfaces';
 
 const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
   {
