@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import { auth } from '../../modules/auth';
 // import { validate } from '../../modules/validate';
-import { chatController } from '../../modules/chatv2';
+import { chatController } from '../../modules/chats';
 
 const router: Router = express.Router();
 

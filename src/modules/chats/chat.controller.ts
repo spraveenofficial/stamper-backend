@@ -1,24 +1,83 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync } from '../utils';
-import { chatServices } from '.';
-// import { ApiError } from '../errors';
+import httpStatus from 'http-status';
+import mongoose from 'mongoose';
+import { chatService } from '.';
+import { catchAsync, pick } from '../utils';
 
-export const createUserMessage = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+export const sendMessage = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { id } = req.user;
+    const { receiverId, groupId } = req.body;
 
-  const { body } = req;
-  // if (id === body.to) {
-  //   throw new ApiError(httpStatus.BAD_REQUEST, 'You cannot send message to yourself');
-  // }
-  const message = await chatServices.createMessage(body, id, body.to);
+    let result;
+    if (groupId) {
+      // Group message
+      result = await chatService.sendGroupMessage(
+        new mongoose.Types.ObjectId(groupId),
+        new mongoose.Types.ObjectId(id),
+        req.body
+      );
+    } else if (receiverId) {
+      // Private message
+      result = await chatService.sendMessage(id, receiverId, req.body);
+    } else {
+      throw new Error('Either receiverId or groupId is required');
+    }
 
-  res.status(httpStatus.CREATED).json({ success: true, message: 'Success', data: message });
+    return res.status(201).json(result);
+  } catch (error: any) {
+    console.log('Error: ', error);
+    return res.status(httpStatus.SERVICE_UNAVAILABLE).json({ error: error.message });
+  }
 });
 
 export const getMyMessage = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-  const messages = await chatServices.getRecentChats(id);
+  try {
+    const { id } = req.user;
+    const { limit, page } = pick(req.query, ['limit', 'page']);
 
-  res.status(httpStatus.OK).json({ success: true, message: 'Success', data: messages });
+    const pageToFn = Math.max(1, +page! || 1); // Default to page 1
+    const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
+    const messages = await chatService.getMessages(new mongoose.Types.ObjectId(id), pageToFn, limitToFn);
+
+    return res.status(httpStatus.OK).json({ success: true, message: 'Success', data: messages });
+  } catch (error: any) {
+    console.log('Error: ', error);
+    return res.status(httpStatus.SERVICE_UNAVAILABLE).json({ error: error.message });
+  }
+});
+
+export const createGroupChat = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { id } = req.user;
+    const { groupName, participants } = req.body;
+
+    const chat = await chatService.createGroupChat(groupName, new mongoose.Types.ObjectId(id), participants);
+
+    return res.status(201).json(chat);
+  } catch (error: any) {
+    console.log('Error: ', error);
+    return res.status(httpStatus.SERVICE_UNAVAILABLE).json({ error: error.message });
+  }
+});
+
+export const getMessageByChatId = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const { id } = req.user;
+    const { limit, page, chatId } = pick(req.query, ['limit', 'page', 'chatId']);
+
+    const pageToFn = Math.max(1, +page! || 1); // Default to page 1
+    const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
+    const messages = await chatService.getMessagesByChatId(
+      new mongoose.Types.ObjectId(id),
+      new mongoose.Types.ObjectId(chatId),
+      pageToFn,
+      limitToFn
+    );
+
+    return res.status(httpStatus.OK).json({ success: true, message: 'Success', data: messages });
+  } catch (error: any) {
+    console.log('Error: ', error);
+    return res.status(httpStatus.SERVICE_UNAVAILABLE).json({ error: error.message });
+  }
 });

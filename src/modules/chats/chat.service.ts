@@ -1,233 +1,468 @@
-import mongoose from 'mongoose';
-import { IMessage } from './chat.interfaces';
-import Message from './chat.model';
+import httpStatus from 'http-status';
+import mongoose, { PipelineStage } from 'mongoose';
 import { ApiError } from '../errors';
+import { ChatType, IMessageDoc } from './chat.interfaces';
+import { Chat, Message } from './chat.model';
 
-// Send a message
-export const createMessage = async (
-  messageBody: Omit<IMessage, 'from' | 'to' | 'createdAt' | 'updatedAt'>, // Ensures the body doesn't have these fields
-  from: mongoose.Types.ObjectId,
-  to: mongoose.Types.ObjectId | null
-): Promise<IMessage> => {
-  try {
-    const newMessage = new Message({
-      ...messageBody,
-      from,
-      to,
-      seen: false,
-      seenAt: null,
-      reaction: null,
-      deletedAt: null,
-    });
+export const createPrivateChat = async (user1: mongoose.Types.ObjectId, user2: mongoose.Types.ObjectId) => {
+  const user1Id = new mongoose.Types.ObjectId(user1);
+  const user2Id = new mongoose.Types.ObjectId(user2);
+  const existingChat = await Chat.findOne({
+    type: 'private',
+    'participants.user': { $all: [user1Id, user2Id] },
+  });
 
-    await newMessage.save();
-    return newMessage;
-  } catch (error) {
-    console.error(error);
-    throw new ApiError(500, 'Internal Server Error'); // Custom error for better handling
+  if (existingChat) {
+    return existingChat;
   }
+
+  return await Chat.create({
+    type: 'private',
+    participants: [
+      { user: user1Id, role: 'member', joinedAt: new Date() },
+      { user: user2Id, role: 'member', joinedAt: new Date() },
+    ],
+  });
 };
 
-// Fetch all messages for a user (both individual and group chats)
-export const getAllMessagesByUserId = async (
-  userId: mongoose.Types.ObjectId,
-  page: number = 1,
-  limit: number = 20
-): Promise<IMessage[]> => {
-  try {
-    const skip = (page - 1) * limit;
+export const createGroupChat = async (
+  groupName: string,
+  creatorId: mongoose.Types.ObjectId,
+  members: mongoose.Types.ObjectId[]
+) => {
+  const participants = [
+    { user: new mongoose.Types.ObjectId(creatorId), role: 'admin', joinedAt: new Date() },
+    ...members.map((id) => ({
+      user: new mongoose.Types.ObjectId(id),
+      role: 'member',
+      joinedAt: new Date(),
+    })),
+  ];
 
-    // Find all messages where the user is the receiver (either individual or group chat)
-    const messages = await Message.find({
-      $or: [
-        { to: userId }, // Individual message
-        { groupId: { $ne: null }, 'participants.user': userId }, // Group chat
-      ],
-    })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .exec();
-
-    return messages;
-  } catch (error) {
-    console.error(error);
-    throw new ApiError(500, 'Internal Server Error'); // Custom error for better handling
-  }
+  return await Chat.create({
+    type: ChatType.Group,
+    groupName: groupName,
+    participants,
+  });
 };
 
-// Fetch messages for a specific chat (individual or group)
-export const getMessagesByChatId = async (
-  chatId: mongoose.Types.ObjectId,
-  page: number = 1,
-  limit: number = 20
-): Promise<IMessage[]> => {
-  try {
-    const skip = (page - 1) * limit;
+export const getMessages = async (userId: mongoose.Types.ObjectId, page: number = 1, limit: number = 10) => {
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const skip = (page - 1) * limit;
 
-    const messages = await Message.find({
-      $or: [{ groupId: chatId }, { to: chatId }],
-    })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .exec();
-
-    return messages;
-  } catch (error) {
-    console.error(error);
-    throw new ApiError(500, 'Internal Server Error'); // Custom error for better handling
-  }
-};
-
-// Mark message as seen
-export const markMessageAsSeen = async (messageId: mongoose.Types.ObjectId): Promise<void> => {
-  try {
-    await Message.findByIdAndUpdate(messageId, {
-      seen: true,
-      seenAt: new Date(),
-    }).exec();
-  } catch (error) {
-    console.error(error);
-    throw new ApiError(500, 'Internal Server Error'); // Custom error for better handling
-  }
-};
-
-export const getRecentChats = async (user: mongoose.Types.ObjectId) => {
-  const userId = new mongoose.Types.ObjectId(user);
-
-  const pipeline: any = [
+  const pipeline: PipelineStage[] = [
+    // Match chats where user is an active participant
     {
       $match: {
-        $or: [
-          { from: userId },
-          { to: userId },
-          { chatId: { $exists: true }, 'participants.user': userId },
-        ],
-      },
-    },
-    {
-      $addFields: {
-        isGroup: { $ifNull: ['$chatId', false] },
-        chatPartner: {
-          $cond: {
-            if: { $eq: ['$from', userId] },
-            then: '$to',
-            else: '$from',
+        participants: {
+          $elemMatch: {
+            user: userObjectId,
+            removedAt: { $exists: false },
           },
         },
       },
     },
+
+    // Modified lookup for messages to correctly count unseen messages
+    {
+      $lookup: {
+        from: 'chatmessages',
+        let: { chatId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$chatId', '$$chatId'] },
+              sender: { $ne: userObjectId }, // Don't count user's own messages
+              seenBy: {
+                $not: {
+                  $elemMatch: {
+                    user: userObjectId,
+                  },
+                },
+              },
+            },
+          },
+          {
+            $count: 'unseenCount',
+          },
+        ],
+        as: 'messageStats',
+      },
+    },
+
+    // Rest of your pipeline remains the same...
     {
       $lookup: {
         from: 'users',
-        localField: 'chatPartner',
-        foreignField: '_id',
-        as: 'userDetails',
+        let: { participants: '$participants' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: [
+                  '$_id',
+                  {
+                    $map: {
+                      input: '$$participants',
+                      as: 'participant',
+                      in: '$$participant.user',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              profilePic: 1,
+            },
+          },
+        ],
+        as: 'participantDetails',
+      },
+    },
+
+    {
+      $lookup: {
+        from: 'users',
+        let: { senderId: '$lastMessage.sender' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$_id', '$$senderId'] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+            },
+          },
+        ],
+        as: 'senderDetails',
+      },
+    },
+
+    {
+      $project: {
+        _id: 0,
+        chatId: '$_id',
+        chatType: '$type',
+        chatName: {
+          $cond: {
+            if: { $eq: ['$type', 'group'] },
+            then: '$groupName',
+            else: {
+              $arrayElemAt: [
+                {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: '$participantDetails',
+                        as: 'p',
+                        cond: { $ne: ['$$p._id', userObjectId] },
+                      },
+                    },
+                    as: 'filteredParticipant',
+                    in: '$$filteredParticipant.name',
+                  },
+                },
+                0,
+              ],
+            },
+          },
+        },
+
+        // groupName: {
+        //   $cond: {
+        //     if: { $eq: ['$type', 'group'] },
+        //     then: '$groupName',
+        //     else: '$$REMOVE',
+        //   },
+        // },
+        // otherParticipant: {
+        //   $cond: {
+        //     if: { $eq: ['$type', 'private'] },
+        //     then: {
+        //       $first: {
+        //         $filter: {
+        //           input: '$participantDetails',
+        //           as: 'p',
+        //           cond: { $ne: ['$$p._id', userObjectId] },
+        //         },
+        //       },
+        //     },
+        //     else: '$$REMOVE',
+        //   },
+        // },
+        profilePic: {
+          $cond: {
+            if: { $eq: ['$type', 'private'] },
+            then: {
+              $let: {
+                vars: {
+                  otherUser: {
+                    $first: {
+                      $filter: {
+                        input: '$participantDetails',
+                        as: 'p',
+                        cond: { $ne: ['$$p._id', userObjectId] },
+                      },
+                    },
+                  },
+                },
+                in: '$$otherUser.profilePic',
+              },
+            },
+            else: '$groupProfilePic',
+          },
+        },
+        lastMessage: '$lastMessage.content',
+        lastMessageAt: '$lastMessage.createdAt',
+        lastMessageType: '$lastMessage.messageType',
+        unseenCount: {
+          $ifNull: [{ $first: '$messageStats.unseenCount' }, 0],
+        },
+        updatedAt: 1,
+        lastMessageSentByYou: {
+          $eq: ['$lastMessage.sender', userObjectId],
+        },
+        // participantsCount: { $size: '$participants' },
+      },
+    },
+    {
+      $sort: {
+        updatedAt: -1,
+      },
+    },
+    {
+      $facet: {
+        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
+        data: [{ $skip: skip }, { $limit: limit }],
+      },
+    },
+    {
+      $unwind: { path: '$metadata', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $project: {
+        results: '$data',
+        page: '$metadata.page',
+        limit: '$metadata.limit',
+        totalResults: { $ifNull: ['$metadata.totalCount', 0] },
+        totalPages: {
+          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
+        },
+      },
+    },
+  ];
+
+  const response = await Chat.aggregate(pipeline);
+
+  return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+};
+
+export const updateLastMessage = async (chatId: mongoose.Types.ObjectId, message: IMessageDoc) => {
+  await Chat.findByIdAndUpdate(chatId, {
+    lastMessage: {
+      content: message.content,
+      sender: message.sender,
+      createdAt: message.createdAt,
+      messageType: message.messageType,
+    },
+  });
+};
+
+export const validateGroupParticipant = async (chatId: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId) => {
+  return await Chat.findOne({
+    _id: chatId,
+    type: 'group',
+    participants: {
+      $elemMatch: {
+        user: userId,
+        removedAt: { $exists: false },
+      },
+    },
+  });
+};
+
+export const createMessage = async (chatId: mongoose.Types.ObjectId, senderId: mongoose.Types.ObjectId, payload: any) => {
+  return await Message.create({
+    chatId,
+    sender: senderId,
+    ...payload,
+    seenBy: [{ user: senderId, seenAt: new Date() }],
+  });
+};
+
+export const createPrivateChatHelper = async (user1Id: mongoose.Types.ObjectId, user2Id: mongoose.Types.ObjectId) => {
+  return await Chat.create({
+    type: ChatType.Private,
+    participants: [
+      { user: user1Id, role: 'member', joinedAt: new Date() },
+      { user: user2Id, role: 'member', joinedAt: new Date() },
+    ],
+  });
+};
+
+export const findPrivateChat = async (user1Id: mongoose.Types.ObjectId, user2Id: mongoose.Types.ObjectId) => {
+  return await Chat.findOne({
+    type: 'private',
+    participants: {
+      $all: [
+        { $elemMatch: { user: user1Id, removedAt: { $exists: false } } },
+        { $elemMatch: { user: user2Id, removedAt: { $exists: false } } },
+      ],
+    },
+  });
+};
+
+export const sendGroupMessage = async (
+  chatId: mongoose.Types.ObjectId,
+  senderId: mongoose.Types.ObjectId,
+  payload: string
+) => {
+  try {
+    // Verify chat exists and sender is an active participant
+    const chat = await validateGroupParticipant(chatId, senderId);
+    if (!chat) {
+      throw new ApiError(httpStatus.FORBIDDEN, 'Not authorized to send messages in this group');
+    }
+
+    const message = await createMessage(chatId, senderId, payload);
+    await updateLastMessage(chatId, message);
+
+    return message;
+  } catch (error) {
+    console.log('Error sending group message: ', error);
+    throw new ApiError(500, 'Error sending group message');
+  }
+};
+
+export const sendMessage = async (senderId: mongoose.Types.ObjectId, receiverId: mongoose.Types.ObjectId, payload: any) => {
+  try {
+    // First try to find an existing private chat between users
+    let chat = await findPrivateChat(senderId, receiverId);
+
+    // If no chat exists, create a new one
+    if (!chat) {
+      chat = await createPrivateChat(senderId, receiverId);
+    }
+
+    // Create and save the message
+    const message = await createMessage(chat._id, senderId, payload);
+
+    // Update the chat's last message
+    await updateLastMessage(chat._id, message);
+
+    return {
+      chatId: chat._id,
+      message,
+    };
+  } catch (error) {
+    console.log('Error sending message: ', error);
+    throw new ApiError(500, 'Error sending message');
+  }
+};
+
+export const getMessagesByChatId = async (
+  userId: mongoose.Types.ObjectId,
+  chatId: mongoose.Types.ObjectId,
+  page: number = 1,
+  limit: number = 10
+) => {
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const skip = (page - 1) * limit;
+
+  const pipeline: PipelineStage[] = [
+    {
+      $match: {
+        _id: chatId,
+        participants: {
+          $elemMatch: {
+            user: userObjectId,
+            removedAt: { $exists: false },
+          },
+        },
       },
     },
     {
       $lookup: {
-        from: 'groups',
-        localField: 'chatId',
-        foreignField: '_id',
-        as: 'groupDetails',
-      },
-    },
-    {
-      $unwind: {
-        path: '$groupDetails',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $unwind: {
-        path: '$userDetails',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $sort: { createdAt: -1 }, // Ensure messages are sorted by createdAt, with the latest first
-    },
-    {
-      $group: {
-        _id: {
-          $cond: {
-            if: { $eq: ['$isGroup', true] },
-            then: '$chatId', // Use chatId for group chats
-            else: '$chatPartner', // Use userId for individual chats
-          },
-        },
-        lastMessage: { $first: '$content' },
-        lastMessageAt: { $first: '$createdAt' },
-        userName: {
-          $first: { $ifNull: ['$userDetails.name', '$groupDetails.name'] },
-        },
-        profilePic: {
-          $first: { $ifNull: ['$userDetails.avatar', '$groupDetails.groupProfilePic'] },
-        },
-        isGroup: { $first: '$isGroup' },
-        chatType: {
-          $first: {
-            $cond: {
-              if: { $eq: ['$isGroup', true] },
-              then: 'group',
-              else: 'individual',
+        from: 'chatmessages',
+        let: { chatId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$chatId', '$$chatId'] },
             },
           },
-        },
-        groupId: { $first: '$chatId' },
-        unseenCount: {
-          $sum: {
-            $cond: [
-              {
-                $and: [
-                  { $eq: ['$seen', false] }, // Seen should be false
-                  { $ne: ['$from', userId] }, // Message should not be from the current user
-                  {
-                    $or: [
-                      { $eq: ['$to', userId] }, // Message directed to the current user
-                      {
-                        $and: [
-                          { $eq: ['$isGroup', true] }, // If it's a group message
-                          { $ne: ['$from', userId] }, // Ensure the message is not from the current user
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-              1,
-              0,
-            ],
+          {
+            $sort: {
+              createdAt: -1,
+            },
           },
-        },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+          {
+            $lookup: {
+              from: 'users',
+              let: { senderId: '$sender' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ['$_id', '$$senderId'] },
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                  },
+                },
+              ],
+              as: 'senderDetails',
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              messageId: '$_id',
+              content: 1,
+              sender: {
+                $arrayElemAt: ['$senderDetails', 0],
+              },
+              createdAt: 1,
+              messageType: 1,
+              seenBy: {
+                $filter: {
+                  input: '$seenBy',
+                  as: 'seen',
+                  cond: { $eq: ['$$seen.user', userObjectId] },
+                },
+              },
+            },
+          },
+        ],
+        as: 'messages',
       },
     },
     {
       $project: {
         _id: 0,
-        chatId: {
-          $cond: {
-            if: { $eq: ['$chatType', 'group'] },
-            then: '$groupId',
-            else: '$_id',
-          },
-        },
-        lastMessage: 1,
-        userName: 1,
-        profilePic: 1,
-        lastMessageAt: 1,
-        isGroup: 1,
-        chatType: 1,
-        unseenCount: 1,
+        chatId: '$_id',
+        messages: 1,
       },
-    },
-    {
-      $sort: { lastMessageAt: -1 }, // Sort the final result based on the last message time
     },
   ];
 
-  const chats = await Message.aggregate(pipeline);
-  return chats;
+  const response = await Chat.aggregate(pipeline);
+
+  return response.length ? response[0] : { chatId, messages: [] };
 };

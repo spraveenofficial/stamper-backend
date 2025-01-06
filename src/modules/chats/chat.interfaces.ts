@@ -1,41 +1,66 @@
-import mongoose, { Document } from 'mongoose';
-import { Model } from 'mongoose';
-import { QueryResult } from '../paginate/paginate';
+import mongoose, { Document, Model } from 'mongoose';
 
 export enum MessageType {
-  TEXT = "TEXT",
-  IMAGE = "IMAGE",
-  AUDIO = "AUDIO",
-  VIDEO = "VIDEO",
-  FILE = "FILE",
+  Text = 'TEXT',
+  Image = 'IMAGE',
+  Video = 'VIDEO',
+  Audio = 'AUDIO',
+  File = 'FILE',
+  Log = 'LOG',
 }
 
-export enum ReactionType {
-  LIKE = 'LIKE',
-  LOVE = 'LOVE',
-  LAUGH = 'LAUGH',
-  SAD = 'SAD',
-  ANGRY = 'ANGRY',
+export enum GroupParticipantRole {
+  Admin = 'admin',
+  Member = 'member',
 }
 
-export interface IMessage {
-  chatId: mongoose.Types.ObjectId | null; // Chat or Group reference (use null for invalid reference)
-  from: mongoose.Types.ObjectId; // Sender ID
-  to: mongoose.Types.ObjectId | null; // Receiver ID (null if group chat)
-  type: MessageType; // Message type
-  content: string; // Message text or media URL
-  seen: boolean; // Indicates if the message has been seen
-  seenAt: Date | null; // Timestamp of when the message was seen
-  reaction: Array<{ user: mongoose.Types.ObjectId, type: ReactionType }>;
-  deletedAt: Date | null; // Timestamp of deletion (null if not deleted)
-  createdAt: Date; // Timestamp of message creation
-  updatedAt: Date; // Timestamp of last update
+export enum ChatType {
+  Private = 'private',
+  Group = 'group',
 }
 
-export interface IMessageDoc extends IMessage, Document {}
-
-export interface IMessageModel extends Model<IMessageDoc> {
-  paginate(filter: Record<string, any>, options: Record<string, any>): Promise<QueryResult>;
+interface IMessage extends Document {
+  chatId: mongoose.Types.ObjectId;
+  sender: mongoose.Types.ObjectId;
+  content: string;
+  messageType: MessageType;
+  seenBy: Array<{
+    user: mongoose.Types.ObjectId;
+    seenAt: Date;
+  }>;
+  reactions: Array<{
+    user: mongoose.Types.ObjectId;
+    reaction: string;
+  }>;
 }
 
-export type NewMessageType = Omit<IMessage, 'from' | 'seen' | 'seenAt' | 'reaction' | 'deletedAt'>;
+interface IParticipant {
+  user: mongoose.Types.ObjectId;
+  role: GroupParticipantRole;
+  joinedAt: Date;
+  removedAt?: Date;
+}
+
+export interface IChat extends Document {
+  type: ChatType;
+  participants: IParticipant[];
+  groupName?: string;
+  groupProfilePic?: string;
+  groupDescription?: string;
+  lastMessage?: {
+    content: string;
+    sender: mongoose.Types.ObjectId;
+    createdAt: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IChatDoc extends IChat, Document { }
+export interface IChatModel extends Model<IChatDoc> { }
+
+
+export interface IMessageDoc extends IMessage, Document {
+  createdAt: Date;
+}
+export interface IMessageModel extends Model<IMessageDoc> { }
