@@ -1,9 +1,9 @@
 import express, { Router } from 'express';
-import { validate } from '../../modules/validate';
 import { auth } from '../../modules/auth';
 import { officeControllers, officeValidations } from '../../modules/office';
 import { organizationMiddleware } from '../../modules/organization';
 import { rbacMiddleware } from '../../modules/rbac';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
@@ -12,7 +12,7 @@ router
   .post(
     auth(),
     validate(officeValidations.creatOfficeRequest),
-    rbacMiddleware.checkPermission('office.add'),
+    rbacMiddleware.checkPermission('office.create'),
     officeControllers.addOffice
   );
 
@@ -36,4 +36,6 @@ router
   );
 
 router.route('/assign-manager').put(auth('editOfficeManager'), officeControllers.assignManagerToOffice);
+
+
 export default router;

@@ -39,7 +39,7 @@ export const addUserCapBasedOnRoleAndPlan = async (
     addManager: 0,
     addFolder: 0,
     addDocument: 0,
-    canSubscribeToPlan: false,
+    canSubscribeToPlan: true,
   };
 
   const capLimit: Partial<ICapLimitsDoc> = { ...defaultCapLimit };
@@ -89,15 +89,60 @@ export const getCapLimitsByOrgId = async (orgId: mongoose.Types.ObjectId): Promi
   } as ICapLimitsDoc; // Explicitly cast this object to match the expected type
 };
 
-export const updateCapLimitsByUserIdAndKey = async (
-  userId: mongoose.Types.ObjectId,
-  key: string,
-  value: number
-): Promise<ICapLimitsDoc | null> => {
-  const response = await UserCap.findOneAndUpdate({ userId }, { [key]: value }, { new: true })
-    .select('-_id -__v')
+/**
+ * Updates the cap limit for a specific organization and key by decrementing it by 1.
+ *
+ * @param orgId - The organization ID
+ * @param key - The cap limit field to update
+ * @param decrementBy - The value to decrement (default is 1)
+ */
+export const updateCapLimitsByOrgIdAndKey = async (
+  orgId: mongoose.Types.ObjectId,
+  key: keyof ICapLimitsDoc,
+  decrementBy: number = 1
+): Promise<void> => {
+  const allowedKeys: (keyof ICapLimitsDoc)[] = [
+    'addOffice',
+    'addDepartment',
+    'addJobTitle',
+    'addEmployee',
+    'addManager',
+    'addFolder',
+    'addDocument',
+  ];
+
+  if (!allowedKeys.includes(key)) {
+    throw new Error(`Invalid key: ${key}. Allowed keys are: ${allowedKeys.join(', ')}`);
+  }
+
+  // Decrement the cap limit by the specified amount
+  const result = await UserCap.updateOne(
+    { organizationId: orgId, [key]: { $gt: 0 } }, // Ensure the value is greater than 0
+    { $inc: { [key]: -decrementBy } }
+  ).exec();
+
+  if (result.modifiedCount === 0) {
+    throw new Error(`Failed to decrement the cap limit for key: ${key}. It may already be 0.`);
+  }
+};
+
+/**
+ * Checks if a specific cap limit has been reached for an organization.
+ *
+ * @param orgId - The organization ID
+ * @param key - The key representing the cap field to check
+ * @returns A promise that resolves to `true` if the cap limit has been reached, otherwise `false`
+ */
+export const isCapLimitReached = async <T extends keyof ICapLimitsDoc>(
+  orgId: mongoose.Types.ObjectId,
+  key: T
+): Promise<boolean> => {
+  // Fetch the specific cap value for the given key
+  const userCap = await UserCap.findOne({ organizationId: orgId })
+    .select({ [key]: 1 }) // Dynamically select the field
     .lean()
     .exec();
 
-  return response;
+  // Return true if the cap limit is reached (0 or false), false otherwise
+  return userCap ? userCap[key] === 0 || userCap[key] === false : false;
 };

@@ -1,7 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
-import { IOfficeDoc, IOfficeModel } from './office.interfaces';
-import { toJSON } from '../toJSON';
+// import { userCapService } from '../common/userCap';
+// CallbackError,
 import { paginate } from '../paginate';
+import { toJSON } from '../toJSON';
+import { IOfficeDoc, IOfficeModel } from './office.interfaces';
 
 const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
   {
@@ -84,5 +86,28 @@ officeSchema.plugin(paginate);
 
 officeSchema.index({ organizationId: 1, name: 1 }, { unique: true });
 officeSchema.index({ managerId: 1 });
+
+// officeSchema.pre('save', async function (next) {
+//   const office = this;
+//   // check if the cap limit is reached
+//   const isCapLimitReached = await userCapService.isCapLimitReached(office.organizationId, 'addOffice');
+//   if (isCapLimitReached) {
+//     next(new Error('Cap limit reached for adding office'));
+//     return;
+//   }
+//   next();
+// });
+
+// Post hook function to update the caplimit of the organization
+// officeSchema.post('save', async function (doc: IOfficeDoc, next) {
+//   try {
+//     await userCapService.updateCapLimitsByOrgIdAndKey(doc.organizationId, 'addOffice', 1);
+//   } catch (error) {
+//     next(error as CallbackError);
+//     return;
+//   }
+//   next();
+// });
+
 
 export default mongoose.model<IOfficeDoc, IOfficeModel>('Office', officeSchema);

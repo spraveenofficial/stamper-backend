@@ -1,6 +1,6 @@
-import { toJSON } from '@/modules/toJSON';
 import mongoose from 'mongoose';
-import { IPlansDoc, IPlansModel } from './plans.interfaces';
+import { toJSON } from '../../../modules/toJSON';
+import { IPlansDoc, IPlansModel, PlanPriceCurrencyEnum, SubscriptionPlanDurationEnum } from './plans.interfaces';
 
 const Schema = mongoose.Schema;
 
@@ -22,6 +22,7 @@ const planSchema = new Schema<IPlansDoc, IPlansModel>(
     },
     planPriceCurrency: {
       type: String,
+      enum: Object.values(PlanPriceCurrencyEnum),
       required: true,
     },
     planDuration: {
@@ -30,6 +31,7 @@ const planSchema = new Schema<IPlansDoc, IPlansModel>(
     },
     planDurationUnit: {
       type: String,
+      enum: Object.values(SubscriptionPlanDurationEnum),
       required: true,
     },
     isActive: {
@@ -51,6 +53,11 @@ const planSchema = new Schema<IPlansDoc, IPlansModel>(
     isPopular: {
       type: Boolean,
       default: false,
+    },
+    addedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
   },
   {

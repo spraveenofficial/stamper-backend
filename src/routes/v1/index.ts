@@ -1,19 +1,20 @@
 import express, { Router } from 'express';
+import attendanceRoute from './attendance.route';
 import authRoute from './auth.route';
+import chatRoute from './chat.route';
+import departmentRoute from './department.route';
+import documentsRoute from './documents.route';
+import employeeRoute from './employee.route';
+import eventRoute from './events.route';
+import jobTitlesRoute from './jobTitles.route';
+import leaveRoute from './leave.route';
+import newsRoute from './news.route';
+import notificationRoute from './notification.route';
+import officeRoute from './office.route';
+import organizationRoute from './organization.route';
+import plansRoute from './plans.route';
 import docsRoute from './swagger.route';
 import userRoute from './user.route';
-import organizationRoute from './organization.route';
-import leaveRoute from './leave.route';
-import notificationRoute from './notification.route';
-import employeeRoute from './employee.route';
-import officeRoute from './office.route';
-import departmentRoute from './department.route';
-import jobTitlesRoute from './jobTitles.route';
-import documentsRoute from './documents.route'
-import newsRoute from './news.route';
-import attendanceRoute from "./attendance.route"; 
-import eventRoute from "./events.route";
-import chatRoute from './chat.route'
 
 import config from '../../config/config';
 
@@ -74,13 +75,17 @@ const defaultIRoute: IRoute[] = [
     route: attendanceRoute,
   },
   {
-    path: "/event",
+    path: '/event',
     route: eventRoute,
   },
   {
-    path: "/chat",
+    path: '/chat',
     route: chatRoute,
-  }
+  },
+  {
+    path: '/plans',
+    route: plansRoute,
+  },
 ];
 
 const devIRoute: IRoute[] = [
