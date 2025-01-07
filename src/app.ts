@@ -13,7 +13,6 @@ import { morgan } from './modules/logger';
 import { authLimiter } from './modules/utils';
 import routes from './routes/v1';
 // import { connectRedis } from './modules/redis/init';
-import bodyParser from 'body-parser';
 
 const app: Express = express();
 
@@ -27,7 +26,6 @@ if (config.env !== 'test') {
 
 // Parse cookies
 app.use(cookieParser());
-app.use(bodyParser({ limit: '50mb' }));
 
 // Set security HTTP headers
 app.use(helmet());
@@ -46,6 +44,7 @@ app.options('*', cors());
 
 // Parse JSON request body
 app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Initialize i18next middleware
 app.use(i18n);
