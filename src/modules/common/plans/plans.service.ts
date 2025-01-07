@@ -9,3 +9,7 @@ export const createPlan = async (payload: NewPlanPayload, addedBy: mongoose.Sche
 export const getPlansToDisplay = async (): Promise<IPlansDoc[]> => {
   return Plan.find({ isActive: true }).sort({ createdAt: -1 });
 };
+
+export const getPlanById = async (planId: string): Promise<IPlansDoc | null> => {
+  return Plan.findById(planId);
+};

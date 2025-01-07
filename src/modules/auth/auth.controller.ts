@@ -127,6 +127,8 @@ export const sendVerificationEmail = catchAsync(async (req: Request, res: Respon
   if (config.env == DevelopmentOptions.production) {
     await emailService.sendVerificationEmail(req.user.email, verifyEmailToken, req.user.name);
   }
+
+  console.log('Verify email token: ', verifyEmailToken);
   res.status(httpStatus.OK).json({ success: true, message: req.t('Auth.emailVerificationEmailSent') });
 });
 

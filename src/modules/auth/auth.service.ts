@@ -99,12 +99,12 @@ export const verifyEmail = async (verifyEmailToken: any, t: (key: string) => str
     const verifyEmailTokenDoc = await verifyToken(verifyEmailToken, tokenTypes.VERIFY_EMAIL);
     const user = await getUserById(new mongoose.Types.ObjectId(verifyEmailTokenDoc.user));
     if (!user) {
-      throw new Error();
+      throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.emailVerificationFailed'));
     }
     await Token.deleteMany({ user: user.id, type: tokenTypes.VERIFY_EMAIL });
     const updatedUser = await updateUserById(user.id, { isEmailVerified: true });
     return updatedUser;
   } catch (error) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, t('Auth.emailVerificationFailed'));
+    throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.emailVerificationFailed'));
   }
 };
