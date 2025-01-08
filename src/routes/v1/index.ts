@@ -15,6 +15,7 @@ import organizationRoute from './organization.route';
 import plansRoute from './plans.route';
 import docsRoute from './swagger.route';
 import userRoute from './user.route';
+import paymentsRoute from './payments.route';
 
 import config from '../../config/config';
 
@@ -86,6 +87,10 @@ const defaultIRoute: IRoute[] = [
     path: '/plans',
     route: plansRoute,
   },
+  {
+    path: '/payments',
+    route: paymentsRoute,
+  }
 ];
 
 const devIRoute: IRoute[] = [

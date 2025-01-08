@@ -9,6 +9,7 @@ export enum SubscriptionStatusEnum {
 
 export interface ISubscription {
   userId: string;
+  organizationId: string;
   planId: mongoose.Types.ObjectId;
   startDate: Date;
   endDate: Date;

@@ -1,15 +1,15 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import catchAsync from '../utils/catchAsync';
-import { organizationService } from '../organization';
+import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import { officeServices } from '.';
-import { IOptions } from '../paginate/paginate';
-import { pick } from '../utils';
+import { rolesEnum } from '../../config/roles';
 import { employeeService } from '../employee';
 import { employeeAccountStatus, EmployeeStatus } from '../employee/employee.interfaces';
-import { rolesEnum } from '../../config/roles';
+import { organizationService } from '../organization';
+import { IOptions } from '../paginate/paginate';
 import { userService } from '../user';
-import mongoose from 'mongoose';
+import { pick } from '../utils';
+import catchAsync from '../utils/catchAsync';
 
 export const addOffice = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;

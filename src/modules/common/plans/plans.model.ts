@@ -1,8 +1,27 @@
 import mongoose from 'mongoose';
 import { toJSON } from '../../../modules/toJSON';
-import { IPlansDoc, IPlansModel, PlanPriceCurrencyEnum, SubscriptionPlanDurationEnum } from './plans.interfaces';
+import {
+  IPlansDoc,
+  IPlansFeaturesDoc,
+  IPlansFeaturesModel,
+  IPlansModel,
+  PlanPriceCurrencyEnum,
+  SubscriptionPlanDurationEnum,
+} from './plans.interfaces';
 
 const Schema = mongoose.Schema;
+
+const planFeaturesSchema = new Schema<IPlansFeaturesDoc, IPlansFeaturesModel>({
+  featureName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true,
+  },
+});
 
 const planSchema = new Schema<IPlansDoc, IPlansModel>(
   {
@@ -43,7 +62,7 @@ const planSchema = new Schema<IPlansDoc, IPlansModel>(
       required: true,
     },
     planFeatures: {
-      type: [String],
+      type: [planFeaturesSchema],
       required: true,
     },
     isRecommended: {
@@ -66,6 +85,7 @@ const planSchema = new Schema<IPlansDoc, IPlansModel>(
 );
 
 planSchema.plugin(toJSON);
+planFeaturesSchema.plugin(toJSON);
 
 const Plan = mongoose.model<IPlansDoc, IPlansModel>('Plans', planSchema);
 

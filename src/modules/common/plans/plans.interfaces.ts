@@ -18,6 +18,11 @@ export enum PlanPriceCurrencyEnum {
   INR = 'INR',
 }
 
+export interface IPlansFeatures {
+  featureName: string;
+  isAvailable: boolean;
+}
+
 export interface IPlans {
   planName: string;
   planDescription: string;
@@ -27,14 +32,17 @@ export interface IPlans {
   planDurationUnit: SubscriptionPlanDurationEnum;
   isActive: boolean;
   planType: string;
-  planFeatures: string[];
+  planFeatures: IPlansFeatures[];
   isRecommended: boolean;
   isPopular: boolean;
   addedBy: mongoose.Schema.Types.ObjectId;
 }
 
 export interface IPlansDoc extends IPlans, Document { }
-
 export interface IPlansModel extends Model<IPlansDoc> { }
+
+
+export interface IPlansFeaturesDoc extends IPlansFeatures, Document { }
+export interface IPlansFeaturesModel extends Model<IPlansFeaturesDoc> { }
 
 export type NewPlanPayload = Omit<IPlans, 'addedBy'>;

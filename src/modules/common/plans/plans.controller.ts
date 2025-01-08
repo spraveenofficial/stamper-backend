@@ -14,8 +14,8 @@ export const createPlan = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getPlans = catchAsync(async (req: Request, res: Response) => {
-    const { currency } = pick(req.query, ['currency']);
-    const plans = await plansServices.getPlansToDisplay();
+    const { currency, type } = pick(req.query, ['currency', 'type']);
+    const plans = await plansServices.getPlansToDisplay(type as string);
 
     if (currency && currency !== plansInterfaces.PlanPriceCurrencyEnum.INR) {
         for (const plan of plans) {
