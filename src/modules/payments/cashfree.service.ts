@@ -1,10 +1,12 @@
 import axios, { AxiosResponse } from 'axios';
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import config from '../../config/config';
 import { DevelopmentOptions } from '../../config/roles';
 import { plansServices } from '../common/plans';
 import { convertCurrency } from '../common/services/currency-service';
 import { ApiError } from '../errors';
+import { userService } from '../user';
 
 class CashFreePaymentGateway {
   private appId: string;
@@ -27,12 +29,15 @@ class CashFreePaymentGateway {
     amount: number;
     currency: string;
     customerDetails: {
+      customer_name: string;
       customer_id: string;
       customer_email: string;
       customer_phone: string;
     };
     orderNote: string;
-    notifyUrl: string;
+    order_meta: {
+      notify_url: string;
+    };
   }): Promise<any> {
     try {
       const response: AxiosResponse = await axios.post(
@@ -43,7 +48,7 @@ class CashFreePaymentGateway {
           order_amount: params.amount,
           customer_details: params.customerDetails,
           order_note: params.orderNote,
-          notify_url: params.notifyUrl,
+          order_meta: params.order_meta,
         },
         {
           headers: {
@@ -86,6 +91,7 @@ class CashFreePaymentGateway {
 
 export class CashFreePaymentsSolution {
   private paymentGateway: CashFreePaymentGateway;
+  // @ts-ignore
   private BACKEND_BASE_URL: string;
 
   constructor() {
@@ -114,8 +120,7 @@ export class CashFreePaymentsSolution {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Plan is not active');
     }
 
-    console.log('plan.planPriceCurrency:', plan.planPriceCurrency);
-    console.log('currency:', currency);
+    const user = await userService.getUserById(new mongoose.Types.ObjectId(userId));
     const amount =
       plan.planPriceCurrency === currency
         ? plan.planPrice
@@ -123,13 +128,15 @@ export class CashFreePaymentsSolution {
 
     const orderId = `order_${new Date().getTime()}`;
     const customerDetails = {
+      customer_name: user?.name as string, // Replace with real name
       customer_id: userId,
-      customer_email: 'user@example.com', // Replace with real email
-      customer_phone: '9999999999', // Replace with real phone
+      customer_email: user?.email as string, // Replace with real email
+      customer_phone: (user?.phoneNumber as string) ?? '8299558807', // Replace with real phone
     };
-
     const orderNote = `Payment for ${plan.planName}`;
-    const notifyUrl = `${this.BACKEND_BASE_URL}/cashfree`;
+    const order_meta = {
+      notify_url: 'https://webhook.site/b4bf7ce2-c3da-4bf4-af35-e77a2be77f6b',
+    };
 
     return this.paymentGateway.makePayment({
       orderId,
@@ -137,7 +144,7 @@ export class CashFreePaymentsSolution {
       currency,
       customerDetails,
       orderNote,
-      notifyUrl,
+      order_meta,
     });
   }
 }

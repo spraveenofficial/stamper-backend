@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
+import { paymentsServices } from '.';
 import { rolesEnum } from '../../config/roles';
+import catchAsync from '../utils/catchAsync';
 import { CashFreePaymentsSolution } from './cashfree.service';
+import { AvailablePaymentProviders, IPayments, PaymentStatus } from './payments.interfaces';
 
-export const initiatePayment = async (req: Request, res: Response) => {
+export const initiatePayment = catchAsync(async (req: Request, res: Response) => {
     const { id, role } = req.user;
     const { planId, currency } = req.body;
 
@@ -13,14 +16,26 @@ export const initiatePayment = async (req: Request, res: Response) => {
     } else if ('officeId' in req.organization) {
         organizationId = req.organization.organizationId;
     }
-
-    console.log('organizationId:', organizationId);
     const cashFreePaymentService = new CashFreePaymentsSolution();
 
     try {
         const response = await cashFreePaymentService.handlePayment(planId, id, currency);
+        // Create a payment record in the database
+        const payloadForBasePaymentInitiation: IPayments = {
+            organizationId,
+            userId: id,
+            planId,
+            currency,
+            paymentId: "XYZ",
+            orderId: response.cf_order_id,
+            status: PaymentStatus.PENDING,
+            amount: response.order_amount,
+            paymentProvider: AvailablePaymentProviders.CASHFREE,
+        }
+
+        await paymentsServices.createBasePayment(payloadForBasePaymentInitiation);
         res.status(httpStatus.OK).json({ success: true, message: 'Payment initiated successfully', data: response });
     } catch (error: any) {
         res.status(httpStatus.BAD_REQUEST).json({ success: false, message: error.message });
     }
-};
+});
