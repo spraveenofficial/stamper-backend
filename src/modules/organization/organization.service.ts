@@ -130,7 +130,10 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
   return orgChart;
 };
 
-export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mongoose.Types.ObjectId): Promise<any> => {
+export const getOrgConfig = async (
+  orgId: mongoose.Types.ObjectId,
+  officeId?: mongoose.Types.ObjectId
+): Promise<any> => {
   const organizationId = new mongoose.Types.ObjectId(orgId);
 
   const matchFilter: any = {
@@ -169,22 +172,34 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mo
     },
     {
       $group: {
-        _id: '$_id', // Group by office ID
-        name: { $first: '$name' }, // Office name
-        location: { $first: '$location' }, // Any other office fields
+        _id: '$_id',
+        name: { $first: '$name' },
+        location: { $first: '$location' },
         departments: {
           $push: {
-            id: '$departments._id', // Department ID
-            name: '$departments.title', // Department name
-            jobtitles: {
-              $map: {
-                input: '$departments.jobTitles',
-                as: 'jobTitle',
-                in: {
-                  id: '$$jobTitle._id',
-                  name: '$$jobTitle.jobTitle',
+            $cond: {
+              if: { $and: [{ $ifNull: ['$departments._id', false] }, { $ifNull: ['$departments.title', false] }] }, // Check if department has both ID and title
+              then: {
+                id: '$departments._id', // Department ID
+                name: '$departments.title', // Department name
+                jobtitles: {
+                  $cond: {
+                    if: { $or: [{ $eq: ['$departments.jobTitles', null] }, { $eq: [{ $size: '$departments.jobTitles' }, 0] }] }, // Check for missing or empty jobTitles
+                    then: [], // Empty array if no jobTitles
+                    else: {
+                      $map: {
+                        input: '$departments.jobTitles',
+                        as: 'jobTitle',
+                        in: {
+                          id: '$$jobTitle._id',
+                          name: '$$jobTitle.jobTitle',
+                        },
+                      },
+                    },
+                  },
                 },
               },
+              else: null, // Exclude invalid departments
             },
           },
         },
@@ -192,16 +207,22 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mo
     },
     {
       $project: {
-        id: '$_id', // Retain id field from _id
+        id: '$_id',
         name: 1,
         location: 1,
-        departments: 1,
+        departments: {
+          $filter: {
+            input: '$departments',
+            as: 'department',
+            cond: { $ne: ['$$department', null] }, // Remove null departments
+          },
+        },
       },
     },
     {
       $project: {
-        _id: 0, // Exclude _id from the final output
-        id: 1, // Include the id field
+        _id: 0,
+        id: 1,
         name: 1,
         location: 1,
         departments: 1,
@@ -209,8 +230,10 @@ export const getOrgConfig = async (orgId: mongoose.Types.ObjectId, officeId?: mo
     },
   ]);
 
-  return organizationConfig;
+  return organizationConfig
 };
+
+
 
 export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.ObjectId, isOrgAdded: boolean): Promise<any> => {
   // Initialize flow status
