@@ -12,10 +12,11 @@ import newsRoute from './news.route';
 import notificationRoute from './notification.route';
 import officeRoute from './office.route';
 import organizationRoute from './organization.route';
+import paymentsRoute from './payments.route';
 import plansRoute from './plans.route';
+import subscriptionRoute from './subscriptions.route';
 import docsRoute from './swagger.route';
 import userRoute from './user.route';
-import paymentsRoute from './payments.route';
 
 import config from '../../config/config';
 
@@ -90,6 +91,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/payments',
     route: paymentsRoute,
+  },
+  {
+    path: '/subscriptions',
+    route: subscriptionRoute,
   }
 ];
 

@@ -7,6 +7,7 @@ import { ApiError } from '../errors';
 import { organizationService } from '../organization';
 import { IOptions } from '../paginate/paginate';
 import { s3Services } from '../s3';
+import { subscriptionServices } from '../subscriptions';
 import catchAsync from '../utils/catchAsync';
 import pick from '../utils/pick';
 import * as userService from './user.service';
@@ -38,17 +39,6 @@ export const getUsers = catchAsync(async (req: Request, res: Response) => {
   const result = await userService.queryUsers(filter, options);
   res.send(result);
 });
-
-// export const getUser = catchAsync(async (req: Request, res: Response) => {
-//   if (typeof req.params['userId'] === 'string') {
-//     const user = await userService.getUserById(new mongoose.Types.ObjectId(req.params['userId']));
-//     const organization = await userService.getOrganizationByUserId(new mongoose.Types.ObjectId(req.params['userId']));
-//     if (!user) {
-//       throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-//     }
-//     res.send({ user, organization });
-//   }
-// });
 
 export const updateSelfUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -84,18 +74,23 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
 export const getUserCapLimits = catchAsync(async (req: Request, res: Response) => {
   const { role } = req.user;
 
-  let capLimits;
+  let orgId;
   if (role === rolesEnum.organization) {
-    capLimits = await userCapService.getCapLimitsByOrgId(req.organization.id);
+    orgId = req.organization.id;
   } else {
     if ('officeId' in req.organization) {
-      capLimits = await userCapService.getCapLimitsByOrgId(req.organization.organizationId);
+      orgId = req.organization.organizationId;
     }
   }
 
+  const [limit, subscription] = await Promise.all([
+    userCapService.getCapLimitsByOrgId(orgId),
+    subscriptionServices.getCurrentSubscriptionForOrganization(orgId),
+  ]);
+
   const response = {
-    limit: capLimits,
-    // other data
+    limit,
+    subscription
   };
 
   res.status(httpStatus.OK).json({ success: true, message: 'Cap limits fetched successfully', data: response });

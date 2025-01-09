@@ -1,11 +1,12 @@
 import mongoose, { CallbackError } from 'mongoose';
-import { industryType, IOrganizationDoc, IOrganizationModel } from './organization.interfaces';
-import { toJSON } from '../toJSON/index';
 import validator from 'validator';
-import { paginate } from '../paginate';
 import { rolesEnum } from '../../config/roles';
 import { plansInterfaces } from '../common/plans';
 import { userCapService } from '../common/userCap';
+import { paginate } from '../paginate';
+import { subscriptionServices } from '../subscriptions';
+import { toJSON } from '../toJSON/index';
+import { industryType, IOrganizationDoc, IOrganizationModel } from './organization.interfaces';
 
 export const organizationSchema = new mongoose.Schema<IOrganizationDoc, IOrganizationModel>(
   {
@@ -83,6 +84,7 @@ organizationSchema.post('save', async function (doc: IOrganizationDoc, next) {
     const role = rolesEnum.organization;
     const plan = plansInterfaces.SubscriptionPlanEnum.FREE;
     await userCapService.addUserCapBasedOnRoleAndPlan(doc._id, role, plan);
+    await subscriptionServices.createTrailSubscriptionForOrganization(doc._id, doc.userId.text.toString());
   } catch (error) {
     next(error as CallbackError);
     return;

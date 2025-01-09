@@ -9,6 +9,7 @@ export enum SubscriptionPlanEnum {
 export enum SubscriptionPlanDurationEnum {
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
+  DAYS = 'DAYS',
 }
 
 export enum PlanPriceCurrencyEnum {
@@ -35,6 +36,8 @@ export interface IPlans {
   planFeatures: IPlansFeatures[];
   isRecommended: boolean;
   isPopular: boolean;
+  isCancelable: boolean;
+  isRefundable: boolean;
   addedBy: mongoose.Schema.Types.ObjectId;
 }
 

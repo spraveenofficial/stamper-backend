@@ -26,3 +26,8 @@ export const getPlansToDisplay = async (planType?: string): Promise<IPlansDoc[]>
 export const getPlanById = async (planId: string): Promise<IPlansDoc | null> => {
   return Plan.findById(planId).select('-addedBy').lean();
 };
+
+
+export const getTrailPlan = async (): Promise<IPlansDoc | null> => {
+  return Plan.findOne({ planName: "Trail" }).select('-addedBy').lean();
+};

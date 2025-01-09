@@ -37,5 +37,13 @@
     "string.base": "{{field}} must be a string",
     "string.empty": "{{field}} cannot be empty",
     "any.required": "{{field}} is required"
+  },
+  "Common": {
+    "successRequest": "Request successful",
+    "somethingWentWrong": "Something went wrong",
+    "invalidRequest": "Invalid request",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized",
+    "internalServerError": "Internal server error"
   }
 }

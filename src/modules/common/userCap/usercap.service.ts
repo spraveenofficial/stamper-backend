@@ -61,7 +61,7 @@ export const addUserCapBasedOnRoleAndPlan = async (
  * @returns Promise<ICapLimitsDoc>
  */
 export const getCapLimitsByOrgId = async (orgId: mongoose.Types.ObjectId): Promise<ICapLimitsDoc> => {
-  const userCap = await UserCap.findOne({ organizationId: orgId }).select('-_id -__v').lean().exec();
+  const userCap = await UserCap.findOne({ organizationId: new mongoose.Types.ObjectId(orgId) }).select('-_id -__v').lean().exec();
 
   if (userCap) {
     return {
