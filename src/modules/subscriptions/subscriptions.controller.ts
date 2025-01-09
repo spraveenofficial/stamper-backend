@@ -8,7 +8,7 @@ import catchAsync from '../utils/catchAsync';
 
 export const getMySubscriptions = catchAsync(async (req: Request, res: Response) => {
     const { role } = req.user;
-    const { page, limit } = pick(req.query, ['page', 'limit']);
+    const { page, limit, query } = pick(req.query, ['page', 'limit', 'query']);
     let orgId;
 
     if (role === rolesEnum.organization) {
@@ -22,6 +22,6 @@ export const getMySubscriptions = catchAsync(async (req: Request, res: Response)
         limit: Math.max(1, +limit || 10),
     };
 
-    const response = await subscriptionServices.getAllSubscriptionsByOrganizationId(orgId as mongoose.Types.ObjectId, paginationFilter.page, paginationFilter.limit);
+    const response = await subscriptionServices.getAllSubscriptionsByOrganizationId(orgId as mongoose.Types.ObjectId, paginationFilter.page, paginationFilter.limit, query);
     res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });

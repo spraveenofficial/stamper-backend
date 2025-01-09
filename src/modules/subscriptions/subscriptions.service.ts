@@ -51,7 +51,8 @@ export const calculateSubscriptionEndDate = (
 export const getAllSubscriptionsByOrganizationId = async (
     organizationId: mongoose.Types.ObjectId,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    query?: string
 ) => {
     const skip = (page - 1) * limit;
     // Validate the input
@@ -59,11 +60,22 @@ export const getAllSubscriptionsByOrganizationId = async (
         throw new Error('Invalid organization ID provided.');
     }
 
+    const matchQuery: any = {
+        organizationId: new mongoose.Types.ObjectId(organizationId),
+    }
+
+    if (query) {
+        // If query name is active, then filter by active subscriptions else show all cancelled and expired subscriptions
+        if (query === 'active') {
+            matchQuery['status'] = SubscriptionStatusEnum.ACTIVE;
+        } else {
+            matchQuery['status'] = { $ne: SubscriptionStatusEnum.ACTIVE };
+        }
+    }
+
     const pipeline: PipelineStage[] = [
         {
-            $match: {
-                organizationId,
-            },
+            $match: matchQuery,
         },
         {
             $lookup: {
