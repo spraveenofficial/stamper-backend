@@ -26,7 +26,7 @@ const paymentsSchema = new Schema<IPaymentsDoc, IPaymentsModel>(
         },
         paymentId: {
             type: String,
-            required: true,
+            required: false,
             default: null
         },
         orderId: {

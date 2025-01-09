@@ -20,7 +20,8 @@ export const initiatePayment = catchAsync(async (req: Request, res: Response) =>
 
     try {
         const response = await cashFreePaymentService.handlePayment(planId, id, currency);
-        // Create a payment record in the database
+        // Create a payment record in the database @ts-ignore
+        //@ts-ignore
         const payloadForBasePaymentInitiation: IPayments = {
             organizationId,
             userId: id,

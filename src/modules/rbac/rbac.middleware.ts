@@ -19,9 +19,10 @@ export const checkPermission = (requiredPermission: string) => {
       }
 
       // Get the role-based default permissions
+      // @ts-ignore
       const rolePermissions = defaultPermissions[user.role as rolesEnum] || [];
       // Merge default permissions and custom user permissions
-      const allPermissions = [...rolePermissions, ...user.permissions.map((perm: any) => perm.name)];
+      const allPermissions = [ ...user.permissions.map((perm: any) => perm.name)];
 
       // Check if the required permission exists in the merged list
       const hasPermission = allPermissions.includes(requiredPermission);
