@@ -26,7 +26,7 @@ export const initiatePayment = catchAsync(async (req: Request, res: Response) =>
             userId: id,
             planId,
             currency,
-            paymentId: "XYZ",
+            paymentId: null,
             orderId: response.cf_order_id,
             status: PaymentStatus.PENDING,
             amount: response.order_amount,

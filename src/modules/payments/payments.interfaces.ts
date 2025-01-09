@@ -19,7 +19,7 @@ export interface IPayments {
     organizationId: mongoose.Types.ObjectId;
     planId: mongoose.Types.ObjectId;
     orderId: string;
-    paymentId: string;
+    paymentId: string | null;
     status: PaymentStatus;
     paymentProvider: AvailablePaymentProviders;
 }
