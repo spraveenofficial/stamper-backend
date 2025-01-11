@@ -24,6 +24,10 @@ export const defaultPermissions: PermissionMapping = {
     'news.read',
     'news.update',
     'news.delete',
+    'document.create',
+    'document.read',
+    'document.update',
+    'document.delete',
   ],
   [rolesEnum.admin]: [
     'department.read',
@@ -58,6 +62,9 @@ export const defaultPermissions: PermissionMapping = {
     'news.read',
     'news.update',
     'news.delete',
+    'document.create',
+    'document.read',
+    'document.update',
   ],
   [rolesEnum.employee]: [
     'profile.read',
@@ -70,6 +77,8 @@ export const defaultPermissions: PermissionMapping = {
     'leave.read',
     'document.read',
     'news.read',
+    'document.create',
+    'document.read',
   ],
 };
 
