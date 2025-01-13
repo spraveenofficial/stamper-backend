@@ -30,14 +30,43 @@ app.use(cookieParser());
 // Set security HTTP headers
 app.use(helmet());
 
-// Enable CORS
-app.use(
-  cors({
-    origin: ["http://localhost:3000", "https://stamper.tech"], // Allow the frontend origins
-    credentials: true, // Allow credentials (cookies) to be sent
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow these methods
-  })
-);
+const allowedBaseDomains = [
+  "http://localhost:3000", // For local development
+  "https://stamper.tech",  // Main domain
+];
+
+// Regular expression to match dynamic tenant subdomains
+const tenantDomainRegex = /^https?:\/\/([a-z0-9-]+)\.stamper\.tech$/;
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin) {
+      // Allow server-to-server requests or tools like Postman with no origin
+      callback(null, true);
+      return;
+    }
+
+    if (allowedBaseDomains.includes(origin)) {
+      // Allow explicitly defined base domains
+      callback(null, true);
+      return;
+    }
+
+    if (tenantDomainRegex.test(origin)) {
+      // Allow dynamic tenant subdomains ending with stamper.tech
+      callback(null, true);
+      return;
+    }
+
+    // Block disallowed origins
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true, // Allow credentials (cookies)
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow HTTP methods
+};
+
+app.use(cors(corsOptions));
+
 
 // Enable CORS preflight
 app.options('*', cors());
