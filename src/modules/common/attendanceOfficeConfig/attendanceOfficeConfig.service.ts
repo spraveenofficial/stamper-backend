@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { attendanceConfigInterface, AttendanceOfficeConfig } from '.';
 import { Office } from '../../../modules/office';
-import { IAttendanceOfficeConfig } from './attendanceOfficeConfig.interface';
+import { IAttendanceOfficeConfigDoc } from './attendanceOfficeConfig.interface';
 
 export const saveOfficeConfig = async (
   config: attendanceConfigInterface.NewAttendanceConfigPayload,
@@ -15,7 +15,7 @@ export const saveOfficeConfig = async (
   return officeConfig;
 };
 
-export const findOfficeConfig = async (officeId: mongoose.Types.ObjectId): Promise<IAttendanceOfficeConfig | null> => {
+export const findOfficeConfig = async (officeId: mongoose.Types.ObjectId): Promise<IAttendanceOfficeConfigDoc | null> => {
   const officeConfig = await AttendanceOfficeConfig.findOne({ officeId });
   return officeConfig;
 };
@@ -58,6 +58,7 @@ export const getOrganizationOfficeConfig = async (
   if (officeId) {
     filter._id = new mongoose.Types.ObjectId(officeId);
   }
+
 
   const pipeline = [
     {

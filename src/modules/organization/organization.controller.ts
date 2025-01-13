@@ -1,18 +1,19 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
+import httpStatus from 'http-status';
+import mongoose from 'mongoose';
+import config from '../../config/config';
+import { DevelopmentOptions, rolesEnum } from '../../config/roles';
+import { departmentService } from '../departments';
+import { emailService } from '../email';
+import { employeeService } from '../employee';
+import { employeeAccountStatus, EmployeeStatus } from '../employee/employee.interfaces';
+import { ApiError } from '../errors';
+import { jobTitleService } from '../jobTitles';
+import { officeServices } from '../office';
+import { tokenService } from '../token';
+import { userService } from '../user';
 import { catchAsync, pick } from '../utils';
 import * as organizationService from './organization.service';
-import { userService } from '../user';
-import { employeeService } from '../employee';
-import { ApiError } from '../errors';
-import mongoose from 'mongoose';
-import { tokenService } from '../token';
-import { DevelopmentOptions, rolesEnum } from '../../config/roles';
-import { emailService } from '../email';
-import { departmentService } from '../departments';
-import { officeServices } from '../office';
-import { jobTitleService } from '../jobTitles';
-import { employeeAccountStatus, EmployeeStatus } from '../employee/employee.interfaces';
 
 export const createOrganization = catchAsync(async (req: Request, res: Response) => {
   const organization = await organizationService.createOrganization(req.body, req.user.id);
@@ -64,7 +65,7 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
 
   const token = await tokenService.generateOrganizationInvitationToken(employee);
 
-  if (DevelopmentOptions.production) {
+  if (config.env === DevelopmentOptions.production) {
     await emailService.inviteEmployee(employee.email, employee.name, employee?.name, token);
   }
 

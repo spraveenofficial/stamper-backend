@@ -1,16 +1,17 @@
-import moment from 'moment-timezone';
-import { ApiError } from '../errors';
 import httpStatus from 'http-status';
-import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
-import { officeServices } from '../office';
+import moment from 'moment-timezone';
 import mongoose from 'mongoose';
-import { employeeService } from '../employee';
-import Attendance from './attendance.model';
-import { CreateClockinPayload, CreateClockoutPayload, IAttendanceDoc } from './attendance.interface';
-import { OfficeWorkingDaysEnum } from '../common/attendanceOfficeConfig/attendanceOfficeConfig.interface';
 import { attendanceUtils } from '.';
+import { attendanceConfigInterface, attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
+import { IAttendanceOfficeConfigDoc, OfficeScheduleTypeEnum, OfficeWorkingDaysEnum } from '../common/attendanceOfficeConfig/attendanceOfficeConfig.interface';
 import { officeHolidayServices } from '../common/officeHolidays';
+import { employeeService } from '../employee';
+import { ApiError } from '../errors';
 import { leaveService } from '../leave';
+import { officeServices } from '../office';
+import { CreateClockinPayload, CreateClockoutPayload, IAttendanceDoc } from './attendance.interface';
+import Attendance from './attendance.model';
+import { checkWorkingDay } from './attendance.utils';
 
 export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.ObjectId) => {
   const employee = await employeeService.getEmployeeByUserId(employeeId);
@@ -18,7 +19,7 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee not found');
   }
 
-  const loadOfficeConfig = await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
+  const loadOfficeConfig: attendanceConfigInterface.IAttendanceOfficeConfigDoc | null = await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
   if (!loadOfficeConfig) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
   }
@@ -30,10 +31,12 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
 
   const [timezone, _offset] = office.timezone.split(' - ') ?? [null, null];
   const todayInOfficeTime = moment.tz(timezone!);
-  const todayDayName = todayInOfficeTime.format('dddd') as OfficeWorkingDaysEnum;
+  const todayDayName = todayInOfficeTime.format('dddd') as attendanceConfigInterface.OfficeWorkingDaysEnum;
 
   // Check if today is a working day in the office
-  const isWorkingDay = loadOfficeConfig.officeWorkingDays.includes(todayDayName);
+  const todayWorkingDayConfig = loadOfficeConfig.workingDays.find((day) => day.day === todayDayName);
+  const isWorkingDay = checkWorkingDay(loadOfficeConfig.workingDays.map((day) => day.day), todayDayName);
+
   let isOnLeave = false;
   if (isWorkingDay) {
     // Check if employee is on leave today
@@ -44,48 +47,47 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
     );
   }
 
-  // Parse office working hours and break times with timezone
-  const officeStartTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeStartTime, timezone!);
-  const officeEndTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeEndTime, timezone!);
-  const lunchStartTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeBreakStartTime, timezone!);
-  const lunchEndTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeBreakEndTime, timezone!);
+  // Parse office working hours
+  let officeStartTime = null;
+  let officeEndTime = null;
+  if (loadOfficeConfig.scheduleType === attendanceConfigInterface.OfficeScheduleTypeEnum.CLOCK && isWorkingDay) {
+    officeStartTime = attendanceUtils.parseOfficeTimes(todayWorkingDayConfig?.schedule?.startTime!, timezone!);
+    officeEndTime = attendanceUtils.parseOfficeTimes(todayWorkingDayConfig?.schedule?.endTime!, timezone!);
+  }
 
-  const isWithinWorkingHours = todayInOfficeTime.isBetween(officeStartTime, officeEndTime);
-  const eligibleForLunch = isWorkingDay && todayInOfficeTime.isBetween(lunchStartTime, lunchEndTime);
+  // Parse lunch break times (if defined)
+
+  const isWithinWorkingHours =
+    officeStartTime && officeEndTime && todayInOfficeTime.isBetween(officeStartTime, officeEndTime);
 
   // Get today's attendance status
   const todayAttendanceStatus = await getEmployeeTodayAttendanceBasedOnUTC(employeeId, todayInOfficeTime.toISOString());
 
   const holidays = await officeHolidayServices.getNextTenHolidaysForOffice(employee.officeId);
+
   const response = {
     isWorkingDay: isWorkingDay && !isOnLeave,
     isWithinWorkingHours,
     attendanceStatus: todayAttendanceStatus?.isClockedin
       ? 'CLOCKED_IN'
       : todayAttendanceStatus
-      ? 'CLOCKED_OUT'
-      : 'NOT_CLOCKED_IN',
+        ? 'CLOCKED_OUT'
+        : 'NOT_CLOCKED_IN',
     clockedInAt: todayAttendanceStatus
       ? attendanceUtils.parseOfficeTimes(todayAttendanceStatus.clockinTime as unknown as string, timezone!)
       : null,
-    eligibleForLunch,
-    officeStartTime: loadOfficeConfig.officeStartTime,
-    officeEndTime: loadOfficeConfig.officeEndTime,
-    upcomingHolidays: holidays, // Placeholder if upcoming holidays are needed
+    officeStartTime: officeStartTime?.format('HH:mm') ?? null,
+    officeEndTime: officeEndTime?.format('HH:mm') ?? null,
+    upcomingHolidays: holidays,
     geofencingEnabled: loadOfficeConfig.geofencing,
     officeLocation: loadOfficeConfig.geofencing
       ? {
-          latitude: loadOfficeConfig.officeLocation.coordinates[1],
-          longitude: loadOfficeConfig.officeLocation.coordinates[0],
-          radius: loadOfficeConfig.radius,
-        }
+        latitude: loadOfficeConfig.officeLocation.coordinates[1],
+        longitude: loadOfficeConfig.officeLocation.coordinates[0],
+        radius: loadOfficeConfig.radius,
+      }
       : null,
     officeLocationText: loadOfficeConfig.officeLocationText,
-    lunchInfo: {
-      startTime: loadOfficeConfig.officeBreakStartTime,
-      endTime: loadOfficeConfig.officeBreakEndTime,
-      duration: loadOfficeConfig.officeBreakDurationInMinutes,
-    },
     officeUTCConfig: {
       timezone,
       _offset,
@@ -94,7 +96,6 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
 
   return response;
 };
-
 export const getMyAttendance = async (
   employeeId: mongoose.Types.ObjectId,
   page: number = 1,
@@ -112,7 +113,7 @@ export const getMyAttendance = async (
     throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
   }
 
-  const officeWorkingDays = loadOfficeConfig.officeWorkingDays;
+  const officeWorkingDays = loadOfficeConfig.workingDays.map((day) => day.day) as OfficeWorkingDaysEnum[];
   const skip = (page - 1) * limit;
 
   // Define the start of the month and the end date (today or the end of the month if in the past)
@@ -237,71 +238,88 @@ export const getEmployeeTodayAttendanceBasedOnUTC = async (
   return attendance;
 };
 
-export const clockinEmployee = async (employeeId: mongoose.Types.ObjectId, payload: CreateClockinPayload) => {
+export const clockinEmployee = async (
+  employeeId: mongoose.Types.ObjectId,
+  payload: CreateClockinPayload
+) => {
+  // Step 1: Check if attendance already marked for today
   if (await Attendance.isAttendanceAlreadyMarkedToday(employeeId, payload.officeId)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Attendance already marked for today');
   }
 
+  // Step 2: Validate employee existence
   const employee = await employeeService.getEmployeeByUserId(employeeId);
   if (!employee) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee not found');
   }
 
-  const loadOfficeConfig = await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
+  // Step 3: Load office configuration
+  const officeConfig: IAttendanceOfficeConfigDoc | null =
+    await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
 
-  if (!loadOfficeConfig) {
+  if (!officeConfig) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
   }
 
+  // Step 4: Load office details
   const office = await officeServices.getOfficeById(employee.officeId);
+  if (!office) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Office not found');
+  }
 
-  const [timezone] = office?.timezone.split(' - ') ?? [];
-  if (!timezone) throw new ApiError(httpStatus.BAD_REQUEST, 'Office timezone not found');
+  const [timezone] = office.timezone.split(' - ') ?? [];
+  if (!timezone) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Office timezone not found');
+  }
 
   const todayInOfficeTime = moment.tz(timezone!);
-
   const todayDayName = todayInOfficeTime.format('dddd') as OfficeWorkingDaysEnum;
 
-  const isWorkingDay = attendanceUtils.checkWorkingDay(loadOfficeConfig.officeWorkingDays, todayDayName);
+  // Step 5: Validate if today is a working day
+  const workingDayConfig = officeConfig.workingDays.find((day) => day.day === todayDayName);
+  const isWorkingDay = checkWorkingDay(officeConfig.workingDays.map((day) => day.day), todayDayName);
 
   if (!isWorkingDay) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Today is not a working day');
   }
 
-  const currentTime = todayInOfficeTime.clone().set({
-    hour: todayInOfficeTime.hour(),
-    minute: todayInOfficeTime.minute(),
-  });
+  // Step 6: Determine time-based validations
+  let isWithinWorkingHours = false;
+  if (officeConfig.scheduleType === OfficeScheduleTypeEnum.CLOCK) {
+    const currentTime = todayInOfficeTime.clone().set({
+      hour: todayInOfficeTime.hour(),
+      minute: todayInOfficeTime.minute(),
+    });
 
-  const officeStartTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeStartTime, timezone!);
+    const officeStartTime = attendanceUtils.parseOfficeTimes(
+      workingDayConfig!.schedule?.startTime!,
+      timezone!
+    );
 
-  const officeEndTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeEndTime, timezone!);
+    const officeEndTime = attendanceUtils.parseOfficeTimes(
+      workingDayConfig!.schedule?.endTime!,
+      timezone!
+    );
 
-  const isWithinWorkingHours = moment(currentTime, 'HH:mm').isBetween(officeStartTime, officeEndTime);
+    isWithinWorkingHours = moment(currentTime).isBetween(officeStartTime, officeEndTime);
 
-  const lunchStartTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeBreakStartTime, timezone!);
-
-  const lunchEndTime = attendanceUtils.parseOfficeTimes(loadOfficeConfig.officeBreakEndTime, timezone!);
-
-  const isWithinLunchHours = moment(currentTime, 'HH:mm').isBetween(lunchStartTime, lunchEndTime);
-
-  if (!isWithinWorkingHours) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Cannot clock in outside working hours');
+    if (!isWithinWorkingHours) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Cannot clock in outside working hours');
+    }
   }
 
-  if (isWithinLunchHours) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Cannot clock in during lunch hours');
-  }
+  // Step 8: Create attendance record
   const attendance = await Attendance.create({
     employeeId,
     ...payload,
-    clockinTime: attendanceUtils.parseOfficeTimes(payload.clockinTime as unknown as string, timezone!).toDate(),
+    clockinTime: attendanceUtils
+      .parseOfficeTimes(payload.clockinTime as unknown as string, timezone!)
+      .toDate(),
     isClockedin: true,
   });
 
   return attendance;
 };
-
 export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payload: CreateClockoutPayload) => {
   const employee = await employeeService.getEmployeeByUserId(employeeId);
   if (!employee) {
@@ -322,7 +340,7 @@ export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payl
 
   const todayDayName = todayInOfficeTime.format('dddd') as OfficeWorkingDaysEnum;
 
-  const isWorkingDay = loadOfficeConfig.officeWorkingDays.includes(todayDayName);
+  const isWorkingDay = loadOfficeConfig.workingDays.find((day) => day.day === todayDayName) ?? false;
 
   if (!isWorkingDay) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Today is not a working day');
@@ -345,72 +363,86 @@ export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payl
   return attendance;
 };
 
-export const getEmployeeMonthlySummary = async (employeeId: mongoose.Types.ObjectId): Promise<any> => {
-  // Retrieve the employee's details
+export const getEmployeeMonthlySummary = async (
+  employeeId: mongoose.Types.ObjectId
+): Promise<{
+  year: number;
+  month: number;
+  weeklyWorkingHours: number;
+  monthlyWorkingHours: number;
+  totalLoggedHours: number;
+  totalOvertimeHours: number;
+  totalPaidTimeOff: number;
+}> => {
+  // Step 1: Validate the employee
   const employee = await employeeService.getEmployeeByUserId(employeeId);
   if (!employee) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee not found');
   }
 
-  // Retrieve the office configuration for the employee's office
-  const officeConfig = await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
+  // Step 2: Retrieve office configuration
+  const officeConfig: IAttendanceOfficeConfigDoc | null =
+    await attendanceOfficeConfigService.findOfficeConfig(employee.officeId);
   if (!officeConfig) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
   }
 
-  // Get the current date, year, and month
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  // Step 3: Calculate month range
+  const now = moment();
+  const year = now.year();
+  const month = now.month() + 1;
+  const startDate = now.clone().startOf('month').toDate();
+  const endDate = now.clone().endOf('month').toDate();
 
-  // Calculate the start and end dates for the month
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0);
+  // Step 4: Fetch attendance records
+  const attendanceRecords: IAttendanceDoc[] =
+    await getEmployeeAttendanceRecords(employeeId, startDate, endDate);
 
-  // Get attendance records for the employee within the month
-  const attendanceRecords = await getEmployeeAttendanceRecords(employeeId, startDate, endDate);
+  // Step 5: Calculate working hours
+  const dailyWorkingHours = officeConfig.workingDays
+    .filter((day) => day.isActive) // Only include active working days
+    .reduce((totalHours, day) => {
+      const startTime = moment(day?.schedule?.startTime!, 'HH:mm');
+      const endTime = moment(day?.schedule?.endTime!, 'HH:mm');
+      const dailyHours = moment.duration(endTime.diff(startTime)).asHours();
+      return totalHours + dailyHours;
+    }, 0);
 
-  // Calculate daily working hours based on office start and end times
-  const dailyWorkingHours = moment(officeConfig.officeEndTime, 'HH:mm').diff(
-    moment(officeConfig.officeStartTime, 'HH:mm'),
-    'hours',
-    true
-  );
+  const activeWorkingDays = officeConfig.workingDays.filter(
+    (day) => day.isActive
+  ).length;
 
-  // Calculate weekly working hours based on configured working days
-  const weeklyWorkingHours = dailyWorkingHours * officeConfig.officeWorkingDays.length;
-
-  // Calculate monthly working hours based on weekly working hours
+  const weeklyWorkingHours = dailyWorkingHours * activeWorkingDays;
   const totalWeeksInMonth = Math.ceil(endDate.getDate() / 7);
   const monthlyWorkingHours = weeklyWorkingHours * totalWeeksInMonth;
 
-  // Initialize summary variables
+  // Step 6: Process attendance records
   let totalLoggedHours = 0;
-  let totalOvertime = 0;
+  let totalOvertimeHours = 0;
   let totalPaidTimeOff = 0; // Placeholder for PTO calculation
 
-  // Process each attendance record
-  attendanceRecords.forEach((record: IAttendanceDoc) => {
+  attendanceRecords.forEach((record) => {
     const loggedHours = record.totalLoggedHours || 0;
     totalLoggedHours += loggedHours;
 
-    // Calculate overtime if logged hours exceed daily working hours
+    // Calculate overtime
     if (loggedHours > dailyWorkingHours) {
-      totalOvertime += loggedHours - dailyWorkingHours;
+      totalOvertimeHours += loggedHours - dailyWorkingHours;
     }
   });
 
-  // Return the monthly summary
+  // Step 7: Return formatted summary
   return {
     year,
     month,
     weeklyWorkingHours: +weeklyWorkingHours.toFixed(2),
     monthlyWorkingHours: +monthlyWorkingHours.toFixed(2),
     totalLoggedHours: +totalLoggedHours.toFixed(2),
-    totalOvertimeHours: +totalOvertime.toFixed(2),
-    totalPaidTimeOff,
+    totalOvertimeHours: +totalOvertimeHours.toFixed(2),
+    totalPaidTimeOff, // Placeholder
   };
 };
+
 
 export const getEmployeeAttendanceRecords = async (
   employeeId: mongoose.Types.ObjectId,

@@ -1,29 +1,67 @@
 import mongoose from 'mongoose';
+import { toJSON } from '../../../modules/toJSON';
 import {
   AttendanceClockinAndClockoutMode,
   IAttendanceOfficeConfigDoc,
   IAttendanceOfficeConfigModel,
+  IAttendanceWorkingDaysConfig,
+  IIAttendanceWorkingDaysConfigModel,
+  OfficeScheduleTypeEnum,
   OfficeWorkingDaysEnum,
 } from './attendanceOfficeConfig.interface';
-import { toJSON } from '../../../modules/toJSON';
 
 const { Schema } = mongoose;
 
+const attendanceOfficeWorkingDaysConfigSchema = new Schema<IAttendanceWorkingDaysConfig, IIAttendanceWorkingDaysConfigModel>(
+  {
+    day: {
+      type: String,
+      required: true,
+      enum: Object.values(OfficeWorkingDaysEnum),
+    },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    schedule: {
+      startTime: {
+        type: String,
+      },
+      endTime: {
+        type: String,
+      },
+      hours: {
+        type: Number,
+      },
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+
 const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAttendanceOfficeConfigModel>(
   {
+    policyTitle: {
+      type: String,
+      required: true,
+    },
     organizationId: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'Organization',
     },
+    scheduleType: {
+      type: String,
+      required: true,
+      enum: Object.values(OfficeScheduleTypeEnum),
+    },
     officeId: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'Office',
-    },
-    policyDescription: {
-      type: String,
-      required: true,
     },
     officeLocation: {
       type: {
@@ -40,16 +78,24 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
     },
     clockinMode: {
       type: [String],
-      required: true,
+      required: false,
+      default: [AttendanceClockinAndClockoutMode.DESKTOP],
       enum: Object.values(AttendanceClockinAndClockoutMode),
+    },
+    selfieRequired: {
+      type: Boolean,
+      required: true,
+      default: false,
     },
     geofencing: {
       type: Boolean,
       required: true,
+      default: false,
     },
     qrEnabled: {
       type: Boolean,
       required: true,
+      default: false
     },
     radius: {
       type: Number,
@@ -63,30 +109,9 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
         return this.geofencing;
       },
     },
-    officeStartTime: {
-      type: String,
+    workingDays: {
+      type: [attendanceOfficeWorkingDaysConfigSchema],
       required: true,
-    },
-    officeEndTime: {
-      type: String,
-      required: true,
-    },
-    officeBreakStartTime: {
-      type: String,
-      required: true,
-    },
-    officeBreakEndTime: {
-      type: String,
-      required: true,
-    },
-    officeBreakDurationInMinutes: {
-      type: Number,
-      required: true,
-    },
-    officeWorkingDays: {
-      type: [String],
-      required: true,
-      enum: Object.values(OfficeWorkingDaysEnum),
     },
     addedBy: {
       type: Schema.Types.ObjectId,

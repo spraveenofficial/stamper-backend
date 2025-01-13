@@ -1,10 +1,11 @@
-import { objectId } from '../../../modules/validate';
-import { attendanceConfigInterface } from '.';
 import Joi from 'joi';
+import { attendanceConfigInterface } from '.';
+import { objectId } from '../../../modules/validate';
 
 const addAttendanceConfigRequestSchema: Record<keyof attendanceConfigInterface.NewAttendanceConfigPayload, any> = {
   officeId: Joi.string().custom(objectId).required(),
-  policyDescription: Joi.string().required(),
+  policyTitle: Joi.string().required(),
+  scheduleType: Joi.string().valid(...Object.values(attendanceConfigInterface.OfficeScheduleTypeEnum)).required(),
   officeLocation: Joi.object()
     .keys({
       type: Joi.string().valid('Point').default('Point'),
@@ -34,12 +35,7 @@ const addAttendanceConfigRequestSchema: Record<keyof attendanceConfigInterface.N
     then: Joi.required(),
     otherwise: Joi.optional(),
   }),
-  officeStartTime: Joi.string().required(),
-  officeEndTime: Joi.string().required(),
-  officeBreakStartTime: Joi.string().required(),
-  officeBreakEndTime: Joi.string().required(),
-  officeBreakDurationInMinutes: Joi.number().required(),
-  officeWorkingDays: Joi.array()
+  workingDays: Joi.array()
     .items(
       Joi.string()
         .valid(...Object.values(attendanceConfigInterface.OfficeWorkingDaysEnum))
