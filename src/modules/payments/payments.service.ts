@@ -5,7 +5,7 @@ export const createPayment = async (payment: any): Promise<IPaymentsDoc> => {
     return await Payments.create(payment);
 };
 
-export const createBasePayment = async (payload: any): Promise<IPaymentsDoc> => {
+export const createBasePayment = async (payload: IPayments): Promise<IPaymentsDoc> => {
 
     const payment: IPayments = {
         amount: payload.amount,

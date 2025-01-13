@@ -3,7 +3,7 @@ import { User } from '../user';
 import { defaultPermissions } from './constants';
 import { Permission } from './rbac.model';
 
-const initializePermissions = async () => {
+export const initializePermissions = async () => {
   console.log('Preparing to initialize permissions...');
   const allPermissions: { name: string; module: string; action: ActionEnum }[] = [];
 
@@ -51,6 +51,7 @@ export const initializeUserPermissions = async () => {
         name: { $in: permissionsForRole },
       }).select('_id');
 
+      console.log(`User: ${user.email}, Role: ${userRole}, Permissions: ${permissions.map((p) => p.name).join(', ')}`);
       // Update user's permissions
       user.permissions = permissions.map((p) => p._id);
       await user.save();
@@ -61,5 +62,3 @@ export const initializeUserPermissions = async () => {
     console.error('Error initializing user permissions:', error);
   }
 };
-
-export default initializePermissions;

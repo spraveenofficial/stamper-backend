@@ -137,7 +137,6 @@ export class CashFreePaymentsSolution {
     const order_meta = {
       notify_url: 'https://webhook.site/b4bf7ce2-c3da-4bf4-af35-e77a2be77f6b',
     };
-
     return this.paymentGateway.makePayment({
       orderId,
       amount,
