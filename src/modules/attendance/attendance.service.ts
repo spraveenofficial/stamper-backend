@@ -400,7 +400,6 @@ export const getEmployeeMonthlySummary = async (
 
   // Step 5: Calculate working hours
   const dailyWorkingHours = officeConfig.workingDays
-    .filter((day) => day.isActive) // Only include active working days
     .reduce((totalHours, day) => {
       const startTime = moment(day?.schedule?.startTime!, 'HH:mm');
       const endTime = moment(day?.schedule?.endTime!, 'HH:mm');
@@ -408,9 +407,7 @@ export const getEmployeeMonthlySummary = async (
       return totalHours + dailyHours;
     }, 0);
 
-  const activeWorkingDays = officeConfig.workingDays.filter(
-    (day) => day.isActive
-  ).length;
+  const activeWorkingDays = officeConfig.workingDays.length;
 
   const weeklyWorkingHours = dailyWorkingHours * activeWorkingDays;
   const totalWeeksInMonth = Math.ceil(endDate.getDate() / 7);

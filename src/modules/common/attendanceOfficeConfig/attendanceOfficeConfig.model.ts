@@ -19,11 +19,6 @@ const attendanceOfficeWorkingDaysConfigSchema = new Schema<IAttendanceWorkingDay
       required: true,
       enum: Object.values(OfficeWorkingDaysEnum),
     },
-    isActive: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
     schedule: {
       startTime: {
         type: String,

@@ -1,47 +1,34 @@
 import Joi from 'joi';
 import { attendanceConfigInterface } from '.';
 import { objectId } from '../../../modules/validate';
+import { IAttendanceWorkingDaysConfig } from './attendanceOfficeConfig.interface';
+
+const attendanceWorkingDaysConfigSchema = Joi.object<IAttendanceWorkingDaysConfig>({
+  day: Joi.string().valid(...Object.values(attendanceConfigInterface.OfficeWorkingDaysEnum)).required(),
+  schedule: Joi.object({
+    startTime: Joi.string().when('scheduleType', { is: attendanceConfigInterface.OfficeScheduleTypeEnum.CLOCK, then: Joi.required() }),
+    endTime: Joi.string().when('scheduleType', { is: attendanceConfigInterface.OfficeScheduleTypeEnum.CLOCK, then: Joi.required() }),
+    hours: Joi.number().when('scheduleType', { is: attendanceConfigInterface.OfficeScheduleTypeEnum.DURATION, then: Joi.required() }),
+  }).required(),
+});
 
 const addAttendanceConfigRequestSchema: Record<keyof attendanceConfigInterface.NewAttendanceConfigPayload, any> = {
-  officeId: Joi.string().custom(objectId).required(),
   policyTitle: Joi.string().required(),
   scheduleType: Joi.string().valid(...Object.values(attendanceConfigInterface.OfficeScheduleTypeEnum)).required(),
-  officeLocation: Joi.object()
-    .keys({
-      type: Joi.string().valid('Point').default('Point'),
-      coordinates: Joi.array().items(Joi.number()).when('geofencing', {
-        is: true,
-        then: Joi.required(),
-        otherwise: Joi.optional(),
-      }),
-    })
-    .required(),
-  clockinMode: Joi.array()
-    .items(
-      Joi.string()
-        .valid(...Object.values(attendanceConfigInterface.AttendanceClockinAndClockoutMode))
-        .required()
-    )
-    .required(),
-  geofencing: Joi.boolean().required(),
+  officeId: Joi.string().custom(objectId).required(),
+  clockinMode: Joi.string().valid(...Object.values(attendanceConfigInterface.AttendanceClockinAndClockoutMode)).required(),
+  effectiveFrom: Joi.date().required(),
+  geofencing: Joi.boolean().required().allow(null),
+  workingDays: Joi.array().items(attendanceWorkingDaysConfigSchema)
+    .required()
+    .min(1),
+  radius: Joi.number().optional().allow(null),
+  officeLocationText: Joi.string().required(),
   qrEnabled: Joi.boolean().required(),
-  radius: Joi.number().when('geofencing', {
-    is: true,
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }),
-  officeLocationText: Joi.string().when('geofencing', {
-    is: true,
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }),
-  workingDays: Joi.array()
-    .items(
-      Joi.string()
-        .valid(...Object.values(attendanceConfigInterface.OfficeWorkingDaysEnum))
-        .required()
-    )
-    .required(),
+  officeLocation: Joi.object({
+    type: Joi.string().valid('Point').required(),
+    coordinates: Joi.array().items(Joi.number()).required(),
+  }).required(),
 };
 
 export const addAttendanceConfigRequest = {

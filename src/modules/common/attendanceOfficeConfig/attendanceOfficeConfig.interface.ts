@@ -22,7 +22,6 @@ export enum OfficeScheduleTypeEnum {
 
 export interface IAttendanceWorkingDaysConfig {
   day: OfficeWorkingDaysEnum;
-  isActive: boolean;
   schedule: {
     startTime?: string; // Only for clock-based schedules
     endTime?: string;   // Only for clock-based schedules
@@ -36,7 +35,7 @@ export interface IAttendanceOfficeConfig {
   organizationId: mongoose.Types.ObjectId;
   scheduleType: OfficeScheduleTypeEnum;
   officeId: mongoose.Types.ObjectId;
-  clockinMode: AttendanceClockinAndClockoutMode[] | null;
+  clockinMode: AttendanceClockinAndClockoutMode[];
   effectiveFrom: Date;
   geofencing: boolean;
   selfieRequired: boolean;
@@ -62,6 +61,6 @@ export interface IAttendanceOfficeConfigModel extends Model<IAttendanceOfficeCon
 export interface IIAttendanceWorkingDaysConfigDoc extends IAttendanceWorkingDaysConfig, Document { }
 export interface IIAttendanceWorkingDaysConfigModel extends Model<IIAttendanceWorkingDaysConfigDoc> { }
 
-export type NewAttendanceConfigPayload = Omit<IAttendanceOfficeConfig, 'organizationId' | 'addedBy' | 'isActive' | 'selfieRequired' | 'effectiveFrom'>;
+export type NewAttendanceConfigPayload = Omit<IAttendanceOfficeConfig, 'organizationId' | 'addedBy' | 'isActive' | 'selfieRequired'>;
 
 export type UpdateAttendanceConfigPayload = Partial<NewAttendanceConfigPayload> & { id: mongoose.Types.ObjectId };
