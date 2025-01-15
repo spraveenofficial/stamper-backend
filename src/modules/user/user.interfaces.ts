@@ -1,8 +1,8 @@
-import mongoose, { Model, Document } from 'mongoose';
-import { QueryResult } from '../paginate/paginate';
-import { AccessAndRefreshTokens } from '../token/token.interfaces';
+import mongoose, { Document, Model } from 'mongoose';
 import { roles } from '../../config/roles';
+import { QueryResult } from '../paginate/paginate';
 import { IPermission } from '../rbac/rbac.interfaces';
+import { AccessAndRefreshTokens } from '../token/token.interfaces';
 
 export interface IUser {
   name: string;
@@ -13,6 +13,7 @@ export interface IUser {
   profilePic: string | null;
   phoneNumber: string | null;
   permissions: IPermission[];
+  deletedAt: Date | null;
 }
 
 export interface IUserDoc extends IUser, Document {
@@ -26,11 +27,11 @@ export interface IUserModel extends Model<IUserDoc> {
 
 export type UpdateUserBody = Partial<IUser>;
 
-export type NewRegisteredUser = Omit<IUser, 'role' | 'isEmailVerified' | 'profilePic' | 'phoneNumber' | 'permissions'>;
+export type NewRegisteredUser = Omit<IUser, 'role' | 'isEmailVerified' | 'profilePic' | 'phoneNumber' | 'permissions' | 'deletedAt'>;
 
-export type NewUserAsEmployee = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'password' | 'role' | 'permissions'>;
+export type NewUserAsEmployee = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'password' | 'role' | 'permissions' | 'deletedAt'>;
 
-export type NewCreatedUser = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'phoneNumber' | 'permissions'>;
+export type NewCreatedUser = Omit<IUser, 'isEmailVerified' | 'profilePic' | 'phoneNumber' | 'permissions' | 'deletedAt'>;
 
 export interface IUserWithTokens {
   user: IUserDoc;
