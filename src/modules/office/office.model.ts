@@ -3,7 +3,30 @@ import mongoose, { Schema } from 'mongoose';
 // CallbackError,
 import { paginate } from '../paginate';
 import { toJSON } from '../toJSON';
-import { IOfficeDoc, IOfficeModel } from './office.interfaces';
+import { IOfficeDoc, IOfficeHrDoc, IOfficeHrModel, IOfficeModel } from './office.interfaces';
+
+const officeHrSchema = new Schema<IOfficeHrDoc, IOfficeHrModel>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    addedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'active',
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
   {
@@ -59,6 +82,10 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
     companyOverview: {
       type: String,
       required: false,
+    },
+    hr: {
+      type: [officeHrSchema],
+      default: [],
     },
   },
   {

@@ -23,6 +23,10 @@ const attendanceOfficeWorkingDaysConfigSchema = new Schema<IAttendanceWorkingDay
       startTime: {
         type: String,
       },
+      isActive: {
+        type: Boolean,
+        default: true,
+      },
       endTime: {
         type: String,
       },

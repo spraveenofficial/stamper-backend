@@ -1,8 +1,8 @@
+import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import { Office } from '.';
-import { IOffice, IOfficeDoc, NewAddOffice } from './office.interfaces';
 import { ApiError } from '../errors';
-import httpStatus from 'http-status';
+import { IOffice, IOfficeDoc, NewAddOffice } from './office.interfaces';
 
 export const addOffice = async (
   payload: NewAddOffice,
@@ -111,12 +111,4 @@ export const getOfficeByOrgAndEmpId = async (
     organizationId: new mongoose.Types.ObjectId(orgId),
     managerId: new mongoose.Types.ObjectId(empId),
   });
-};
-
-export const getAllOffices = async (): Promise<IOfficeDoc[]> => {
-  return await Office.find();
-};
-
-export const getOfficesByIds = async (officeIds: mongoose.Types.ObjectId[]): Promise<IOfficeDoc[]> => {
-  return await Office.find({ _id: { $in: officeIds } });
 };

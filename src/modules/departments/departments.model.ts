@@ -41,7 +41,7 @@ departmentSchema.static('isDepartmentExists', async function (officeId: mongoose
 });
 
 
-departmentSchema.index({ officeId: 1, title: 1 }, { unique: true });
+departmentSchema.index({ officeId: 1, title: 1 }, { unique: false });
 
 departmentSchema.plugin(toJSON);
 

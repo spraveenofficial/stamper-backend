@@ -23,6 +23,7 @@ export enum OfficeScheduleTypeEnum {
 export interface IAttendanceWorkingDaysConfig {
   day: OfficeWorkingDaysEnum;
   schedule: {
+    isActive: boolean;
     startTime?: string; // Only for clock-based schedules
     endTime?: string;   // Only for clock-based schedules
     hours?: number;     // Only for duration-based schedules

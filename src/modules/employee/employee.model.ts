@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
+import paginate from '../paginate/paginate';
 import { toJSON } from '../toJSON';
 import { employeeAccountStatus, employeeStatus, IEmployeeDoc, IEmployeeModel } from './employee.interfaces';
-import paginate from '../paginate/paginate';
 
 const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
   {
@@ -52,10 +52,10 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
 );
 
 employeeSchema.index({ userId: 1 });
-employeeSchema.index({ organizationId: 1 }, { unique: true });
+employeeSchema.index({ organizationId: 1 }, { unique: false });
 employeeSchema.index({ userId: 1, organizationId: 1, officeId: 1 })
 
-employeeSchema.index({ jobTitleId: 1, organizationId: 1, officeId: 1 }, { unique: true });
+employeeSchema.index({ jobTitleId: 1, organizationId: 1, officeId: 1 }, { unique: false });
 employeeSchema.plugin(toJSON);
 
 employeeSchema.plugin(paginate);

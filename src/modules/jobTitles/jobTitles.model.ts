@@ -22,6 +22,7 @@ const jobTitleSchema = new mongoose.Schema<IJobTitleDoc, IJobTitleModel>(
     },
     isOperational: {
       type: Boolean,
+      required: false,
       default: true,
     },
     officeId: {
@@ -45,8 +46,7 @@ jobTitleSchema.static('isJobTitleExists', async function (officeId: mongoose.Typ
 
 jobTitleSchema.plugin(toJSON);
 
-jobTitleSchema.index({ officeId: 1, title: 1, organizationId: 1 }, { unique: true });
-
+jobTitleSchema.index({ officeId: 1, title: 1, organizationId: 1 }, { unique: false });
 
 const JobTitle = mongoose.model<IJobTitleDoc, IJobTitleModel>('JobTitle', jobTitleSchema);
 
