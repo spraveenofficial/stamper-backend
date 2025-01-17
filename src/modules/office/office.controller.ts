@@ -141,3 +141,18 @@ export const assignManagerToOffice = catchAsync(async (req: Request, res: Respon
   await userService.updateUserById(managerId, { role: rolesEnum.moderator });
   res.status(httpStatus.OK).json({ message: 'Manager assigned successfully', data: response });
 });
+
+
+export const assignRoleToOffice = catchAsync(async (req: Request, res: Response) => {
+  // @ts-ignore
+  const { id } = req.user;
+  // @ts-ignore
+  const { role, officeId, employeeId } = req.body;
+
+
+  const employee = await employeeService.getEmployeeByOfficeIdAndEmpId(officeId, employeeId);
+
+  if (!employee) {
+    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Employee does not belong to this office' });
+  }
+});
