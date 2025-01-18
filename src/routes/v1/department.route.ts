@@ -1,15 +1,17 @@
 import express, { Router } from 'express';
-import { validate } from '../../modules/validate';
 import { auth } from '../../modules/auth';
 import { departmentController, departmentValidation } from '../../modules/departments';
 import { organizationMiddleware } from '../../modules/organization';
+import { rbacMiddleware } from '../../modules/rbac';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
 router
   .route('/add')
   .post(
-    auth('addDepartment'),
+    auth(),
+    rbacMiddleware.checkPermission('department.create'),
     validate(departmentValidation.createDepartmentRequest),
     organizationMiddleware.organizationMiddleware,
     departmentController.addDepartment
@@ -18,7 +20,8 @@ router
 router
   .route('/')
   .get(
-    auth('getDepartments'),
+    auth(),
+    rbacMiddleware.checkPermission('department.read'),
     validate(departmentValidation.getDepartmentsRequest),
     organizationMiddleware.organizationMiddleware,
     departmentController.getDepartments
@@ -27,7 +30,8 @@ router
 router
   .route('/edit')
   .put(
-    auth('editDepartment'),
+    auth(),
+    rbacMiddleware.checkPermission('department.update'),
     validate(departmentValidation.editDepartmentRequest),
     organizationMiddleware.organizationMiddleware,
     departmentController.editDepartment

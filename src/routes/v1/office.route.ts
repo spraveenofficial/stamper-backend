@@ -13,6 +13,7 @@ router
     auth(),
     validate(officeValidations.creatOfficeRequest),
     rbacMiddleware.checkPermission('office.create'),
+    organizationMiddleware.organizationMiddleware,
     officeControllers.addOffice
   );
 

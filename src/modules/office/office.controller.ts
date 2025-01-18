@@ -12,13 +12,18 @@ import { pick } from '../utils';
 import catchAsync from '../utils/catchAsync';
 
 export const addOffice = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-  const organization = await organizationService.getOrganizationByUserId(id);
-  if (!organization) {
-    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Please add organization first' });
+  const { id, role } = req.user;
+  let organizationId;
+
+  if (role === rolesEnum.organization) {
+    organizationId = req.organization._id;  
+  } else {
+    if ('officeId' in req.organization) {
+      organizationId = req.organization.organizationId;
+    }
   }
-  const response = await officeServices.addOffice(req.body, id, organization.id);
-  res.status(httpStatus.CREATED).json({ message: 'Office added successfully', data: response });
+  const response = await officeServices.addOffice(req.body, id, organizationId);
+  res.status(httpStatus.CREATED).json({ success: true, message: 'Office added successfully', data: response });
 });
 
 export const getOffices = catchAsync(async (req: Request, res: Response) => {
@@ -55,23 +60,23 @@ export const editOffice = catchAsync(async (req: Request, res: Response) => {
     }
 
     if (userOfficeId?.toString() !== req.body.officeId.toString()) {
-      throw res.status(httpStatus.BAD_REQUEST).json({ message: 'You are not authorized to edit this office' });
+      throw res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'You are not authorized to edit this office' });
     }
   }
   // Check if the office exists
   const office = await officeServices.getOfficeById(req.body.officeId);
 
   if (!office) {
-    throw res.status(httpStatus.NOT_FOUND).json({ message: 'Office not found' });
+    throw res.status(httpStatus.NOT_FOUND).json({ success: false, message: 'Office not found' });
   }
 
   // Check if the office belongs to the organization
   if (office.organizationId.toString() !== organizationId.toString()) {
-    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'This office does not belong to the organization' });
+    throw res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'This office does not belong to the organization' });
   }
 
   const response = await officeServices.editOffice(req.body.officeId, req.body);
-  res.status(httpStatus.OK).json({ message: 'Office updated successfully', data: response });
+  res.status(httpStatus.OK).json({ success: true, message: 'Office updated successfully', data: response });
 });
 
 // export const getEachOfficeDetails = catchAsync(async (req: Request, res: Response) => {
@@ -135,11 +140,11 @@ export const assignManagerToOffice = catchAsync(async (req: Request, res: Respon
   const { managerId, officeId } = req.body;
   const isEmployee = await employeeService.getEmployeeByOfficeIdAndEmpId(officeId, managerId);
   if (!isEmployee) {
-    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Manager does not belong to this office' });
+    throw res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'Manager does not belong to this office' });
   }
   const response = await officeServices.editOffice(officeId, { managerId: new mongoose.Types.ObjectId(managerId) });
   await userService.updateUserById(managerId, { role: rolesEnum.moderator });
-  res.status(httpStatus.OK).json({ message: 'Manager assigned successfully', data: response });
+  res.status(httpStatus.OK).json({ success: true, message: 'Manager assigned successfully', data: response });
 });
 
 
@@ -153,6 +158,6 @@ export const assignRoleToOffice = catchAsync(async (req: Request, res: Response)
   const employee = await employeeService.getEmployeeByOfficeIdAndEmpId(officeId, employeeId);
 
   if (!employee) {
-    throw res.status(httpStatus.BAD_REQUEST).json({ message: 'Employee does not belong to this office' });
+    throw res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'Employee does not belong to this office' });
   }
 });
