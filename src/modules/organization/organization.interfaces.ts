@@ -1,4 +1,5 @@
-import mongoose, { Model, Document } from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
+import { IEmployeeDoc } from '../employee/employee.interfaces';
 import { QueryResult } from '../paginate/paginate';
 
 export enum industryType {
@@ -56,3 +57,10 @@ export interface IOrganizationModel extends Model<IOrganizationDoc> {
 
 export type NewCreateOrganization = Omit<IOrganization, 'userId'>;
 
+
+
+export interface OrganizationRequestContext {
+  organizationId: mongoose.Types.ObjectId;
+  officeId: mongoose.Types.ObjectId | undefined | null;
+  originalData: IOrganizationDoc | IEmployeeDoc;
+}

@@ -1,10 +1,10 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync, pick } from '../utils';
-import { officeServices } from '../office';
-import { ApiError } from '../errors';
+import httpStatus from 'http-status';
 import { jobTitleService } from '.';
 import { rolesEnum } from '../../config/roles';
+import { ApiError } from '../errors';
+import { officeServices } from '../office';
+import { catchAsync, pick } from '../utils';
 
 export const addJobTitle = catchAsync(async (req: Request, res: Response) => {
   const { id, role } = req.user;
