@@ -1,9 +1,9 @@
 import express, { Router } from 'express';
-import { validate } from '../../modules/validate';
-import { auth } from '../../modules/auth';
 import { attendanceController } from '../../modules/attendance';
-import { organizationMiddleware } from '../../modules/organization';
+import { auth } from '../../modules/auth';
 import { attendanceOfficeConfigValidations } from '../../modules/common/attendanceOfficeConfig';
+import { organizationMiddleware } from '../../modules/organization';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
@@ -12,7 +12,7 @@ router
   .post(
     auth('addAttendanceconfig'),
     validate(attendanceOfficeConfigValidations.addAttendanceConfigRequest),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     attendanceController.createAttendanceConfigForOffice
   );
 

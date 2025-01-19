@@ -8,7 +8,7 @@ import { catchAsync, pick } from '../utils';
 
 export const createAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-  const { id: organizationId } = req.organization;
+  const { organizationId } = req.organizationContext;
 
   const officeConfig = await attendanceOfficeConfigService.saveOfficeConfig(req.body, organizationId, id);
 
