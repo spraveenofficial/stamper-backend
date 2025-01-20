@@ -73,6 +73,20 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
     },
     {
       $lookup: {
+        from: "organizations",
+        localField: "addedBy",
+        foreignField: "userId",
+        as: "organizationDetail"
+      }
+    },
+    {
+      $unwind: {
+        path: "$organizationDetail",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
         from: 'departments',
         localField: '_id',
         foreignField: 'officeId',
@@ -95,20 +109,22 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
     },
     {
       $group: {
-        _id: '$_id', // Group by office ID
-        name: { $first: '$name' }, // Office name
-        location: { $first: '$location' }, // Any other office fields
+        _id: "$_id", // Group by office ID
+        name: { $first: "$name" }, // Office name
+        location: { $first: "$location" }, // Office location
+        organizationName: { $first: "$organizationDetail.companyName" },
+        organizationId: { $first: "$organizationDetail._id" }, // Organization ID
         children: {
           $push: {
-            id: '$departments._id', // Department ID
-            name: '$departments.title', // Department name
+            id: "$departments._id", // Department ID
+            name: "$departments.title", // Department name
             children: {
               $map: {
-                input: '$departments.jobTitles',
-                as: 'jobTitle',
+                input: "$departments.jobTitles",
+                as: "jobTitle",
                 in: {
-                  id: '$$jobTitle._id',
-                  name: '$$jobTitle.jobTitle',
+                  id: "$$jobTitle._id",
+                  name: "$$jobTitle.jobTitle",
                 },
               },
             },
@@ -117,11 +133,24 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
       },
     },
     {
+      $group: {
+        _id: "$organizationId",
+        organizationName: { $first: "$organizationName" }, // Organization name
+        children: {
+          $first: {
+            name: "$name",
+            location: "$location",
+            children: "$children",
+          },
+        },
+      },
+    },
+    {
       $project: {
-        id: '$_id',
-        name: 1,
-        location: 1,
-        children: 1, // Departments are now children, with jobTitles nested as children within departments
+        id: "$_id",
+        name: "$organizationName",
+        location: null,
+        children: 1, // Offices are now children of the organization
         _id: 0,
       },
     },
