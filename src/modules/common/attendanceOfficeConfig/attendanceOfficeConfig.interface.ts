@@ -25,11 +25,10 @@ export interface IAttendanceWorkingDaysConfig {
   schedule: {
     isActive: boolean;
     startTime?: string; // Only for clock-based schedules
-    endTime?: string;   // Only for clock-based schedules
-    hours?: number;     // Only for duration-based schedules
+    endTime?: string; // Only for clock-based schedules
+    hours?: number; // Only for duration-based schedules
   };
 }
-
 
 export interface IAttendanceOfficeConfig {
   policyTitle: string;
@@ -58,10 +57,26 @@ export interface IAttendanceOfficeConfigModel extends Model<IAttendanceOfficeCon
   isAlreadyExist(officeId: mongoose.Types.ObjectId): Promise<boolean>;
 }
 
+export type NewWorkSchedulePayload = Omit<
+  IAttendanceOfficeConfig,
+  | 'organizationId'
+  | 'addedBy'
+  | 'isActive'
+  | 'selfieRequired'
+  | 'clockinMode'
+  | 'geofencing'
+  | 'qrEnabled'
+  | 'radius'
+  | 'officeLocation'
+  | 'officeLocationText'
+>;
 
 export interface IIAttendanceWorkingDaysConfigDoc extends IAttendanceWorkingDaysConfig, Document { }
 export interface IIAttendanceWorkingDaysConfigModel extends Model<IIAttendanceWorkingDaysConfigDoc> { }
 
-export type NewAttendanceConfigPayload = Omit<IAttendanceOfficeConfig, 'organizationId' | 'addedBy' | 'isActive' | 'selfieRequired'>;
+export type NewAttendanceConfigPayload = Omit<
+  IAttendanceOfficeConfig,
+  'organizationId' | 'addedBy' | 'isActive' | 'selfieRequired'
+>;
 
 export type UpdateAttendanceConfigPayload = Partial<NewAttendanceConfigPayload> & { id: mongoose.Types.ObjectId };
