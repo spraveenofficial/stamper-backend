@@ -1,12 +1,13 @@
 import httpStatus from 'http-status';
-import { ApiError } from '../errors';
-import Organization from './organization.model';
 import mongoose from 'mongoose';
-import { IOrganization, IOrganizationDoc } from './organization.interfaces';
-import { Office } from '../office';
-import { Department } from '../departments';
-import { JobTitle } from '../jobTitles';
 import { FLOW_CONSTANTS } from '../../constants/flow_constansts';
+import { Department } from '../departments';
+import { ApiError } from '../errors';
+import { JobTitle } from '../jobTitles';
+import { Office } from '../office';
+import { IOrganization, IOrganizationDoc } from './organization.interfaces';
+import Organization from './organization.model';
+import { PipelineStage } from 'mongoose';
 
 export const getOrganizationById = async (id: mongoose.Types.ObjectId): Promise<IOrganizationDoc | null> => {
   return await Organization.findById(id);
@@ -65,26 +66,15 @@ export const isEmployeeAndManagerInSameOrganization = async (
 
 export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<any> => {
   const organizationId = new mongoose.Types.ObjectId(orgId);
-  const orgChart = await Office.aggregate([
+
+  const pipeline : PipelineStage[] = [
+    // Match offices by organizationId
     {
       $match: {
         organizationId: organizationId,
       },
     },
-    {
-      $lookup: {
-        from: "organizations",
-        localField: "addedBy",
-        foreignField: "userId",
-        as: "organizationDetail"
-      }
-    },
-    {
-      $unwind: {
-        path: "$organizationDetail",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
+    // Lookup departments for each office
     {
       $lookup: {
         from: 'departments',
@@ -93,12 +83,14 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
         as: 'departments',
       },
     },
+    // Unwind departments (optional to handle individual department-level processing)
     {
       $unwind: {
         path: '$departments',
         preserveNullAndEmptyArrays: true,
       },
     },
+    // Lookup job titles for each department
     {
       $lookup: {
         from: 'jobtitles',
@@ -107,54 +99,79 @@ export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<a
         as: 'departments.jobTitles',
       },
     },
+    // Group by office to aggregate departments
     {
       $group: {
-        _id: "$_id", // Group by office ID
-        name: { $first: "$name" }, // Office name
-        location: { $first: "$location" }, // Office location
-        organizationName: { $first: "$organizationDetail.companyName" },
-        organizationId: { $first: "$organizationDetail._id" }, // Organization ID
-        children: {
+        _id: '$_id', // Office ID
+        name: { $first: '$name' }, // Office name
+        location: { $first: '$location' }, // Office location
+        organizationId: { $first: '$organizationId' }, // Organization ID
+        departments: {
           $push: {
-            id: "$departments._id", // Department ID
-            name: "$departments.title", // Department name
+            id: '$departments._id',
+            name: '$departments.title',
             children: {
-              $map: {
-                input: "$departments.jobTitles",
-                as: "jobTitle",
-                in: {
-                  id: "$$jobTitle._id",
-                  name: "$$jobTitle.jobTitle",
+              $ifNull: [
+                {
+                  $map: {
+                    input: '$departments.jobTitles',
+                    as: 'jobTitle',
+                    in: {
+                      id: '$$jobTitle._id',
+                      name: '$$jobTitle.jobTitle',
+                    },
+                  },
                 },
-              },
+                [],
+              ],
             },
           },
         },
       },
     },
+    // Lookup organization details
+    {
+      $lookup: {
+        from: 'organizations',
+        localField: 'organizationId',
+        foreignField: '_id',
+        as: 'organization',
+      },
+    },
+    // Unwind organization to simplify access
+    {
+      $unwind: {
+        path: '$organization',
+        preserveNullAndEmptyArrays: false, // Organization must exist
+      },
+    },
+    // Group everything under the organization
     {
       $group: {
-        _id: "$organizationId",
-        organizationName: { $first: "$organizationName" }, // Organization name
+        _id: '$organization._id', // Organization ID
+        name: { $first: '$organization.companyName' }, // Organization name
         children: {
-          $first: {
-            name: "$name",
-            location: "$location",
-            children: "$children",
+          $push: {
+            id: '$_id',
+            name: '$name',
+            location: '$location',
+            children: '$departments', // Nested departments with job titles
           },
         },
       },
     },
+    // Final projection
     {
       $project: {
-        id: "$_id",
-        name: "$organizationName",
-        location: null,
-        children: 1, // Offices are now children of the organization
+        id: '$_id', // Organization ID
+        name: 1, // Organization name
+        children: 1, // Nested offices with departments and job titles
         _id: 0,
       },
     },
-  ]);
+  ]
+
+  const orgChart = await Office.aggregate(pipeline);
 
   return orgChart;
 };
