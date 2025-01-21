@@ -8,7 +8,8 @@ export const createNewSubscription = async (subscriptionData: ISubscription) => 
     return Subscription.create(subscriptionData);
 };
 
-export const createTrailSubscriptionForOrganization = async (orgId: mongoose.Types.ObjectId, userId: string) => {
+export const createTrailSubscriptionForOrganization = async (orgId: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId) => {
+    console.log('Creating trail subscription for organization:', userId);
     const trailPlan = (await plansServices.getTrailPlan()) as plansInterfaces.IPlansDoc;
     const subscriptionData: ISubscription = {
         userId: new mongoose.Types.ObjectId(userId),

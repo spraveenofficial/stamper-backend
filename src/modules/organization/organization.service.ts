@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
+import mongoose, { PipelineStage } from 'mongoose';
 import { FLOW_CONSTANTS } from '../../constants/flow_constansts';
 import { Department } from '../departments';
 import { ApiError } from '../errors';
@@ -7,7 +7,6 @@ import { JobTitle } from '../jobTitles';
 import { Office } from '../office';
 import { IOrganization, IOrganizationDoc } from './organization.interfaces';
 import Organization from './organization.model';
-import { PipelineStage } from 'mongoose';
 
 export const getOrganizationById = async (id: mongoose.Types.ObjectId): Promise<IOrganizationDoc | null> => {
   return await Organization.findById(id);
@@ -67,7 +66,7 @@ export const isEmployeeAndManagerInSameOrganization = async (
 export const getOrgChartById = async (orgId: mongoose.Types.ObjectId): Promise<any> => {
   const organizationId = new mongoose.Types.ObjectId(orgId);
 
-  const pipeline : PipelineStage[] = [
+  const pipeline: PipelineStage[] = [
     // Match offices by organizationId
     {
       $match: {

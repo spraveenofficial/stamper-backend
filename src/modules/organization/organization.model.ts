@@ -84,7 +84,7 @@ organizationSchema.post('save', async function (doc: IOrganizationDoc, next) {
     const role = rolesEnum.organization;
     const plan = plansInterfaces.SubscriptionPlanEnum.FREE;
     await userCapService.addUserCapBasedOnRoleAndPlan(doc._id, role, plan);
-    await subscriptionServices.createTrailSubscriptionForOrganization(doc._id, doc.userId.text.toString());
+    await subscriptionServices.createTrailSubscriptionForOrganization(doc._id, doc.userId as unknown as mongoose.Types.ObjectId);
   } catch (error) {
     next(error as CallbackError);
     return;
