@@ -6,7 +6,8 @@ import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig'
 import { IOptions } from '../paginate/paginate';
 import { catchAsync, pick } from '../utils';
 
-export const createAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
+
+export const createOfficeWorkSchedule = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const { organizationId } = req.organizationContext;
 

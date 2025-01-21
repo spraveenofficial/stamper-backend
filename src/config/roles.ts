@@ -20,7 +20,6 @@ const allRoles = {
     'addLeaveType',
     'addLeavePolicy',
     'editOfficeManager',
-    'addAttendanceconfig',
     'getAttendanceconfig',
     'addHoliday',
     'editJobTitle',

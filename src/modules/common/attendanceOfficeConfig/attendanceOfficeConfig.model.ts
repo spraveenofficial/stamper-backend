@@ -67,6 +67,9 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
         type: String,
         enum: ['Point'],
         default: 'Point',
+        required: function (this: IAttendanceOfficeConfigDoc) {
+          return this.geofencing;
+        },
       },
       coordinates: {
         type: [Number],
@@ -121,6 +124,11 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       type: Boolean,
       default: true,
     },
+    standardHoursInADay: {
+      type: Number,
+      required: true,
+      default: 8,
+    }
   },
   {
     timestamps: true,

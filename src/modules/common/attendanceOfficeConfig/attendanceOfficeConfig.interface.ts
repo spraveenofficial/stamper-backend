@@ -49,6 +49,7 @@ export interface IAttendanceOfficeConfig {
   workingDays: IAttendanceWorkingDaysConfig[];
   addedBy: mongoose.Types.ObjectId;
   isActive: boolean;
+  standardHoursInADay: number;
 }
 
 export interface IAttendanceOfficeConfigDoc extends IAttendanceOfficeConfig, Document { }

@@ -29,8 +29,24 @@ const addAttendanceConfigRequestSchema: Record<keyof attendanceConfigInterface.N
     type: Joi.string().valid('Point').required(),
     coordinates: Joi.array().items(Joi.number()).required(),
   }).required(),
+  standardHoursInADay: Joi.number().required(),
+};
+
+const addWorkScheduleRequestSchema: Record<keyof attendanceConfigInterface.NewWorkSchedulePayload, any> = {
+  policyTitle: Joi.string().required(),
+  scheduleType: Joi.string().valid(...Object.values(attendanceConfigInterface.OfficeScheduleTypeEnum)).required(),
+  officeId: Joi.string().custom(objectId).required(),
+  effectiveFrom: Joi.date().required(),
+  workingDays: Joi.array().items(attendanceWorkingDaysConfigSchema)
+    .required()
+    .min(1),
+  standardHoursInADay: Joi.number().required(),
 };
 
 export const addAttendanceConfigRequest = {
   body: Joi.object(addAttendanceConfigRequestSchema),
 };
+
+export const addWorkScheduleRequest = {
+  body: Joi.object(addWorkScheduleRequestSchema),
+}

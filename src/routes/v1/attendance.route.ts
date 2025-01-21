@@ -7,13 +7,14 @@ import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
+
 router
-  .route('/add-config')
+  .route('/work-schedule')
   .post(
-    auth('addAttendanceconfig'),
-    validate(attendanceOfficeConfigValidations.addAttendanceConfigRequest),
+    auth(),
+    validate(attendanceOfficeConfigValidations.addWorkScheduleRequest),
     organizationMiddleware.organizationMiddlewareV2,
-    attendanceController.createAttendanceConfigForOffice
+    attendanceController.createOfficeWorkSchedule
   );
 
 router

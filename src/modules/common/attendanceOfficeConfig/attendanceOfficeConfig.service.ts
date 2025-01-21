@@ -20,6 +20,18 @@ export const findOfficeConfig = async (officeId: mongoose.Types.ObjectId): Promi
   return officeConfig;
 };
 
+export const createNewWorkSchedule = async (
+  payload: attendanceConfigInterface.NewWorkSchedulePayload,
+  orgId: mongoose.Types.ObjectId,
+  addedBy: mongoose.Types.ObjectId
+) => {
+  if (await AttendanceOfficeConfig.isAlreadyExist(payload.officeId)) {
+    throw new Error('Active Attendance office config already exists');
+  }
+  const workSchedule = await AttendanceOfficeConfig.create({ ...payload, organizationId: orgId, addedBy });
+  return workSchedule;
+};
+
 export const isUserIsWithinGeofence = async (userLongitude: number, userLatitude: number) => {
   // Fetch geofence with center and radius info
   const geofence = await AttendanceOfficeConfig.findOne({
