@@ -1,22 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose, { PipelineStage } from 'mongoose';
 import { attendanceConfigInterface, AttendanceOfficeConfig } from '.';
 import { Office } from '../../../modules/office';
-import { IAttendanceOfficeConfigDoc } from './attendanceOfficeConfig.interface';
 
-export const saveOfficeConfig = async (
-  config: attendanceConfigInterface.NewAttendanceConfigPayload,
-  orgId: mongoose.Types.ObjectId,
-  addedBy: mongoose.Types.ObjectId
-) => {
-  if (await AttendanceOfficeConfig.isAlreadyExist(config.officeId)) {
-    throw new Error('Active Attendance office config already exists');
-  }
-  const officeConfig = await AttendanceOfficeConfig.create({ organizationId: orgId, ...config, addedBy: addedBy });
-  return officeConfig;
-};
-
-export const findOfficeConfig = async (officeId: mongoose.Types.ObjectId): Promise<IAttendanceOfficeConfigDoc | null> => {
-  const officeConfig = await AttendanceOfficeConfig.findOne({ officeId });
+export const findOfficeConfig = async (
+  officeId: mongoose.Types.ObjectId
+): Promise<attendanceConfigInterface.IAttendanceOfficeConfigDoc | null> => {
+  const officeConfig = await AttendanceOfficeConfig.findOne({ officeId }).select('-__v').lean();
   return officeConfig;
 };
 
@@ -70,7 +59,6 @@ export const getOrganizationOfficeConfig = async (
   if (officeId) {
     filter._id = new mongoose.Types.ObjectId(officeId);
   }
-
 
   const pipeline = [
     {
@@ -132,27 +120,27 @@ export const getOrganizationOfficeConfig = async (
                         $filter: {
                           input: '$officeConfig.workingDays',
                           as: 'day',
-                          cond: { $eq: ['$$day.isActive', true] }
-                        }
+                          cond: { $eq: ['$$day.isActive', true] },
+                        },
                       },
-                      []
-                    ]
-                  }
+                      [],
+                    ],
+                  },
                 },
-                0
-              ]
+                0,
+              ],
             },
             then: {
               $size: {
                 $filter: {
                   input: '$officeConfig.workingDays',
                   as: 'day',
-                  cond: { $eq: ['$$day.isActive', true] }
-                }
-              }
+                  cond: { $eq: ['$$day.isActive', true] },
+                },
+              },
             },
             else: null,
-          }
+          },
         },
         workingDays: {
           $map: {
@@ -168,7 +156,7 @@ export const getOrganizationOfficeConfig = async (
               },
             },
           },
-        }
+        },
       },
     },
     {
@@ -224,4 +212,37 @@ export const updateOfficeConfig = async (
     { new: true }
   );
   return updatedConfig;
+};
+
+export const getWorkScheduleConfigByOfficeId = async (officeId: mongoose.Types.ObjectId | string) => {
+  // Ensure officeId is an ObjectId
+  const Id = typeof officeId === 'string' ? new mongoose.Types.ObjectId(officeId) : officeId;
+
+  // Write a pipeline to fetch the work schedule config by officeId in the attendance office config collection
+  const pipeline: PipelineStage[] = [
+    {
+      $match: {
+        officeId: Id,
+      },
+    },
+    // Check if config is added by the user return all the details
+    {
+      $project: {
+        _id: 0,
+        policyId: '$_id',
+        officeId: 1,
+        scheduleType: 1,
+        officeWorkingDays: 1,
+        policyTitle: 1,
+        workingDays: 1,
+        isActive: 1,
+        effectiveFrom: 1,
+        standardHoursInADay: 1,
+      }
+    }
+  ];
+
+  // Execute the aggregation pipeline
+  const response = await AttendanceOfficeConfig.aggregate(pipeline);
+  return response;
 };

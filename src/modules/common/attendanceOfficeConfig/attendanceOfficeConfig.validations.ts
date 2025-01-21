@@ -50,3 +50,9 @@ export const addAttendanceConfigRequest = {
 export const addWorkScheduleRequest = {
   body: Joi.object(addWorkScheduleRequestSchema),
 }
+
+export const getWorkScheduleByOfficeIdRequest = {
+  params: {
+    officeId: Joi.string().custom(objectId).required(),
+  },
+}

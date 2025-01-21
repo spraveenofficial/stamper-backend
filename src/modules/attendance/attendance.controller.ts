@@ -1,19 +1,30 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import { attendanceServices } from '.';
 import { rolesEnum } from '../../config/roles';
 import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
 import { IOptions } from '../paginate/paginate';
 import { catchAsync, pick } from '../utils';
 
-
-export const createOfficeWorkSchedule = catchAsync(async (req: Request, res: Response) => {
+export const createWorkScheduleByOfficeId = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const { organizationId } = req.organizationContext;
 
-  const officeConfig = await attendanceOfficeConfigService.saveOfficeConfig(req.body, organizationId, id);
+  const officeConfig = await attendanceOfficeConfigService.createNewWorkSchedule(req.body, organizationId, id);
 
   res.status(httpStatus.CREATED).json({ success: true, message: req.t('AttendanceConfig.added'), data: officeConfig });
+});
+
+export const getWorkScheduleByOfficeId = catchAsync(async (req: Request, res: Response) => {
+  const { officeId } = req.params;
+
+  if (typeof req.params['officeId'] === 'string') {
+    const officeConfig = await attendanceOfficeConfigService.getWorkScheduleConfigByOfficeId(
+      officeId as unknown as mongoose.Types.ObjectId
+    );
+    res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: officeConfig });
+  }
 });
 
 export const updateAttendanceConfigForOffice = catchAsync(async (req: Request, res: Response) => {
