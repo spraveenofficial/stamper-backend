@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { IAttendanceDoc, IAttendanceModel } from './attendance.interface';
 import { toJSON } from '../toJSON';
+import { IAttendanceDoc, IAttendanceModel } from './attendance.interface';
 
 const Schema = mongoose.Schema;
 
@@ -130,7 +130,6 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
 
 attendanceSchema.post('findOneAndUpdate', async function (doc: IAttendanceDoc) {
   if (doc.isClockedout && doc.clockoutTime && doc.clockinTime) {
-    console.log("Called post hook", doc);
     const clockinTime = new Date(doc.clockinTime);
     const clockoutTime = new Date(doc.clockoutTime);
 
