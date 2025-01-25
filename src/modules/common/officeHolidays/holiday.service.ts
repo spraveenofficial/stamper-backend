@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
-import { HolidayListType, IHolidayDoc, NewHolidayPayloadType, UpdateHolidayPayloadType } from './holidays.interfaces';
-import Holiday from './holiday.model';
-import { ApiError } from '../../../modules/errors';
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
+import { ApiError } from '../../../modules/errors';
 import { Office } from '../../../modules/office';
+import Holiday from './holiday.model';
+import { HolidayListType, IHolidayDoc, NewHolidayPayloadType, UpdateHolidayPayloadType } from './holidays.interfaces';
 
 export const addHoliday = async (
   userId: mongoose.Types.ObjectId,
@@ -25,11 +25,8 @@ export const addHoliday = async (
 export const getHolidaysForOffices = async (
   organizationId: mongoose.Types.ObjectId,
   officeId?: mongoose.Types.ObjectId,
-  page: number = 1,
-  limit: number = 10,
   year?: number
 ): Promise<any> => {
-  const skip = (page - 1) * limit;
   const filter: any = { organizationId: new mongoose.Types.ObjectId(organizationId) };
 
   if (officeId) {
@@ -92,31 +89,11 @@ export const getHolidaysForOffices = async (
         _id: 0,
       },
     },
-    {
-      $facet: {
-        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
-        data: [{ $skip: skip }, { $limit: limit }],
-      },
-    },
-    {
-      $unwind: '$metadata',
-    },
-    {
-      $project: {
-        results: '$data',
-        page: '$metadata.page',
-        limit: '$metadata.limit',
-        totalResults: '$metadata.totalCount',
-        totalPages: {
-          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
-        },
-      },
-    },
   ];
 
   const response = await Office.aggregate(pipeline);
 
-  return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+  return response.length ? response[0] : null;
 };
 
 export const editHoliday = async (holidayId: string, payload: UpdateHolidayPayloadType): Promise<IHolidayDoc> => {

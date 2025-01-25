@@ -72,12 +72,12 @@ export type NewWorkSchedulePayload = Omit<
   | 'officeLocationText'
 >;
 
-export interface IIAttendanceWorkingDaysConfigDoc extends IAttendanceWorkingDaysConfig, Document { }
-export interface IIAttendanceWorkingDaysConfigModel extends Model<IIAttendanceWorkingDaysConfigDoc> { }
+export interface IAttendanceWorkingDaysConfigDoc extends IAttendanceWorkingDaysConfig, Document { }
+export interface IAttendanceWorkingDaysConfigModel extends Model<IAttendanceWorkingDaysConfigDoc> { }
 
-export type NewAttendanceConfigPayload = Omit<
+export type AttendanceConfigPayload = Omit<
   IAttendanceOfficeConfig,
-  'organizationId' | 'addedBy' | 'isActive' | 'selfieRequired'
+  'organizationId' | 'addedBy' | 'isActive' | 'effectiveFrom' | 'scheduleType' | 'workingDays' | 'standardHoursInADay'
 >;
 
-export type UpdateAttendanceConfigPayload = Partial<NewAttendanceConfigPayload> & { id: mongoose.Types.ObjectId };
+export type UpdateAttendanceConfigPayload = Partial<IAttendanceOfficeConfig> & { id: mongoose.Types.ObjectId };

@@ -216,38 +216,22 @@ export const editHolidayForOffice = catchAsync(async (req: Request, res: Respons
   }
 });
 
-export const getOfficesHolidays = catchAsync(async (req: Request, res: Response) => {
-  const { role } = req.user;
-
-  const { limit, page, year } = pick(req.query, ['limit', 'page', 'year']);
+export const getHolidaysByOfficeIdAndYear = catchAsync(async (req: Request, res: Response) => {
+  const { organizationId } = req.organizationContext;
+  const { year } = pick(req.query, ['limit', 'page', 'year']);
+  const { officeId } = req.params;
 
   let holidays;
 
   let filterOptions = {
-    limit: Math.max(1, +limit! || 10),
-    page: Math.max(1, +page! || 1),
     year: +year || new Date().getFullYear(),
   };
 
-  if (role === rolesEnum.organization) {
-    holidays = await officeHolidayServices.getHolidaysForOffices(
-      req.organization.id,
-      undefined,
-      filterOptions.page,
-      filterOptions.limit,
-      filterOptions.year
-    );
-  } else {
-    if ('officeId' in req.organization) {
-      holidays = await officeHolidayServices.getHolidaysForOffices(
-        req.organization.organizationId,
-        req.organization.officeId,
-        page,
-        limit,
-        filterOptions.year
-      );
-    }
-  }
+  holidays = await officeHolidayServices.getHolidaysForOffices(
+    organizationId,
+    typeof req.params['officeId'] === 'string' ? new mongoose.Types.ObjectId(officeId) : undefined,
+    filterOptions.year
+  );
 
   res.status(httpStatus.OK).json({ success: true, message: 'Success', data: holidays });
 });

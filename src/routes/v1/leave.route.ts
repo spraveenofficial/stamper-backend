@@ -59,8 +59,8 @@ router
   );
 
 router
-  .route('/organization/holiday')
-  .get(auth(), organizationMiddleware.organizationMiddleware, leaveController.getOfficesHolidays);
+  .route('/office/holiday/:officeId')
+  .get(auth(), organizationMiddleware.organizationMiddlewareV2, leaveController.getHolidaysByOfficeIdAndYear);
 
 router
   .route('/organization/holiday/:holidayId')

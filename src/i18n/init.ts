@@ -1,10 +1,9 @@
+import { NextFunction, Request, Response } from 'express';
 import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import i18nextMiddleware from 'i18next-http-middleware';
-import path from 'path';
-import { dirname } from 'path';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { Request, Response, NextFunction } from 'express';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,7 +14,7 @@ export const i18nConfig = {
   supportedLngs: ['en', 'fr', 'hi'],
   ns: ['messages'],
   saveMissing: true,
-  debug: true,
+  debug: false,
   backend: {
     loadPath: path.join(__dirname, '../locales/{{lng}}/{{ns}}.json'),
     jsonIndent: 2,

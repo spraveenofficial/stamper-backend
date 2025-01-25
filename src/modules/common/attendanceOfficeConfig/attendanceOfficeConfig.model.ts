@@ -4,15 +4,15 @@ import {
   AttendanceClockinAndClockoutMode,
   IAttendanceOfficeConfigDoc,
   IAttendanceOfficeConfigModel,
-  IAttendanceWorkingDaysConfig,
-  IIAttendanceWorkingDaysConfigModel,
+  IAttendanceWorkingDaysConfigDoc,
+  IAttendanceWorkingDaysConfigModel,
   OfficeScheduleTypeEnum,
   OfficeWorkingDaysEnum,
 } from './attendanceOfficeConfig.interface';
 
 const { Schema } = mongoose;
 
-const attendanceOfficeWorkingDaysConfigSchema = new Schema<IAttendanceWorkingDaysConfig, IIAttendanceWorkingDaysConfigModel>(
+const attendanceOfficeWorkingDaysConfigSchema = new Schema<IAttendanceWorkingDaysConfigDoc, IAttendanceWorkingDaysConfigModel>(
   {
     day: {
       type: String,
@@ -128,7 +128,12 @@ const attendanceOfficeConfigSchema = new Schema<IAttendanceOfficeConfigDoc, IAtt
       type: Number,
       required: true,
       default: 8,
-    }
+    },
+    effectiveFrom: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,

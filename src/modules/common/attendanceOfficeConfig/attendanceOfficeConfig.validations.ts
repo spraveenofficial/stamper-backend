@@ -12,16 +12,11 @@ const attendanceWorkingDaysConfigSchema = Joi.object<IAttendanceWorkingDaysConfi
   }).required(),
 });
 
-const addAttendanceConfigRequestSchema: Record<keyof attendanceConfigInterface.NewAttendanceConfigPayload, any> = {
+const updateOfficeAttendanceConfig: Record<keyof attendanceConfigInterface.AttendanceConfigPayload, any> = {
   policyTitle: Joi.string().required(),
-  scheduleType: Joi.string().valid(...Object.values(attendanceConfigInterface.OfficeScheduleTypeEnum)).required(),
   officeId: Joi.string().custom(objectId).required(),
   clockinMode: Joi.string().valid(...Object.values(attendanceConfigInterface.AttendanceClockinAndClockoutMode)).required(),
-  effectiveFrom: Joi.date().required(),
   geofencing: Joi.boolean().required().allow(null),
-  workingDays: Joi.array().items(attendanceWorkingDaysConfigSchema)
-    .required()
-    .min(1),
   radius: Joi.number().optional().allow(null),
   officeLocationText: Joi.string().required(),
   qrEnabled: Joi.boolean().required(),
@@ -29,7 +24,7 @@ const addAttendanceConfigRequestSchema: Record<keyof attendanceConfigInterface.N
     type: Joi.string().valid('Point').required(),
     coordinates: Joi.array().items(Joi.number()).required(),
   }).required(),
-  standardHoursInADay: Joi.number().required(),
+  selfieRequired: Joi.boolean().required(),
 };
 
 const addWorkScheduleRequestSchema: Record<keyof attendanceConfigInterface.NewWorkSchedulePayload, any> = {
@@ -44,7 +39,7 @@ const addWorkScheduleRequestSchema: Record<keyof attendanceConfigInterface.NewWo
 };
 
 export const addAttendanceConfigRequest = {
-  body: Joi.object(addAttendanceConfigRequestSchema),
+  body: Joi.object(updateOfficeAttendanceConfig),
 };
 
 export const addWorkScheduleRequest = {
