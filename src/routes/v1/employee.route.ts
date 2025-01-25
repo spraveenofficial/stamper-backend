@@ -1,9 +1,9 @@
 import express, { Router } from 'express';
-import { validate } from '../../modules/validate';
 import { auth } from '../../modules/auth';
+import { userPersonalInformationValidations } from '../../modules/common/userPersonalInformation';
 import { employeeController, employeeValidation } from '../../modules/employee';
 import { organizationMiddleware } from '../../modules/organization';
-import { userPersonalInformationValidations } from '../../modules/common/userPersonalInformation';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
@@ -13,7 +13,7 @@ router
 
 router
   .route('/activate')
-  .post(auth(), validate(employeeValidation.acceptInvitation), employeeController.updateEmploeeAccountStatus);
+  .post(validate(employeeValidation.acceptInvitation), employeeController.updateEmploeeAccountStatus);
 
 //Employee Search
 router

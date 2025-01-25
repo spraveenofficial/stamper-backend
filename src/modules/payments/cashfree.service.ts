@@ -135,7 +135,7 @@ export class CashFreePaymentsSolution {
     };
     const orderNote = `Payment for ${plan.planName}`;
     const order_meta = {
-      notify_url: 'https://webhook.site/b4bf7ce2-c3da-4bf4-af35-e77a2be77f6b',
+      notify_url: 'https://webhook.site/4c964803-94a9-44ec-8d71-1c52215c96cd',
     };
     return this.paymentGateway.makePayment({
       orderId,
