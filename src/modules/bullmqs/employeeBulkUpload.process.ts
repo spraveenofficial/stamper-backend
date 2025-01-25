@@ -19,7 +19,7 @@ import { BULL_AVAILABLE_JOBS } from './constants';
 
 // Constants
 const QUEUE_NAME = 'bulk_upload';
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 100;
 const CACHE_TTL = 60 * 60 * 24; // 24 hours in seconds
 
 // Redis connection
@@ -277,7 +277,7 @@ const bulkUploadQueue = new Queue(QUEUE_NAME, {
 
 export const bulkUploadWorker = new Worker(QUEUE_NAME, processJob, {
   connection: redis,
-  concurrency: 1,
+  concurrency: 5,
   limiter: {
     max: 1000,
     duration: 5000,

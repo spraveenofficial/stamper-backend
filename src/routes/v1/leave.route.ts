@@ -1,10 +1,10 @@
 import express, { Router } from 'express';
 import { auth } from '../../modules/auth';
-import { validate } from '../../modules/validate';
-import { leaveController, leaveValidation } from '../../modules/leave';
-import { upload } from '../../modules/utils/multer';
-import { organizationMiddleware } from '../../modules/organization';
 import { officeHolidayValidations } from '../../modules/common/officeHolidays';
+import { leaveController, leaveValidation } from '../../modules/leave';
+import { organizationMiddleware } from '../../modules/organization';
+import { upload } from '../../modules/utils/multer';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
@@ -54,7 +54,7 @@ router
   .post(
     auth('addHoliday'),
     validate(officeHolidayValidations.createHoliday),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     leaveController.addHolidayForOffice
   );
 

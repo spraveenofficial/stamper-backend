@@ -1,19 +1,18 @@
 import { Request, Response } from 'express';
-import { catchAsync, pick } from '../utils';
-import { leaveService } from '.';
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
-import { employeeService } from '../employee';
+import { leaveService } from '.';
 import { rolesEnum } from '../../config/roles';
-import { notificationServices } from '../notification';
-import { userService } from '../user';
-import { LeaveStatus } from './leave.interfaces';
-import { organizationService } from '../organization';
 import { leaveAndPolicyService } from '../common/leavePolicies';
-import { ApiError } from '../errors';
-import { officeServices } from '../office';
 import { officeHolidayServices } from '../common/officeHolidays';
-import { IHolidayDoc } from '../common/officeHolidays/holidays.interfaces';
+import { employeeService } from '../employee';
+import { ApiError } from '../errors';
+import { notificationServices } from '../notification';
+import { officeServices } from '../office';
+import { organizationService } from '../organization';
+import { userService } from '../user';
+import { catchAsync, pick } from '../utils';
+import { LeaveStatus } from './leave.interfaces';
 // import { eventServices } from '../events';
 
 export const createLeave = catchAsync(async (req: Request, res: Response) => {
@@ -201,18 +200,10 @@ export const getLeaveBalance = catchAsync(async (req: Request, res: Response) =>
 });
 
 export const addHolidayForOffice = catchAsync(async (req: Request, res: Response) => {
-  const { id, role } = req.user;
-  const { id: organizationId } = req.organization;
+  const { id } = req.user;
+  const { organizationId } = req.organizationContext;
 
-  let holiday: IHolidayDoc | null = null;
-
-  if (role === rolesEnum.organization) {
-    holiday = await officeHolidayServices.addHoliday(id, organizationId, req.body);
-  } else {
-    if ('officeId' in req.organization) {
-      holiday = await officeHolidayServices.addHoliday(id, req.organization.organizationId, req.body);
-    }
-  }
+  const holiday = await officeHolidayServices.addHoliday(id, organizationId, req.body);
 
   res.status(httpStatus.CREATED).json({ success: true, message: 'Holiday added successfully', data: holiday });
 });

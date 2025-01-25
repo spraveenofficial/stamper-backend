@@ -1,3 +1,4 @@
+// import bodyParser from 'body-parser';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -71,9 +72,13 @@ app.use(cors(corsOptions));
 // Enable CORS preflight
 app.options('*', cors());
 
-// Parse JSON request body
-app.use(express.json());
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// // Parse JSON request body
+// app.use(express.json());
+// // app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// app.use(bodyParser.json({ limit: '50mb' }));
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb' }));
 
 // Initialize i18next middleware
 app.use(i18n);
