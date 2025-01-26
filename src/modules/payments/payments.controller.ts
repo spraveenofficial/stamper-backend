@@ -40,3 +40,11 @@ export const initiatePayment = catchAsync(async (req: Request, res: Response) =>
         res.status(httpStatus.BAD_REQUEST).json({ success: false, message: error.message });
     }
 });
+
+
+export const paymentsWebhook = catchAsync(async (req: Request, res: Response) => {
+    console.log('Webhook received:', req.body);
+
+
+    return res.status(httpStatus.OK).json({ success: true, message: 'Webhook received' });
+});

@@ -8,4 +8,9 @@ const router: Router = express.Router();
 router.post('/initiate', auth(), organizationMiddleware.organizationMiddleware, paymentsController.initiatePayment);
 
 
+
+
+// Webhook for payment status update
+router.post('/webhook', paymentsController.paymentsWebhook);
+
 export default router;

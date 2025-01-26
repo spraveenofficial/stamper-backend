@@ -135,7 +135,7 @@ export class CashFreePaymentsSolution {
     };
     const orderNote = `Payment for ${plan.planName}`;
     const order_meta = {
-      notify_url: 'https://webhook.site/4c964803-94a9-44ec-8d71-1c52215c96cd',
+      notify_url: 'https://api.stamper.tech/api/v1/payments/webhook',
     };
     return this.paymentGateway.makePayment({
       orderId,
