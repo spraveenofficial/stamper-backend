@@ -27,4 +27,4 @@ const connectRedis = async () => {
   }
 };
 
-export { client as redisClient, connectRedis, redisConfig };
+export { connectRedis, client as redisClient, redisConfig };

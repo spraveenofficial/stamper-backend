@@ -80,6 +80,7 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
     officeEndTime: officeEndTime?.format('HH:mm') ?? null,
     upcomingHolidays: holidays,
     geofencingEnabled: loadOfficeConfig.geofencing,
+    selfieEnabled: loadOfficeConfig.selfieRequired,
     officeLocation: loadOfficeConfig.geofencing
       ? {
         latitude: loadOfficeConfig.officeLocation.coordinates[1],

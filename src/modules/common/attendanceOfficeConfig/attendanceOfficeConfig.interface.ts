@@ -72,6 +72,8 @@ export type NewWorkSchedulePayload = Omit<
   | 'officeLocationText'
 >;
 
+export type UpdateWorkSchedulePayload = Partial<IAttendanceOfficeConfig> & { id: mongoose.Types.ObjectId, isActive?: boolean };
+
 export interface IAttendanceWorkingDaysConfigDoc extends IAttendanceWorkingDaysConfig, Document { }
 export interface IAttendanceWorkingDaysConfigModel extends Model<IAttendanceWorkingDaysConfigDoc> { }
 

@@ -26,9 +26,10 @@ router
   );
 
 router
-  .route('/update-config')
+  .route('/work-schedule')
   .patch(
-    auth('updateAttendanceconfig'),
+    auth(),
+    validate(attendanceOfficeConfigValidations.updateWorkScheduleRequest),
     organizationMiddleware.organizationMiddleware,
     attendanceController.updateAttendanceConfigForOffice
   );

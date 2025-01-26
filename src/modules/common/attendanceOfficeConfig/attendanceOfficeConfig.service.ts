@@ -91,7 +91,8 @@ export const getOrganizationOfficeConfig = async (
               scheduleType: 1,
               officeWorkingDays: 1,
               officeTimezone: 1,
-              policyDescription: 1,
+              geofencing: 1,
+              radius: 1,
               workingDays: 1,
               isActive: 1,
               effectiveFrom: 1,
@@ -174,6 +175,9 @@ export const getOrganizationOfficeConfig = async (
         policyDescription: '$officeConfig.policyDescription',
         clockinMode: '$officeConfig.clockinMode',
         effectiveFrom: '$officeConfig.effectiveFrom',
+        geofencing: '$officeConfig.geofencing',
+        radius: '$officeConfig.radius',
+        
       },
     },
     {
@@ -202,15 +206,8 @@ export const getOrganizationOfficeConfig = async (
   return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
 };
 
-export const updateOfficeConfig = async (
-  config: attendanceConfigInterface.UpdateAttendanceConfigPayload,
-  orgId: mongoose.Types.ObjectId
-) => {
-  const updatedConfig = await AttendanceOfficeConfig.findOneAndUpdate(
-    { _id: config.id, organizationId: orgId },
-    { $set: config },
-    { new: true }
-  );
+export const updateOfficeConfig = async (config: attendanceConfigInterface.UpdateAttendanceConfigPayload) => {
+  const updatedConfig = await AttendanceOfficeConfig.findOneAndUpdate({ _id: config.id }, { $set: config }, { new: true });
   return updatedConfig;
 };
 
@@ -238,8 +235,8 @@ export const getWorkScheduleConfigByOfficeId = async (officeId: mongoose.Types.O
         isActive: 1,
         effectiveFrom: 1,
         standardHoursInADay: 1,
-      }
-    }
+      },
+    },
   ];
 
   // Execute the aggregation pipeline

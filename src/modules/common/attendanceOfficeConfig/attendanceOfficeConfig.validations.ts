@@ -38,12 +38,41 @@ const addWorkScheduleRequestSchema: Record<keyof attendanceConfigInterface.NewWo
   standardHoursInADay: Joi.number().required(),
 };
 
+const updateWorkScheduleRequestSchema: Record<keyof attendanceConfigInterface.UpdateWorkSchedulePayload, any> = {
+  id: Joi.string().custom(objectId).required(),
+  policyTitle: Joi.string().optional(),
+  scheduleType: Joi.string().valid(...Object.values(attendanceConfigInterface.OfficeScheduleTypeEnum)).optional(),
+  officeId: Joi.string().custom(objectId).optional(),
+  effectiveFrom: Joi.date().optional(),
+  workingDays: Joi.array().items(attendanceWorkingDaysConfigSchema)
+    .optional()
+    .min(1),
+  standardHoursInADay: Joi.number().optional(),
+  isActive: Joi.boolean().optional(),
+  selfieRequired: Joi.boolean().optional(),
+  clockinMode: Joi.string().valid(...Object.values(attendanceConfigInterface.AttendanceClockinAndClockoutMode)).optional(),
+  geofencing: Joi.boolean().optional().allow(null),
+  radius: Joi.number().optional().allow(null),
+  officeLocationText: Joi.string().optional(),
+  qrEnabled: Joi.boolean().optional(),
+  officeLocation: Joi.object({
+    type: Joi.string().valid('Point').optional(),
+    coordinates: Joi.array().items(Joi.number()).optional(),
+  }).optional(),
+  addedBy: Joi.string().custom(objectId).optional(),
+  organizationId: Joi.string().custom(objectId).optional(),
+};
+
 export const addAttendanceConfigRequest = {
   body: Joi.object(updateOfficeAttendanceConfig),
 };
 
 export const addWorkScheduleRequest = {
   body: Joi.object(addWorkScheduleRequestSchema),
+}
+
+export const updateWorkScheduleRequest = {
+  body: Joi.object(updateWorkScheduleRequestSchema),
 }
 
 export const getWorkScheduleByOfficeIdRequest = {
