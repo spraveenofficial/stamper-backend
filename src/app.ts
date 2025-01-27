@@ -33,7 +33,7 @@ app.use(helmet());
 
 const allowedBaseDomains = [
   "http://localhost:3000", // For local development
-  "https://stamper.tech",  // Main domain
+  "https://stamperhr.com",  // Main domain
 ];
 
 // Regular expression to match dynamic tenant subdomains
