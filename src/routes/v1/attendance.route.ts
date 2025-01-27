@@ -35,10 +35,10 @@ router
   );
 
 router
-  .route('/get-config')
+  .route('/office-config/:officeId')
   .get(
     auth('getAttendanceconfig'),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     attendanceController.getAttendanceConfigForOffice
   );
 

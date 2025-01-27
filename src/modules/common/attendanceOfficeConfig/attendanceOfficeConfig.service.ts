@@ -88,14 +88,15 @@ export const getOrganizationOfficeConfig = async (
             $project: {
               _id: 1,
               officeLocation: 1,
-              scheduleType: 1,
-              officeWorkingDays: 1,
-              officeTimezone: 1,
               geofencing: 1,
               radius: 1,
-              workingDays: 1,
               isActive: 1,
+              officeLocationText: 1,
+              selfieRequired: 1,
               effectiveFrom: 1,
+              qrEnabled: 1,
+              policyTitle: 1,
+              clockinMode: 1,
             },
           },
         ],
@@ -108,58 +109,58 @@ export const getOrganizationOfficeConfig = async (
         preserveNullAndEmptyArrays: true,
       },
     },
-    {
-      $addFields: {
-        workingDaysActiveCount: {
-          $cond: {
-            if: {
-              $gt: [
-                {
-                  $size: {
-                    $ifNull: [
-                      {
-                        $filter: {
-                          input: '$officeConfig.workingDays',
-                          as: 'day',
-                          cond: { $eq: ['$$day.isActive', true] },
-                        },
-                      },
-                      [],
-                    ],
-                  },
-                },
-                0,
-              ],
-            },
-            then: {
-              $size: {
-                $filter: {
-                  input: '$officeConfig.workingDays',
-                  as: 'day',
-                  cond: { $eq: ['$$day.isActive', true] },
-                },
-              },
-            },
-            else: null,
-          },
-        },
-        workingDays: {
-          $map: {
-            input: '$officeConfig.workingDays',
-            as: 'day',
-            in: {
-              day: '$$day.day',
-              schedule: {
-                isActive: '$$day.schedule.isActive',
-                startTime: '$$day.schedule.startTime',
-                endTime: '$$day.schedule.endTime',
-                hours: '$$day.schedule.hours',
-              },
-            },
-          },
-        },
-      },
-    },
+    // {
+    //   $addFields: {
+    //     workingDaysActiveCount: {
+    //       $cond: {
+    //         if: {
+    //           $gt: [
+    //             {
+    //               $size: {
+    //                 $ifNull: [
+    //                   {
+    //                     $filter: {
+    //                       input: '$officeConfig.workingDays',
+    //                       as: 'day',
+    //                       cond: { $eq: ['$$day.isActive', true] },
+    //                     },
+    //                   },
+    //                   [],
+    //                 ],
+    //               },
+    //             },
+    //             0,
+    //           ],
+    //         },
+    //         then: {
+    //           $size: {
+    //             $filter: {
+    //               input: '$officeConfig.workingDays',
+    //               as: 'day',
+    //               cond: { $eq: ['$$day.isActive', true] },
+    //             },
+    //           },
+    //         },
+    //         else: null,
+    //       },
+    //     },
+    //     workingDays: {
+    //       $map: {
+    //         input: '$officeConfig.workingDays',
+    //         as: 'day',
+    //         in: {
+    //           day: '$$day.day',
+    //           schedule: {
+    //             isActive: '$$day.schedule.isActive',
+    //             startTime: '$$day.schedule.startTime',
+    //             endTime: '$$day.schedule.endTime',
+    //             hours: '$$day.schedule.hours',
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // },
     {
       $project: {
         _id: 0,
@@ -168,17 +169,14 @@ export const getOrganizationOfficeConfig = async (
         officeTimeZone: '$officeDetails.timezone',
         policyId: '$officeConfig._id',
         isActive: '$officeConfig.isActive',
-        officeWorkingDays: '$officeConfig.workingDays',
-        officeTimezone: '$officeConfig.officeTimezone',
-        workingDaysCount: 1,
-        scheduleType: '$officeConfig.scheduleType',
-        policyDescription: '$officeConfig.policyDescription',
+        policyTitle: '$officeConfig.policyTitle',
         clockinMode: '$officeConfig.clockinMode',
-        effectiveFrom: '$officeConfig.effectiveFrom',
         geofencing: '$officeConfig.geofencing',
         radius: '$officeConfig.radius',
-        
+        qrEnabled: '$officeConfig.qrEnabled',
+        selfieRequired: '$officeConfig.selfieRequired',
       },
+
     },
     {
       $facet: {
