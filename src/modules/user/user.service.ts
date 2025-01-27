@@ -1,10 +1,11 @@
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
-import User from './user.model';
+import { rolesEnum } from '../../config/roles';
 import ApiError from '../errors/ApiError';
 import { IOptions, QueryResult } from '../paginate/paginate';
-import { NewCreatedUser, UpdateUserBody, IUserDoc, NewUserAsEmployee } from './user.interfaces';
-import { rolesEnum } from '../../config/roles';
+import { redisService } from '../redis/redis-service';
+import { IUserDoc, NewCreatedUser, NewUserAsEmployee, UpdateUserBody } from './user.interfaces';
+import User from './user.model';
 
 /**
  * Register a user as an organization
@@ -57,7 +58,25 @@ export const queryUsers = async (filter: Record<string, any>, options: IOptions)
  * @param {mongoose.Types.ObjectId} id
  * @returns {Promise<IUserDoc | null>}
  */
-export const getUserById = async (id: mongoose.Types.ObjectId): Promise<IUserDoc | null> => await User.findById(id);
+export const getUserById = async (id: mongoose.Types.ObjectId): Promise<IUserDoc | null> => {
+
+  const redisQueryKey = `user:${id}`;
+
+  const redisQueryExists = await redisService.get(redisQueryKey);
+
+  if (redisQueryExists) {
+    console.log("Returned from cached data")
+    return redisQueryExists as IUserDoc
+  }
+
+  const response = await User.findById(id);
+
+  console.log("fresh query")
+  if (response) await redisService.set(redisQueryKey, response, 3600);
+
+  return response;
+};
+
 
 /**
  * Get user by email

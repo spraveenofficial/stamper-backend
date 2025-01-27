@@ -2,9 +2,7 @@ import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import { rolesEnum } from '../../config/roles';
 import { userCapService } from '../common/userCap';
-import { employeeService } from '../employee';
 import { ApiError } from '../errors';
-import { organizationService } from '../organization';
 import { IOptions } from '../paginate/paginate';
 import { s3Services } from '../s3';
 import { subscriptionServices } from '../subscriptions';
@@ -18,19 +16,20 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getSelfUser = catchAsync(async (req: Request, res: Response) => {
-  const { id, role } = req.user;
+  const { id } = req.user;
 
   console.log('Current user id: ', id);
   const user = await userService.getUserById(id);
 
-  if (role === rolesEnum.organization) {
-    const organization = await organizationService.getOrganizationByUserId(id);
-    res.send({ user, organization });
-  } else {
-    const employeeInformation = await employeeService.getEmployeeByUserId(id);
-    const organization = await organizationService.getOrganizationById(employeeInformation!.organizationId);
-    res.send({ user, employeeInformation, organization });
-  }
+  // if (role === rolesEnum.organization) {
+  // const organization = await organizationService.getOrganizationByUserId(id);
+  // res.send({ user, organization });
+  // } else {
+  // const employeeInformation = await employeeService.getEmployeeByUserId(id);
+  // const organization = await organizationService.getOrganizationById(employeeInformation!.organizationId);
+  // res.send({ user, employeeInformation, organization });
+  // }
+  return res.json({ success: true, message: "Success", data: user })
 });
 
 export const getUsers = catchAsync(async (req: Request, res: Response) => {

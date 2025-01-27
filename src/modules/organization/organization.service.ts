@@ -41,9 +41,10 @@ export const createOrganization = async (
  * */
 
 export const getOrganizationByUserId = async (userId: mongoose.Types.ObjectId): Promise<IOrganizationDoc | null> => {
-  return Organization.findOne({
+  const result = Organization.findOne({
     userId: userId,
   });
+  return result
 };
 
 /**

@@ -16,15 +16,19 @@ class RedisService {
      * @param value - The value to store (string or JSON object).
      * @param expiry - Expiry time in seconds (optional).
      */
-    public async set(key: string, value: string | object, expiry?: number): Promise<void> {
+    public async set(key: string, value: any, expiry?: number): Promise<void> {
         await this.ensureConnected();
 
-        const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
-
+        const valueToStore = JSON.stringify(value, function (_, value) {
+            const seen = new WeakSet();
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) return; // Omit circular reference
+                seen.add(value);
+            }
+            return value;
+        });
         if (expiry) {
-            await redisClient.set(key, valueToStore, {
-                EX: expiry,
-            });
+            await redisClient.set(key, valueToStore, { EX: expiry });
         } else {
             await redisClient.set(key, valueToStore);
         }

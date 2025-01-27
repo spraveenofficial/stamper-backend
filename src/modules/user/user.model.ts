@@ -136,11 +136,39 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.pre(['find', 'findOne'], function (next) {
+userSchema.pre(['find', 'findOne'], async function (next) {
   this.populate('permissions')
   next();
 });
 
+// userSchema.pre(['find', 'findOne'], async function (next) {
+//   const query = this.getQuery(); // Get the query parameters
+//   const cacheKey = `user:${JSON.stringify(query)}`; // Create a unique cache key
+
+//   // Check if the result is cached in Redis
+//   const cachedData = await redisService.get(cacheKey);
+
+//   console.log("cached data", cachedData)
+//   if (cachedData) {
+//     // Attach the cached data to the query to bypass MongoDB
+//     this._cachedResult = cachedData; // Save to use in post hook or directly in query logic
+//     return next(); // Skip database query
+//   }
+
+//   // Proceed with query execution if cache does not exist
+//   this.populate('permissions');
+//   next();
+// });
+
+// userSchema.post(['find', 'findOne'], async function (result) {
+//   const query = this.getQuery(); // Retrieve the query parameters
+//   const cacheKey = `user:${JSON.stringify(query)}`; // Create the same cache key
+
+//   // If the result exists and was not cached, cache it
+//   if (result && !this._cachedResult) {
+//     await redisService.set(cacheKey, result, 3600); // Cache for 1 hour
+//   }
+// });
 
 userSchema.index({ email: 1 });
 userSchema.index({ name: 1, email: 1 })
