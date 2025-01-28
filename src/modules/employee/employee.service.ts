@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
-import { employeeAccountStatus, IEmployee, IEmployeeDoc, EmployeeStatus, employeeStatus } from './employee.interfaces';
-import Employee from './employee.model';
 import { rolesEnum } from '../../config/roles';
+import { redisService } from '../redis/redis-service';
 import { User } from '../user';
 import { IUserDoc } from '../user/user.interfaces';
+import { employeeAccountStatus, EmployeeStatus, employeeStatus, IEmployee, IEmployeeDoc } from './employee.interfaces';
+import Employee from './employee.model';
 
 export const addEmployee = async (employeeBody: any): Promise<IEmployeeDoc> => {
   return Employee.create(employeeBody);
@@ -12,7 +13,19 @@ export const addEmployee = async (employeeBody: any): Promise<IEmployeeDoc> => {
 export const getEmployeeById = async (id: mongoose.Types.ObjectId): Promise<IEmployee | null> => Employee.findById(id);
 
 export const getEmployeeByUserId = async (userId: mongoose.Types.ObjectId): Promise<IEmployeeDoc | null> => {
-  return await Employee.findOne({ userId });
+  const redisQueryKey = `employeebyuserid:${userId}`;
+
+  const isRedisDataExists = await redisService.get(redisQueryKey);
+
+  if (isRedisDataExists) {
+    return isRedisDataExists as IEmployeeDoc;
+  }
+
+  const response = await Employee.findOne({ userId });
+
+  if (response !== null) await redisService.set(redisQueryKey, response, 3600);
+
+  return response;
 };
 
 // Function to get employees by manager ID with modified response structure
@@ -20,7 +33,7 @@ export const getEmployeesByOrgId = async (
   orgId: mongoose.Types.ObjectId,
   page: number = 1,
   limit: number = 10,
-  officeId?: string | null, 
+  officeId?: string | null,
   accountStatus?: employeeAccountStatus | null,
   employeeStatus?: EmployeeStatus | null,
   searchQuery?: string | null
@@ -208,8 +221,8 @@ export const searchEmployeeByNameAndEmail = async (
     {
       $match: searchQuery
         ? {
-            $or: [{ name: { $regex: searchQuery, $options: 'i' } }, { email: { $regex: searchQuery, $options: 'i' } }],
-          }
+          $or: [{ name: { $regex: searchQuery, $options: 'i' } }, { email: { $regex: searchQuery, $options: 'i' } }],
+        }
         : {},
     },
     // Look up matching employees

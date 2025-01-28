@@ -89,7 +89,6 @@ class RedisCache {
     const cachedData = await this.getFromCache<any>(cacheKey);
     
     if (cachedData) {
-      console.log("Offied cached data", cachedData);
       return cachedData;
     }
 

@@ -5,6 +5,7 @@ import { Department } from '../departments';
 import { ApiError } from '../errors';
 import { JobTitle } from '../jobTitles';
 import { Office } from '../office';
+import { redisService } from '../redis/redis-service';
 import { IOrganization, IOrganizationDoc } from './organization.interfaces';
 import Organization from './organization.model';
 
@@ -41,9 +42,20 @@ export const createOrganization = async (
  * */
 
 export const getOrganizationByUserId = async (userId: mongoose.Types.ObjectId): Promise<IOrganizationDoc | null> => {
-  const result = Organization.findOne({
+  const redisQueryKey = `organizationbyuser:${userId}`;
+
+  const redisQueryResult = await redisService.get(redisQueryKey);
+
+  if (redisQueryResult) {
+    return redisQueryResult as IOrganizationDoc;
+  }
+
+  const result = await Organization.findOne({
     userId: userId,
   });
+
+  if (result !== null) await redisService.set(redisQueryKey, result, 3600);
+
   return result
 };
 

@@ -1,5 +1,5 @@
-import Joi from 'joi';
 import 'dotenv/config';
+import Joi from 'joi';
 
 const envVarsSchema = Joi.object()
   .keys({
@@ -25,6 +25,7 @@ const envVarsSchema = Joi.object()
     CLOUDFRONT_DOMAIN: Joi.string().required().description('Cloudfront domain'),
     CASHFREE_APP_ID: Joi.string().required().description('Cashfree app ID'),
     CASHFREE_SECRET_KEY: Joi.string().required().description('Cashfree secret key'),
+    REDIS_CONNECTION_URL: Joi.string().required().description("Redis Connection URL")
   })
   .unknown();
 
@@ -70,6 +71,7 @@ const config = {
   CLOUDFRONT_DOMAIN: envVars.CLOUDFRONT_DOMAIN,
   CASHFREE_APP_ID: envVars.CASHFREE_APP_ID,
   CASHFREE_SECRET_KEY: envVars.CASHFREE_SECRET_KEY,
+  REDIS_CONNECTION_URL: envVars.REDIS_CONNECTION_URL,
 };
 
 export default config;

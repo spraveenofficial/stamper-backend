@@ -3,7 +3,7 @@ name: Deploy Node.js Express API to EC2 with Nginx
 on:
   push:
     branches:
-      - develop  # Trigger deployment on push to the develop branch
+      - develop # Trigger deployment on push to the develop branch
 
 jobs:
   deploy:
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Specify the Node.js version
+          node-version: '18' # Specify the Node.js version
 
       # Install dependencies
       - name: Install Dependencies
@@ -76,6 +76,7 @@ jobs:
           CLOUDFRONT_DOMAIN: ${{ vars.CLOUDFRONT_DOMAIN }}
           CASHFREE_APP_ID: ${{ vars.CASHFREE_APP_ID }}
           CASHFREE_SECRET_KEY: ${{ vars.CASHFREE_SECRET_KEY }}
+          REDIS_CONNECTION_URL: ${{vars.REDIS_CONNECTION_URL}}
         run: |
           ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $SCP_USER@$SCP_IP << EOF
             # Navigate to the deployment directory
@@ -112,6 +113,7 @@ jobs:
             CLOUDFRONT_DOMAIN=$CLOUDFRONT_DOMAIN
             CASHFREE_APP_ID=$CASHFREE_APP_ID
             CASHFREE_SECRET_KEY=$CASHFREE_SECRET_KEY
+            REDIS_CONNECTION_URL=$REDIS_CONNECTION_URL
             EOT'
 
             # Ensure PM2 is installed

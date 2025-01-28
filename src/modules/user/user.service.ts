@@ -100,6 +100,7 @@ export const updateUserById = async (
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   Object.assign(user!, updateBody);
+  await redisService.delete(`user:${userId}`)
   await user!.save();
   return user;
 };
