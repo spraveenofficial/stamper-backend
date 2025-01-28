@@ -13,7 +13,7 @@ router
     auth(),
     rbacMiddleware.checkPermission('department.create'),
     validate(departmentValidation.createDepartmentRequest),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     departmentController.addDepartment
   );
 
@@ -23,7 +23,7 @@ router
     auth(),
     rbacMiddleware.checkPermission('department.read'),
     validate(departmentValidation.getDepartmentsRequest),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     departmentController.getDepartments
   );
 

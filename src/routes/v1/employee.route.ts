@@ -24,11 +24,11 @@ router.route('/reinvite').post(auth(), validate(employeeValidation.reinviteEmplo
 
 router
   .route('/bulk-upload-dummy-excel')
-  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.generateBulkUploadEmployeeExcelExample);
+  .get(auth(), organizationMiddleware.organizationMiddlewareV2, employeeController.generateBulkUploadEmployeeExcelExample);
 
 router
   .route('/bulk-upload')
-  .post(auth(), organizationMiddleware.organizationMiddleware, employeeController.bulkUploadEmployees);
+  .post(auth(), organizationMiddleware.organizationMiddlewareV2, employeeController.bulkUploadEmployees);
 
 router
   .route('/bulk-upload/list')

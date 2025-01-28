@@ -13,7 +13,7 @@ router
     auth(),
     validate(officeValidations.creatOfficeRequest),
     rbacMiddleware.checkPermission('office.create'),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     officeControllers.addOffice
   );
 
@@ -23,7 +23,7 @@ router
     auth(),
     validate(officeValidations.editOfficeRequest),
     rbacMiddleware.checkPermission('office.update'),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     officeControllers.editOffice
   );
 
@@ -32,7 +32,7 @@ router
   .get(
     auth(),
     rbacMiddleware.checkPermission('office.read'),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     officeControllers.getOffices
   );
 

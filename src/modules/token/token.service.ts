@@ -1,14 +1,14 @@
+import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
 import moment, { Moment } from 'moment';
 import mongoose from 'mongoose';
-import httpStatus from 'http-status';
 import config from '../../config/config';
-import Token from './token.model';
 import ApiError from '../errors/ApiError';
-import tokenTypes from './token.types';
-import { AccessAndRefreshTokens, ITokenDoc } from './token.interfaces';
-import { IUserDoc } from '../user/user.interfaces';
 import { userService } from '../user';
+import { IUserDoc } from '../user/user.interfaces';
+import { AccessAndRefreshTokens, ITokenDoc } from './token.interfaces';
+import Token from './token.model';
+import tokenTypes from './token.types';
 
 /**
  * Generate token
@@ -44,9 +44,8 @@ export const getCookieWithToken = (token: string, tokenName: string, domainName:
   // Use Domain only in production
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
 
-  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age${
-    config.jwt.accessExpirationMinutes * 60
-  }; ${domain} ${sameSite} ${secureFlag}`;
+  return `${tokenName}=${token}; HttpOnly; Path=/; Max-Age${config.jwt.accessExpirationMinutes * 60
+    }; ${domain} ${sameSite} ${secureFlag}`;
 };
 
 export const getCookieForLogout = (token: string, tokenName: string, domainName: string, isSecure: boolean): string => {
@@ -54,10 +53,10 @@ export const getCookieForLogout = (token: string, tokenName: string, domainName:
 
   // Secure flag is added only if secure mode is enabled
   const secureFlag = isSecure ? 'Secure;' : 'Secure;';
-  
+
   // SameSite attribute based on environment
   const sameSite = isProduction ? 'SameSite=None;' : 'SameSite=Lax;';
-  
+
   // Domain is included only if it's not localhost
   const domain = domainName === 'localhost' ? '' : `Domain=${domainName};`;
 
@@ -147,7 +146,7 @@ export const generateAuthTokens = async (user: IUserDoc): Promise<AccessAndRefre
  * @param {string} email
  * @returns {Promise<string>}
  */
-export const generateResetPasswordToken = async (email: string, t: (key:string) => string): Promise<any> => {
+export const generateResetPasswordToken = async (email: string, t: (key: string) => string): Promise<any> => {
   const user = await userService.getUserByEmail(email);
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, t('Auth.userNotFound'));
@@ -176,7 +175,7 @@ export const generateVerifyEmailToken = async (user: IUserDoc): Promise<string> 
  * @returns {Promise<string>}
  */
 export const generateOrganizationInvitationToken = async (user: IUserDoc): Promise<string> => {
-  const expires = moment().add(config.jwt.inviteExpirationInDays, 'days');
+  const expires = moment().add(config.jwt.inviteExpirationInDays, 'day');
   const invitationToken = generateToken(user.id, expires, tokenTypes.INVITATION, config.jwt.secret, user.role);
   await saveToken(invitationToken, user.id, user.role, expires, tokenTypes.INVITATION);
   return invitationToken;

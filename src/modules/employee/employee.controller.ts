@@ -1,20 +1,20 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync, pick } from '../utils';
-import { userService } from '../user';
-import { ApiError } from '../errors';
-import { tokenService, tokenTypes } from '../token';
-import { employeeService } from '.';
-import { employeeAccountStatus } from './employee.interfaces';
-import { DevelopmentOptions, rolesEnum } from '../../config/roles';
-import { emailService } from '../email';
-import config from '../../config/config';
+import httpStatus from 'http-status';
 import mongoose from 'mongoose';
-import { excelServices } from '../common/services/excel-service';
-import { organizationService } from '../organization';
-import { userPersonalInformationService } from '../common/userPersonalInformation';
-import { bulkUploadQueue } from '../bullmqs/employeeBulkUpload.process';
+import { employeeService } from '.';
+import config from '../../config/config';
+import { DevelopmentOptions, rolesEnum } from '../../config/roles';
 import { BULL_AVAILABLE_JOBS, queueDBServices } from '../bullmqs';
+import { bulkUploadQueue } from '../bullmqs/employeeBulkUpload.process';
+import { excelServices } from '../common/services/excel-service';
+import { userPersonalInformationService } from '../common/userPersonalInformation';
+import { emailService } from '../email';
+import { ApiError } from '../errors';
+import { organizationService } from '../organization';
+import { tokenService, tokenTypes } from '../token';
+import { userService } from '../user';
+import { catchAsync, pick } from '../utils';
+import { employeeAccountStatus } from './employee.interfaces';
 
 export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: Response) => {
   const { body } = req;
@@ -76,18 +76,9 @@ export const reinviteEmployee = catchAsync(async (req: Request, res: Response) =
 });
 
 export const generateBulkUploadEmployeeExcelExample = catchAsync(async (req: Request, res: Response) => {
-  const { role } = req.user;
+  const { organizationId, officeId } = req.organizationContext
 
-  let officeId;
-  let orgId;
-  if (role === rolesEnum.organization) {
-    orgId = req.organization.id;
-  } else if ('officeId' in req.organization) {
-    orgId = req.organization.organizationId;
-    officeId = req.organization.officeId;
-  }
-
-  const orgConfig = await organizationService.getOrgOfficeNDepartmentNJobTitle(orgId, officeId);
+  const orgConfig = await organizationService.getOrgOfficeNDepartmentNJobTitle(organizationId, officeId);
   const excel = await excelServices.generateSampleEmployeeBulkUploadExcelSheet(
     orgConfig.offices,
     orgConfig.departments,
@@ -171,15 +162,9 @@ export const updateEmployeePersonalInformation = catchAsync(async (req: Request,
 });
 
 export const bulkUploadEmployees = catchAsync(async (req: Request, res: Response) => {
-  const { role, id } = req.user;
+  const { id } = req.user;
   const { employees } = req.body;
-
-  let orgId;
-  if (role === rolesEnum.organization) {
-    orgId = req.organization.id;
-  } else if ('officeId' in req.organization) {
-    orgId = req.organization.organizationId;
-  }
+  const { organizationId: orgId } = req.organizationContext;
 
   const job = await bulkUploadQueue.add(
     'bulk_upload',
@@ -231,7 +216,6 @@ export const getEachBulkUploadInformation = catchAsync(async (req: Request, res:
   const { id } = req.params;
 
   if (typeof req.params['id'] === 'string') {
-    console.log('id:', id);
     const task = await queueDBServices.getBulkUploadInformationForEachTask(userId, id as unknown as mongoose.Types.ObjectId);
 
     if (!task) {

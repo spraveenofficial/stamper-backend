@@ -355,7 +355,7 @@ export const getOrgEmployeeOnBoardingFlow = (organizationId: mongoose.Types.Obje
 
 export const getOrgOfficeNDepartmentNJobTitle = async (
   orgId: mongoose.Types.ObjectId,
-  officeId?: mongoose.Types.ObjectId
+  officeId: mongoose.Types.ObjectId | null | undefined
 ): Promise<any> => {
   let filter: any = {
     organizationId: new mongoose.Types.ObjectId(orgId),

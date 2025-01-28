@@ -7,7 +7,7 @@ import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
-router.route('/').get(auth(), rbacMiddleware.checkPermission('jobtitle.read'), organizationMiddleware.organizationMiddleware, jobTitleController.getJobTitles);
+router.route('/').get(auth(), rbacMiddleware.checkPermission('jobtitle.read'), organizationMiddleware.organizationMiddlewareV2, jobTitleController.getJobTitles);
 
 router
   .route('/add')

@@ -1,28 +1,18 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync, pick } from '../utils';
-import { officeServices } from '../office';
-import { ApiError } from '../errors';
-import { departmentService } from '.';
-import { IOptions } from '../paginate/paginate';
+import httpStatus from 'http-status';
 import mongoose from 'mongoose';
+import { departmentService } from '.';
+import { ApiError } from '../errors';
+import { officeServices } from '../office';
+import { IOptions } from '../paginate/paginate';
+import { catchAsync, pick } from '../utils';
 
 export const addDepartment = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
+  const { organizationId, officeId } = req.organizationContext;
 
-  let organizationId;
-  let officeId;
-  if (req.user.role === 'organization') {
-    organizationId = req.organization._id;
-  } else {
-    if ('officeId' in req.organization) {
-      organizationId = req.organization.organizationId;
-      officeId = req.organization.officeId;
-    }
-
-    if (officeId?.toString() !== req.body.officeId.toString()) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'You are not authorized to add department to this office');
-    }
+  if (officeId?.toString() !== req.body.officeId.toString()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You are not authorized to add department to this office');
   }
 
   const office = await officeServices.getOfficeById(req.body.officeId);
@@ -42,25 +32,13 @@ export const addDepartment = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getDepartments = catchAsync(async (req: Request, res: Response) => {
-  const { role } = req.user;
-  let organizationId;
-  let userOfficeId;
+  const { organizationId } = req.organizationContext;
   const options: IOptions = pick(req.query, ['officeId']);
   const officeId = options.officeId ? new mongoose.Types.ObjectId(options.officeId) : null;
 
-  
-  if (role === 'organization') {
-    organizationId = req.organization._id;
-  } else {
-    if ('officeId' in req.organization) {
-      organizationId = req.organization.organizationId;
-      userOfficeId = req.organization.officeId;
-    }
-
-    if (userOfficeId?.toString() !== officeId!.toString()) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'You are not authorized to get departments of this office');
-    }
-  }
+  // if (userOfficeId?.toString() !== officeId!.toString()) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'You are not authorized to get departments of this office');
+  // }
 
   const departments = await departmentService.getDepartments(organizationId, officeId!);
   res.status(httpStatus.OK).json({ success: true, data: departments });
