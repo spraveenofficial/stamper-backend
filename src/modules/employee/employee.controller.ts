@@ -37,8 +37,7 @@ export const updateEmploeeAccountStatus = catchAsync(async (req: Request, res: R
   const updatePassword = await userService.updateUserById(user.id, body);
   await employeeService.updateEmployeeAccountStatus(user.id, employeeAccountStatus.Active);
   await tokenService.deleteToken(token as string);
-  user.isEmailVerified = true;
-  await user.save();
+  await userService.updateUserById(user.id, { isEmailVerified: true });
   res.status(httpStatus.OK).json({ success: true, message: 'Employee account status updated successfully', updatePassword });
 });
 
@@ -90,39 +89,47 @@ export const generateBulkUploadEmployeeExcelExample = catchAsync(async (req: Req
 });
 
 export const getEmployeeDirectory = catchAsync(async (req: Request, res: Response) => {
-  const { role } = req.user;
   const { page, limit, name } = pick(req.query, ['page', 'limit', 'name']);
-
+  const { organizationId, officeId } = req.organizationContext;
   const paginationOptions = {
     page: Math.max(1, +page || 1),
     limit: Math.max(1, +limit || 10),
   };
 
-  let directory: any;
+  const directory = await employeeService.getEmployeesByOrgId(
+    organizationId,
+    paginationOptions.page,
+    paginationOptions.limit,
+    officeId!.toString(),
+    null,
+    null,
+    name as string
+  )
 
-  if (role === rolesEnum.organization) {
-    directory = await employeeService.getEmployeesByOrgId(
-      req.organization.id,
-      paginationOptions.page,
-      paginationOptions.limit,
-      null,
-      null,
-      null,
-      name as string
-    );
-  } else {
-    if ('officeId' in req.organization) {
-      directory = await employeeService.getEmployeesByOrgId(
-        req.organization.organizationId,
-        paginationOptions.page,
-        paginationOptions.limit,
-        req.organization.officeId.toString(),
-        null,
-        null,
-        name as string
-      );
-    }
-  }
+
+  // if (role === rolesEnum.organization) {
+  //   directory = await employeeService.getEmployeesByOrgId(
+  //     req.organization.id,
+  //     paginationOptions.page,
+  //     paginationOptions.limit,
+  //     null,
+  //     null,
+  //     null,
+  //     name as string
+  //   );
+  // } else {
+  //   if ('officeId' in req.organization) {
+  //     directory = await employeeService.getEmployeesByOrgId(
+  //       req.organization.organizationId,
+  //       paginationOptions.page,
+  //       paginationOptions.limit,
+  //       req.organization.officeId.toString(),
+  //       null,
+  //       null,
+  //       name as string
+  //     );
+  //   }
+  // }
 
   res.status(httpStatus.OK).json({ success: true, message: 'Employee directory fetched successfully', data: directory });
 });
