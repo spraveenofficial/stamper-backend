@@ -56,7 +56,7 @@ export const reinviteEmployee = catchAsync(async (req: Request, res: Response) =
     throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Found');
   }
 
-  if (user.role !== 'employee') {
+  if (user.role == rolesEnum.organization) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User is not an employee');
   }
 
