@@ -65,7 +65,6 @@ export const getUserById = async (id: mongoose.Types.ObjectId): Promise<IUserDoc
   const redisQueryExists = await redisService.get(redisQueryKey);
 
   if (redisQueryExists) {
-    console.log("Returned from cached data")
     return redisQueryExists as IUserDoc
   }
 
@@ -95,7 +94,7 @@ export const updateUserById = async (
   userId: mongoose.Types.ObjectId,
   updateBody: UpdateUserBody
 ): Promise<IUserDoc | null> => {
-  const user = await getUserById(userId);
+  const user = await User.findById(userId);
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
