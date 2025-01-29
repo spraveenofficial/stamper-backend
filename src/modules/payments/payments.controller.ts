@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { paymentsServices } from '.';
+import { Payments, paymentsServices } from '.';
 import { rolesEnum } from '../../config/roles';
 import catchAsync from '../utils/catchAsync';
 import { CashFreePaymentsSolution } from './cashfree.service';
 import { AvailablePaymentProviders, IPayments, PaymentStatus } from './payments.interfaces';
+import { User } from '../user';
 
 export const initiatePayment = catchAsync(async (req: Request, res: Response) => {
     const { id, role } = req.user;
@@ -43,8 +44,39 @@ export const initiatePayment = catchAsync(async (req: Request, res: Response) =>
 
 
 export const paymentsWebhook = catchAsync(async (req: Request, res: Response) => {
-    console.log('Webhook received:', req.body);
+    const data = req.body;
 
+    if (!data?.data?.customer_details?.customer_id || !data?.data?.payment_gateway_details?.gateway_order_id) {
+        return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Invalid webhook payload" });
+    }
 
-    return res.status(httpStatus.OK).json({ success: true, message: 'Webhook received' });
+    try {
+        const findUser = await User.findById(data.data.customer_details.customer_id).select("role");
+
+        if (!findUser) {
+            return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "User not found" });
+        }
+
+        if (findUser.role !== "organization") {
+            return res.status(httpStatus.FORBIDDEN).json({ success: false, message: "User is not authorized to update payments" });
+        }
+
+        const existingPayment = await Payments.findOne({ orderId: data.data.payment_gateway_details.gateway_order_id });
+
+        if (!existingPayment) {
+            return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "Payment record not found for the given orderId" });
+        }
+
+        if (existingPayment.status === data.data.payment.payment_status) {
+            return res.status(httpStatus.OK).json({ success: true, message: "Payment status is already updated" });
+        }
+
+        existingPayment.status = data.data.payment.payment_status;
+        await existingPayment.save();
+
+        return res.status(httpStatus.OK).json({ success: true, message: "Payment status updated successfully" });
+    } catch (error: any) {
+        console.error("Error processing webhook:", error);
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error", error: error.message });
+    }
 });
