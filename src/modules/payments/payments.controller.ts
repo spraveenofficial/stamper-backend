@@ -1,22 +1,18 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { Payments, paymentsServices } from '.';
+import { paymentsServices } from '.';
 import { rolesEnum } from '../../config/roles';
 import catchAsync from '../utils/catchAsync';
 import { CashFreePaymentsSolution } from './cashfree.service';
-import { AvailablePaymentProviders, IPayments, PaymentStatus } from './payments.interfaces';
-import { User } from '../user';
+import { AvailablePaymentProviders, IPayments, PaymentResponseType, PaymentStatus, PaymentStatusMapping } from './payments.interfaces';
+import { ApiError } from '../errors';
+// import { existingPaymentDetail, findUserDetails } from './payments.service';
+import { existingPaymentDetail, findUserDetails } from './payments.service';
 
 export const initiatePayment = catchAsync(async (req: Request, res: Response) => {
-    const { id, role } = req.user;
+    const { id } = req.user;
     const { planId, currency } = req.body;
-
-    let organizationId;
-    if (role === rolesEnum.organization) {
-        organizationId = req.organization.id;
-    } else if ('officeId' in req.organization) {
-        organizationId = req.organization.organizationId;
-    }
+    const { organizationId } = req.organizationContext;
     const cashFreePaymentService = new CashFreePaymentsSolution();
 
     try {
@@ -44,34 +40,69 @@ export const initiatePayment = catchAsync(async (req: Request, res: Response) =>
 
 
 export const paymentsWebhook = catchAsync(async (req: Request, res: Response) => {
-    const data = req.body;
+    const data: PaymentResponseType = req.body.data;
+    console.log("Webhook data is: ", req.body.data.payment);
 
-    if (!data?.data?.customer_details?.customer_id || !data?.data?.payment_gateway_details?.gateway_order_id) {
+    if (!data?.customer_details?.customer_id || !data?.payment_gateway_details?.gateway_order_id) {
         return res.status(httpStatus.BAD_REQUEST).json({ success: false, message: "Invalid webhook payload" });
     }
 
     try {
-        const findUser = await User.findById(data.data.customer_details.customer_id).select("role");
+        const findUser = await findUserDetails(data.customer_details.customer_id) 
 
         if (!findUser) {
-            return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "User not found" });
+            throw new ApiError(httpStatus.NOT_FOUND, "User not found");
         }
 
-        if (findUser.role !== "organization") {
-            return res.status(httpStatus.FORBIDDEN).json({ success: false, message: "User is not authorized to update payments" });
+        if (findUser.role !== rolesEnum.organization) {
+            throw new ApiError(httpStatus.FORBIDDEN, "User is not authorized to update payments");
         }
 
-        const existingPayment = await Payments.findOne({ orderId: data.data.payment_gateway_details.gateway_order_id });
-
+        const existingPayment = await existingPaymentDetail(data.payment_gateway_details.gateway_order_id) 
         if (!existingPayment) {
-            return res.status(httpStatus.NOT_FOUND).json({ success: false, message: "Payment record not found for the given orderId" });
+            throw new ApiError(httpStatus.NOT_FOUND, "Payment record not found for the given orderId");
         }
 
-        if (existingPayment.status === data.data.payment.payment_status) {
+        const paymentStatus = data.payment.payment_status as PaymentStatus;
+
+        if (!Object.values(PaymentStatus).includes(paymentStatus)) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Invalid payment status received");
+        }
+
+        if (existingPayment.status === paymentStatus) {
             return res.status(httpStatus.OK).json({ success: true, message: "Payment status is already updated" });
         }
 
-        existingPayment.status = data.data.payment.payment_status;
+        if (paymentStatus === PaymentStatusMapping.FAILED && data.error_details) {
+            existingPayment.errorReason = data.error_details?.error_reason;
+            existingPayment.errorDescription = data.error_details.error_description;
+            existingPayment.payment_group = data.payment.payment_group;
+            existingPayment.status = paymentStatus;
+            await existingPayment.save();
+            throw new ApiError(httpStatus.BAD_REQUEST, "Payment Failed");
+        }
+
+        if (paymentStatus === PaymentStatusMapping.USER_DROPPED) {
+            existingPayment.errorReason = paymentStatus.toLowerCase();
+            existingPayment.errorDescription = "Drop out of the payment flow without completing the transaction."
+            existingPayment.payment_group = data.payment.payment_group;
+            existingPayment.status = paymentStatus;
+            await existingPayment.save();
+            throw new ApiError(httpStatus.BAD_REQUEST, "Drop out of the payment flow without completing the transaction.");
+        }
+
+        
+        if (paymentStatus === PaymentStatusMapping.FLAGGED || paymentStatus === PaymentStatusMapping.PENDING || paymentStatus === PaymentStatusMapping.CANCELLED || paymentStatus === PaymentStatusMapping.VOID) {
+            existingPayment.errorReason = paymentStatus.toLowerCase();
+            existingPayment.errorDescription = "Transaction Failed";
+            existingPayment.payment_group = data.payment.payment_group;
+            existingPayment.status = paymentStatus;
+            await existingPayment.save();
+            throw new ApiError(httpStatus.BAD_REQUEST, "Payment Failed");
+        }
+        
+        existingPayment.payment_group = data.payment.payment_group;
+        existingPayment.status = paymentStatus;
         await existingPayment.save();
 
         return res.status(httpStatus.OK).json({ success: true, message: "Payment status updated successfully" });
