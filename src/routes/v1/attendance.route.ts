@@ -27,7 +27,7 @@ router
 
 router
   .route('/work-schedule')
-  .patch(
+  .put(
     auth(),
     validate(attendanceOfficeConfigValidations.updateWorkScheduleRequest),
     organizationMiddleware.organizationMiddleware,

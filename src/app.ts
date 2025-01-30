@@ -37,7 +37,7 @@ const allowedBaseDomains = [
 ];
 
 // Regular expression to match dynamic tenant subdomains
-const tenantDomainRegex = /^https?:\/\/([a-z0-9-]+)\.stamper\.tech$/;
+const tenantDomainRegex = /^https?:\/\/([a-z0-9-]+)\.stamperhr\.com/;
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
@@ -63,7 +63,7 @@ const corsOptions = {
     callback(new Error("Not allowed by CORS"));
   },
   credentials: true, // Allow credentials (cookies)
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow HTTP methods
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"], // Allow HTTP methods
 };
 
 app.use(cors(corsOptions));
