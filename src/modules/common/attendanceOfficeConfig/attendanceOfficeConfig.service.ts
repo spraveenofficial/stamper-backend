@@ -176,6 +176,7 @@ export const getOrganizationOfficeConfig = async (
         qrEnabled: '$officeConfig.qrEnabled',
         selfieRequired: '$officeConfig.selfieRequired',
         officeLocation: '$officeConfig.officeLocation',
+        officeLocationText: '$officeConfig.officeLocationText',
         isWorkScheduleAdded: {
           $cond: { if: { $eq: ['$officeConfig._id', null] }, then: false, else: true },
         },
