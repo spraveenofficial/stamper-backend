@@ -1,21 +1,21 @@
-import { Queue, Worker, Job, QueueEvents } from 'bullmq';
-import mongoose from 'mongoose';
+import { Job, Queue, QueueEvents, Worker } from 'bullmq';
+import httpStatus from 'http-status';
 import { Redis } from 'ioredis';
-import { ApiError } from '../errors';
-import { departmentService } from '../departments';
-import { officeServices } from '../office';
-import { jobTitleService } from '../jobTitles';
-import { userService } from '../user';
-import { employeeService } from '../employee';
-import { tokenService } from '../token';
-import { emailService } from '../email';
-import { QueueTasks } from './mq.model';
-import { IEmployeeBulkUploadPayload } from '../employee/employee.interfaces';
-import { QueueJobsStatus } from './types';
+import mongoose from 'mongoose';
 import config from '../../config/config';
 import { DevelopmentOptions } from '../../config/roles';
-import httpStatus from 'http-status';
+import { departmentService } from '../departments';
+import { emailService } from '../email';
+import { employeeService } from '../employee';
+import { IEmployeeBulkUploadPayload } from '../employee/employee.interfaces';
+import { ApiError } from '../errors';
+import { jobTitleService } from '../jobTitles';
+import { officeServices } from '../office';
+import { tokenService } from '../token';
+import { userService } from '../user';
 import { BULL_AVAILABLE_JOBS } from './constants';
+import { QueueTasks } from './mq.model';
+import { QueueJobsStatus } from './types';
 
 // Constants
 const QUEUE_NAME = 'bulk_upload';
@@ -67,7 +67,7 @@ class RedisCache {
   static async getDepartment(id: string, organizationId: mongoose.Types.ObjectId) {
     const cacheKey = `department:${id}`;
     const cachedData = await this.getFromCache<any>(cacheKey);
-    
+
     if (cachedData) {
       return cachedData;
     }
@@ -87,13 +87,13 @@ class RedisCache {
   static async getOffice(id: string) {
     const cacheKey = `office:${id}`;
     const cachedData = await this.getFromCache<any>(cacheKey);
-    
+
     if (cachedData) {
       return cachedData;
     }
 
     const office = await officeServices.getOfficeById(id as unknown as mongoose.Types.ObjectId);
-    
+
     if (office) {
       await this.setInCache(cacheKey, office);
     }
@@ -104,13 +104,13 @@ class RedisCache {
   static async getJobTitle(id: string) {
     const cacheKey = `jobTitle:${id}`;
     const cachedData = await this.getFromCache<any>(cacheKey);
-    
+
     if (cachedData) {
       return cachedData;
     }
 
     const jobTitle = await jobTitleService.getJobTitleById(id as unknown as mongoose.Types.ObjectId);
-    
+
     if (jobTitle) {
       await this.setInCache(cacheKey, jobTitle);
     }
@@ -136,18 +136,18 @@ async function processEmployee(
     }
 
     // Validate and get related entities with caching
-    const department = cachedData.department || 
+    const department = cachedData.department ||
       await RedisCache.getDepartment(
         employeeData.department as string,
         organizationId as unknown as mongoose.Types.ObjectId
       );
     if (!department) throw new ApiError(httpStatus.BAD_REQUEST, 'Department not found');
 
-    const office = cachedData.office || 
+    const office = cachedData.office ||
       await RedisCache.getOffice(employeeData.office as string);
     if (!office) throw new ApiError(httpStatus.BAD_REQUEST, 'Office not found');
 
-    const jobTitle = cachedData.jobTitle || 
+    const jobTitle = cachedData.jobTitle ||
       await RedisCache.getJobTitle(employeeData.jobTitle as string);
     if (!jobTitle) throw new ApiError(httpStatus.BAD_REQUEST, 'Job title not found');
 

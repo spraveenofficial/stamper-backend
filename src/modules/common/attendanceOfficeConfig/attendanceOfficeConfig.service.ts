@@ -175,6 +175,10 @@ export const getOrganizationOfficeConfig = async (
         radius: '$officeConfig.radius',
         qrEnabled: '$officeConfig.qrEnabled',
         selfieRequired: '$officeConfig.selfieRequired',
+        officeLocation: '$officeConfig.officeLocation',
+        isWorkScheduleAdded: {
+          $cond: { if: { $eq: ['$officeConfig._id', null] }, then: false, else: true },
+        },
       },
 
     },
