@@ -22,6 +22,18 @@ const updateOfficeBody: Record<keyof UpdateOffice, any> = {
   contactNumber: Joi.string().optional(),
   contactEmail: Joi.string().optional(),
   companyOverview: Joi.string().optional(),
+  attendanceConfig: Joi.object({
+    totalHoursCalculation: Joi.string().required(), // Add other options if needed
+    attendanceApprovalCycle: Joi.object({}).keys({
+      startDay: Joi.alternatives()
+        .try(
+          Joi.number().integer().min(1).max(31), // Day of the month (1-31)
+          Joi.string().valid('last') // 'last' for the last day of the month
+        )
+        .required(),
+      frequency: Joi.string().valid('Monthly', 'Weekly').required(), // Repeat On
+    }).required(),
+  }).optional(),
 };
 
 export const creatOfficeRequest = {

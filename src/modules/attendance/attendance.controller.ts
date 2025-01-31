@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import { attendanceServices } from '.';
 import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
+import { IEmployeeDoc } from '../employee/employee.interfaces';
 import { IOptions } from '../paginate/paginate';
 import { catchAsync, pick } from '../utils';
 
@@ -57,24 +58,24 @@ export const getClockinButtonStatus = catchAsync(async (req: Request, res: Respo
 export const getMyAttendance = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const { limit, page, status } = pick(req.query, ['limit', 'page', 'status']);
-  //@ts-ignore
+  const { originalData, officeId } = req.organizationContext;
+
   const pageToFn = Math.max(1, +page! || 1); // Default to page 1
-  //@ts-ignore
   const limitToFn = Math.max(1, +limit! || 10); // Default to limit 10
 
   const statusToFn = status as 'present' | 'absent' | 'all';
 
-  const response = await attendanceServices.getMyAttendance(id, pageToFn, limitToFn, statusToFn);
+  const response = await attendanceServices.getMyAttendance(id, originalData as IEmployeeDoc, officeId!, pageToFn, limitToFn, statusToFn);
   res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });
 
 export const clockinEmployee = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
-  if ('officeId' in req.organization) {
-    req.body.officeId = req.organization.officeId;
-    req.body.organizationId = req.organization.organizationId;
-  }
-  const response = await attendanceServices.clockinEmployee(id, req.body);
+  const { officeId, organizationId } = req.organizationContext;
+  const requestPayload = { ...req.body, officeId, organizationId };
+
+  const response = await attendanceServices.clockinEmployee(id, requestPayload);
+
   res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });
 

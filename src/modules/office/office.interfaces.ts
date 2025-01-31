@@ -7,6 +7,16 @@ export interface IOfficeHRs {
   status: "active" | "inactive";
 }
 
+export interface IOfficeAttendanceApprovalCycleFrequency { }
+
+export interface IOfficeAttendanceConfig {
+  totalHoursCalculation: String; // Add other options if needed
+  attendanceApprovalCycle: {
+    startDay: number | 'last'; // Day of the month (1-30) or 'last' for the last day
+    frequency: 'Monthly' | 'Weekly' | 'Custom'; // Repeat On
+  };
+}
+
 export interface IOffice {
   name: string;
   location: string;
@@ -21,6 +31,7 @@ export interface IOffice {
   contactEmail: string;
   companyOverview: string;
   hr: IOfficeHRs[];
+  attendanceConfig: IOfficeAttendanceConfig;
 }
 
 export interface IOfficeDoc extends IOffice, Document { }
@@ -35,7 +46,7 @@ export interface IOfficeModel extends Model<IOfficeDoc> {
   paginate(filter: Record<string, any>, options: Record<string, any>): Promise<QueryResult>;
 }
 
-export type NewAddOffice = Omit<IOffice, 'addedBy' | 'managerId' | 'isOperational' | 'organizationId' | 'officePolicies' | 'hr'>;
+export type NewAddOffice = Omit<IOffice, 'addedBy' | 'managerId' | 'isOperational' | 'organizationId' | 'officePolicies' | 'hr' | 'attendanceConfig'>;
 
 export type UpdateOffice = Omit<IOffice, 'addedBy' | 'managerId' | 'organizationId' | 'officePolicies' | 'isHeadQuarter' | "hr"> & {
   officeId: string;

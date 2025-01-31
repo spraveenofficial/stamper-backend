@@ -53,6 +53,8 @@ export const getOffices = async (
         addedBy: 0,
         organizationId: 0,
         managerId: 0,
+        hr: 0,
+        attendanceConfig: 0,
       },
     },
     { $sort: { createdAt: -1 } },
@@ -100,7 +102,7 @@ export const editOffice = async (officeId: mongoose.Types.ObjectId, payload: Par
 };
 
 export const getOfficeById = async (officeId: mongoose.Types.ObjectId): Promise<IOfficeDoc | null> => {
-  return await Office.findById(officeId);
+  return await Office.findById(officeId).select('-__v -updatedAt -createdAt -hr -attendanceConfig').lean() as IOfficeDoc;
 };
 
 export const getOfficeByOrgAndEmpId = async (

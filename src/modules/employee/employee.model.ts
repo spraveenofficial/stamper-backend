@@ -45,6 +45,10 @@ const employeeSchema = new mongoose.Schema<IEmployeeDoc, IEmployeeModel>(
       enum: employeeAccountStatus,
       default: employeeAccountStatus.Invited,
     },
+    addedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }
   },
   {
     timestamps: true,

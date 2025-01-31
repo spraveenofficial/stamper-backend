@@ -1,9 +1,9 @@
 import express, { Router } from 'express';
-import { organizationController, organizationValidation } from '../../modules/organization';
 import { auth } from '../../modules/auth';
-import { validate } from '../../modules/validate';
 import { employeeValidation } from '../../modules/employee';
-import { organizationMiddleware } from '../../modules/organization/organization.middleware';
+import { organizationController, organizationValidation } from '../../modules/organization';
+import { organizationMiddleware, organizationMiddlewareV2 } from '../../modules/organization/organization.middleware';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 router.post(
@@ -17,6 +17,7 @@ router.post(
   '/add-employee',
   auth('addEmployee'),
   validate(organizationValidation.addEmployee),
+  organizationMiddlewareV2,
   organizationController.addEmployee
 );
 

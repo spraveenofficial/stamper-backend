@@ -133,16 +133,20 @@ attendanceSchema.post('findOneAndUpdate', async function (doc: IAttendanceDoc) {
     const clockinTime = new Date(doc.clockinTime);
     const clockoutTime = new Date(doc.clockoutTime);
 
-    // Calculate the total logged hours
-    const diff = clockoutTime.getTime() - clockinTime.getTime();
-    const hours = diff / (1000 * 60 * 60);
-    doc.totalLoggedHours = parseFloat(hours.toFixed(2)); // Set totalLoggedHours to 2 decimal places
+    // Validate that clockoutTime is later than clockinTime
+    if (clockoutTime > clockinTime) {
+      // Calculate the total logged hours
+      const diff = clockoutTime.getTime() - clockinTime.getTime();
+      const hours = diff / (1000 * 60 * 60);
+      doc.totalLoggedHours = parseFloat(hours.toFixed(2)); // Set totalLoggedHours to 2 decimal places
 
-    // Save the updated document with total logged hours
-    await doc.save();
+      // Save the updated document with total logged hours
+      await doc.save();
+    } else {
+      console.error('Invalid times: clockoutTime must be later than clockinTime');
+    }
   }
 });
-
 
 attendanceSchema.statics['isAttendanceAlreadyMarkedToday'] = async function (
   employeeId: mongoose.Types.ObjectId,
