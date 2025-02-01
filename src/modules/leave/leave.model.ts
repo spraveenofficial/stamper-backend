@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { toJSON } from '../toJSON';
-import { ILeave, ILeaveDoc, ILeaveModel, LeaveStatus } from './leave.interfaces';
 import { eventInterfaces, eventServices } from '../events';
+import { toJSON } from '../toJSON';
+import { ILeaveDoc, ILeaveModel, LeaveStatus } from './leave.interfaces';
 // import moment from 'moment';
 
 const leaveSchema = new mongoose.Schema<ILeaveDoc, ILeaveModel>(
@@ -63,7 +63,7 @@ leaveSchema.post('findOneAndUpdate', async function (doc: ILeaveDoc) {
   // Check if the leave was approved
   if (doc.status === LeaveStatus.APPROVED) {
     // Create event for leave
-   const event =  await eventServices.createEvent(
+    const event = await eventServices.createEvent(
       populatedData.employeeId,
       {
         title: `${populatedData?.leaveTypeId?.leaveType}`,
@@ -89,11 +89,11 @@ leaveSchema.post('findOneAndUpdate', async function (doc: ILeaveDoc) {
  * @param {Date} startDate - The start date of the leave
  * @param {Date} endDate - The end date of the leave
  */
-leaveSchema.static('isLeaveExist', async function (employeeId: string, startDate: Date, endDate: Date) {
+leaveSchema.statics['isLeaveExist'] = async function (employeeId: string, startDate: Date, endDate: Date) {
   const leave = await this.findOne({ employeeId, startDate, endDate });
   return !!leave;
-});
+}
 
-const Leave = mongoose.model<ILeave, ILeaveModel>('Leave', leaveSchema);
+const Leave = mongoose.model<ILeaveDoc, ILeaveModel>('Leave', leaveSchema);
 
 export default Leave;

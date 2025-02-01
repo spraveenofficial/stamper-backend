@@ -9,7 +9,7 @@ COPY ./src ./src
 
 RUN ls -a
 
-RUN yarn install --pure-lockfile && yarn compile
+RUN npm install && npm run compile
 
 # production stage
 

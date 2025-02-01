@@ -1,12 +1,12 @@
-import mongoose from 'mongoose';
-import httpStatus from 'http-status';
-import httpMocks from 'node-mocks-http';
 import { jest } from '@jest/globals';
+import httpStatus from 'http-status';
+import mongoose from 'mongoose';
+import httpMocks from 'node-mocks-http';
 import winston from 'winston';
-import { errorConverter, errorHandler } from './error';
-import ApiError from './ApiError';
 import config from '../../config/config';
 import logger from '../logger/logger';
+import ApiError from './ApiError';
+import { errorConverter, errorHandler } from './error';
 
 describe('Error middlewares', () => {
   describe('Error converter', () => {
@@ -63,7 +63,7 @@ describe('Error middlewares', () => {
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: error.statusCode,
-          message: httpStatus[error.statusCode],
+          message: httpStatus[String(error.statusCode) as keyof typeof httpStatus], // Convert number to string
           isOperational: false,
         })
       );
