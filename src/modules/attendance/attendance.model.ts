@@ -38,6 +38,9 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
         type: String,
         enum: ['Point'],
         default: 'Point',
+        required: function (this: IAttendanceDoc) {
+          return this.isGeoFencing;
+        },
       },
       coordinates: {
         type: [Number],
