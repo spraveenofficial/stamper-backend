@@ -6,10 +6,9 @@ WORKDIR /usr/src/app
 COPY package.json yarn.lock tsconfig.json ecosystem.config.json ./
 
 COPY ./src ./src
-
 RUN ls -a
 
-RUN yarn install --pure-lockfile && yarn compile
+RUN npm install && npm run compile
 
 # production stage
 

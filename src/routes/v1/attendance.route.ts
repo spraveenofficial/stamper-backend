@@ -27,7 +27,7 @@ router
 
 router
   .route('/work-schedule')
-  .patch(
+  .put(
     auth(),
     validate(attendanceOfficeConfigValidations.updateWorkScheduleRequest),
     organizationMiddleware.organizationMiddleware,
@@ -46,17 +46,17 @@ router
   .route('/button-status')
   .get(
     auth('getClockinButtonStatus'),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     attendanceController.getClockinButtonStatus
   );
 
 router
   .route('/my-attendance')
-  .get(auth('getMyAttendance'), organizationMiddleware.organizationMiddleware, attendanceController.getMyAttendance);
+  .get(auth('getMyAttendance'), organizationMiddleware.organizationMiddlewareV2, attendanceController.getMyAttendance);
 
 router
   .route('/clockin')
-  .post(auth('clockin'), organizationMiddleware.organizationMiddleware, attendanceController.clockinEmployee);
+  .post(auth('clockin'), organizationMiddleware.organizationMiddlewareV2, attendanceController.clockinEmployee);
 
 router
   .route('/clockout')

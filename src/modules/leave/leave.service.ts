@@ -1,8 +1,8 @@
+import httpStatus from 'http-status';
 import mongoose from 'mongoose';
+import { ApiError } from '../errors';
 import { ILeaveDoc, LeaveStatus, NewLeave } from './leave.interfaces';
 import Leave from './leave.model';
-import { ApiError } from '../errors';
-import httpStatus from 'http-status';
 // import { organizationService } from '../organization';
 import { s3Services } from '../s3';
 // import { rolesEnum } from '../../config/roles';
@@ -35,7 +35,7 @@ export const createLeave = async (
  * @returns {Promise<ILeaveDoc | null>}
  * */
 
-export const getLeaveById = async (id: mongoose.Types.ObjectId): Promise<ILeaveDoc | null> => Leave.findById(id);
+export const getLeaveById = async (id: mongoose.Types.ObjectId): Promise<ILeaveDoc | null> => await Leave.findById(id);
 
 /**
  * Get leave by employee id
@@ -96,7 +96,8 @@ export const updateLeaveById = async (
   leaveId: mongoose.Types.ObjectId,
   userId: mongoose.Types.ObjectId
 ): Promise<ILeaveDoc | null> => {
-  const leave = await Leave.findById(leaveId);
+  const leave: ILeaveDoc | null = await Leave.findById(leaveId);
+
   if (!leave) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Leave not found');
   }

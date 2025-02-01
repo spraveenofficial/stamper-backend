@@ -5,7 +5,7 @@ import { Office } from '../../../modules/office';
 export const findOfficeConfig = async (
   officeId: mongoose.Types.ObjectId
 ): Promise<attendanceConfigInterface.IAttendanceOfficeConfigDoc | null> => {
-  const officeConfig = await AttendanceOfficeConfig.findOne({ officeId }).select('-__v').lean();
+  const officeConfig = await AttendanceOfficeConfig.findOne({ officeId, isActive: true }).select('-__v').lean();
   return officeConfig;
 };
 
@@ -175,6 +175,11 @@ export const getOrganizationOfficeConfig = async (
         radius: '$officeConfig.radius',
         qrEnabled: '$officeConfig.qrEnabled',
         selfieRequired: '$officeConfig.selfieRequired',
+        officeLocation: '$officeConfig.officeLocation',
+        officeLocationText: '$officeConfig.officeLocationText',
+        isWorkScheduleAdded: {
+          $cond: { if: { $eq: ['$officeConfig._id', null] }, then: false, else: true },
+        },
       },
 
     },

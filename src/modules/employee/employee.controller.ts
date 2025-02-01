@@ -59,7 +59,7 @@ export const reinviteEmployee = catchAsync(async (req: Request, res: Response) =
     throw new ApiError(httpStatus.BAD_REQUEST, 'User is not an employee');
   }
 
-  const employeeStatus = await employeeService.getEmployeeById(user.id);
+  const employeeStatus = await employeeService.getEmployeeByUserId(user._id);
   if (employeeStatus?.accountStatus === employeeAccountStatus.Active) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee account is already active');
   }
@@ -191,7 +191,7 @@ export const bulkUploadEmployees = catchAsync(async (req: Request, res: Response
   const newTask = await queueDBServices.createNewQueueTask({
     userId: req.user.id,
     dataToProcess: employees.length,
-    data: [],
+    data: employees,
     jobType: BULL_AVAILABLE_JOBS.EMPLOYEE_BULK_UPLOAD,
     jobId: job.id as string,
   });

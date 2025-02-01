@@ -1,29 +1,31 @@
-import winston from 'winston';
-import config from '../../config/config';
+import winston, { Logform, Logger } from "winston";
 
-interface LoggingInfo {
-  level: string;
-  message: string;
-}
+const { format, transports } = winston;
 
-const enumerateErrorFormat = winston.format((info: LoggingInfo) => {
+import config from "../../config/config";
+
+const enumerateErrorFormat = format((info: Logform.TransformableInfo) => {
   if (info instanceof Error) {
-    Object.assign(info, { message: info.stack });
+    return { ...info, message: info.stack || info.message || "Unknown Error" };
   }
   return info;
 });
 
-const logger = winston.createLogger({
-  level: config.env === 'development' ? 'debug' : 'info',
-  format: winston.format.combine(
+// Logger configuration
+const logger: Logger = winston.createLogger({
+  level: config.env === "development" ? "debug" : "info",
+  format: format.combine(
     enumerateErrorFormat(),
-    config.env === 'development' ? winston.format.colorize() : winston.format.uncolorize(),
-    winston.format.splat(),
-    winston.format.printf((info: LoggingInfo) => `${info.level}: ${info.message}`)
+    config.env === "development" ? format.colorize() : format.uncolorize(),
+    format.splat(),
+    format.printf((info: Logform.TransformableInfo) => {
+      const message = typeof info.message === "string" ? info.message : "Unknown message";
+      return `${info.level}: ${message}`;
+    })
   ),
   transports: [
-    new winston.transports.Console({
-      stderrLevels: ['error'],
+    new transports.Console({
+      stderrLevels: ["error"], // Directs error-level logs to stderr
     }),
   ],
 });

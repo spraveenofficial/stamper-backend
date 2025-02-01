@@ -23,19 +23,16 @@ export const createOrganization = catchAsync(async (req: Request, res: Response)
 export const addEmployee = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const { user, employeeInformation } = req.body;
-  const organization = await organizationService.getOrganizationByUserId(id);
-  if (!organization) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
-  }
+  const { organizationId } = req.organizationContext;
 
   // Check if department is exist in organization
-  const department = await departmentService.getDeparmentByIdAndOrgId(employeeInformation.departmentId, organization.id);
+  const department = await departmentService.getDeparmentByIdAndOrgId(employeeInformation.departmentId, organizationId);
 
   if (!department) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Department not found');
   }
 
-  if (department.organizationId.toString() !== organization.id.toString()) {
+  if (department.organizationId.toString() !== organizationId.toString()) {
     throw new ApiError(httpStatus.BAD_REQUEST, "You can't add employee to another organization");
   }
 
@@ -58,9 +55,10 @@ export const addEmployee = catchAsync(async (req: Request, res: Response) => {
     userId: employee.id as mongoose.Types.ObjectId,
     managerId: office.managerId as mongoose.Types.ObjectId,
     jobTitleId: jobTitle.id as mongoose.Types.ObjectId,
-    organizationId: organization.id as mongoose.Types.ObjectId,
+    organizationId: organizationId as mongoose.Types.ObjectId,
     officeId: office.id as mongoose.Types.ObjectId,
     departmentId: department.id as mongoose.Types.ObjectId,
+    addedBy: id as mongoose.Types.ObjectId,
   });
 
   const token = await tokenService.generateOrganizationInvitationToken(employee);

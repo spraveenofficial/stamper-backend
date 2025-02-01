@@ -1,4 +1,4 @@
-import mongoose, { Model, Document } from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 
 export enum LeaveStatus {
   PENDING = 'pending',
@@ -7,8 +7,8 @@ export enum LeaveStatus {
 }
 
 export interface ILeave {
-  employeeId: mongoose.Schema.Types.ObjectId;
-  leaveTypeId: mongoose.Schema.Types.ObjectId;
+  employeeId: mongoose.Types.ObjectId;
+  leaveTypeId: mongoose.Types.ObjectId;
   total: number;
   attachment: string;
   startDate: Date;

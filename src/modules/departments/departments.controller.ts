@@ -2,16 +2,17 @@ import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import { departmentService } from '.';
+import { rolesEnum } from '../../config/roles';
 import { ApiError } from '../errors';
 import { officeServices } from '../office';
 import { IOptions } from '../paginate/paginate';
 import { catchAsync, pick } from '../utils';
 
 export const addDepartment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { id, role } = req.user;
   const { organizationId, officeId } = req.organizationContext;
 
-  if (officeId?.toString() !== req.body.officeId.toString()) {
+  if (role !== rolesEnum.organization && officeId?.toString() !== req.body.officeId.toString()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'You are not authorized to add department to this office');
   }
 

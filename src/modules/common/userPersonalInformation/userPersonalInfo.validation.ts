@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { GenderEnum, MaritalStatusEnum} from './userPersonalInfo.interface'; // Path to your interface
+import { GenderEnum, MaritalStatusEnum } from './userPersonalInfo.interface'; // Path to your interface
 
 const userPersonalInfoValidation = Joi.object<any>({
   name: Joi.string().optional(), // Required string
@@ -30,6 +30,8 @@ const userPersonalInfoValidation = Joi.object<any>({
         relationship: Joi.string().required(), // Required within the array if present
         phone: Joi.string().required(), // Required within the array if present
         email: Joi.string().email().required(), // Required within the array if present
+        createdAt: Joi.date().iso().optional(), // Required within the array if present
+        updatedAt: Joi.date().iso().optional(), // Required within the array if present
       })
     )
     .optional(),
@@ -43,6 +45,8 @@ const userPersonalInfoValidation = Joi.object<any>({
         branchName: Joi.string().required(), // Required within the array if present
         ifscCode: Joi.string().required(), // Required within the array if present
         isPrimary: Joi.boolean().required(), // Required within the array if present
+        createdAt: Joi.date().iso().optional(), // Required within the array if present
+        updatedAt: Joi.date().iso().optional(), // Required within the array if present
       })
     )
     .optional(),

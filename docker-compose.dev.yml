@@ -3,10 +3,10 @@ version: '3'
 services:
   mongo:
     volumes:
-      - ./data:/data/db
-  
+      - ./data:/data/stamperBackend
+
   app:
-    container_name: ts-node-app-dev
+    container_name: stamperBackend
     command: yarn dev -L
 
 volumes:

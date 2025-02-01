@@ -1,6 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
 // import { userCapService } from '../common/userCap';
-// CallbackError,
 import { paginate } from '../paginate';
 import { toJSON } from '../toJSON';
 import { IOfficeDoc, IOfficeHrDoc, IOfficeHrModel, IOfficeModel } from './office.interfaces';
@@ -26,6 +25,28 @@ const officeHrSchema = new Schema<IOfficeHrDoc, IOfficeHrModel>(
   {
     timestamps: true,
   }
+);
+
+const OfficeAttendanceConfigSchema = new Schema(
+  {
+    totalHoursCalculation: {
+      type: String,
+      required: true,
+      default: "Default", // Default to 'Default'
+    },
+    attendanceApprovalCycle: {
+      startDay: {
+        type: Schema.Types.Mixed,
+        required: true,
+      },
+      frequency: {
+        type: String,
+        enum: ['Monthly', 'Weekly', 'Custom'],
+        required: true,
+      },
+    },
+  },
+  { _id: false } // Disable _id for subdocuments
 );
 
 const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
@@ -87,6 +108,10 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
       type: [officeHrSchema],
       default: [],
     },
+    attendanceConfig: {
+      type: OfficeAttendanceConfigSchema,
+      required: false,
+    },
   },
   {
     timestamps: true,
@@ -135,6 +160,5 @@ officeSchema.index({ managerId: 1 });
 //   }
 //   next();
 // });
-
 
 export default mongoose.model<IOfficeDoc, IOfficeModel>('Office', officeSchema);

@@ -28,10 +28,11 @@ export const getOffices = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const editOffice = catchAsync(async (req: Request, res: Response) => {
+  const { role } = req.user;
   // Check if user has rights to edit the office
   const { organizationId, officeId: userOfficeId } = req.organizationContext;
 
-  if (userOfficeId?.toString() !== req.body.officeId.toString()) {
+  if (role !== rolesEnum.organization && userOfficeId?.toString() !== req.body.officeId.toString()) {
     throw res.status(httpStatus.BAD_REQUEST).json({ success: false, message: 'You are not authorized to edit this office' });
   }
   // Check if the office exists

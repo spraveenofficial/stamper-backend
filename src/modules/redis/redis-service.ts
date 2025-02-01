@@ -74,6 +74,25 @@ class RedisService {
         const result = await redisClient.exists(key);
         return result > 0;
     }
+
+
+    /**
+     * Get the bulk items from Redis.
+     * @param keys - The keys of the data to retrieve.
+     * @returns A promise that resolves with the retrieved value or null if not found.
+     */
+    public async batchGet(keys: string[]): Promise<(string | null)[]> {
+        if (!keys.length) return [];
+
+        try {
+            // Use Promise.all to fetch all keys concurrently
+            const results = await Promise.all(keys.map((key) => redisService.get<string>(key)));
+            return results;
+        } catch (error) {
+            console.error('Redis batch get error:', error);
+            return keys.map(() => null); // Return an array of nulls if there's an error
+        }
+    }
 }
 
 export const redisService = new RedisService();

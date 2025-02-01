@@ -50,7 +50,7 @@ const updateWorkScheduleRequestSchema: Record<keyof attendanceConfigInterface.Up
   standardHoursInADay: Joi.number().optional(),
   isActive: Joi.boolean().optional(),
   selfieRequired: Joi.boolean().optional(),
-  clockinMode: Joi.string().valid(...Object.values(attendanceConfigInterface.AttendanceClockinAndClockoutMode)).optional(),
+  clockinMode: Joi.array().items(Joi.string().valid(...Object.values(attendanceConfigInterface.AttendanceClockinAndClockoutMode)).required()).optional(),
   geofencing: Joi.boolean().optional().allow(null),
   radius: Joi.number().optional().allow(null),
   officeLocationText: Joi.string().optional(),
