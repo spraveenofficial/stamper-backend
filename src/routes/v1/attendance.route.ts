@@ -42,6 +42,13 @@ router
     attendanceController.getAttendanceConfigForOffice
   );
 
+router.get(
+  '/office-general-settings/:officeId',
+  auth(),
+  organizationMiddleware.organizationMiddlewareV2,
+  attendanceController.getOfficeAttendanceGeneralSettings
+);
+
 router
   .route('/button-status')
   .get(

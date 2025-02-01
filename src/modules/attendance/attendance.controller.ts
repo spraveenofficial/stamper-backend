@@ -5,6 +5,7 @@ import { attendanceServices } from '.';
 import { rolesEnum } from '../../config/roles';
 import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
 import { IEmployeeDoc } from '../employee/employee.interfaces';
+import { officeServices } from '../office';
 import { IOptions } from '../paginate/paginate';
 import { catchAsync, pick } from '../utils';
 
@@ -96,6 +97,15 @@ export const getEmployeeMonthSummary = catchAsync(async (req: Request, res: Resp
   const { id } = req.user;
 
   const response = await attendanceServices.getEmployeeMonthlySummary(id);
+
+  res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
+});
+
+
+export const getOfficeAttendanceGeneralSettings = catchAsync(async (req: Request, res: Response) => {
+  const { organizationId } = req.organizationContext;
+  const { officeId } = req.params;
+  const response = await officeServices.getOfficeAttendanceGeneralSettings(organizationId, officeId as unknown as mongoose.Types.ObjectId);
 
   res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });

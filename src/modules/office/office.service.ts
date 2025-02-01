@@ -2,7 +2,7 @@ import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import { Office } from '.';
 import { ApiError } from '../errors';
-import { IOffice, IOfficeDoc, NewAddOffice } from './office.interfaces';
+import { IOffice, IOfficeAttendanceConfig, IOfficeDoc, NewAddOffice } from './office.interfaces';
 
 export const addOffice = async (
   payload: NewAddOffice,
@@ -113,4 +113,21 @@ export const getOfficeByOrgAndEmpId = async (
     organizationId: new mongoose.Types.ObjectId(orgId),
     managerId: new mongoose.Types.ObjectId(empId),
   });
+};
+
+
+export const getOfficeAttendanceGeneralSettings = async (
+  organizationId: mongoose.Types.ObjectId,
+  officeId: mongoose.Types.ObjectId): Promise<IOfficeAttendanceConfig | null> => {
+  const office = await Office.findOne({
+    organizationId: new mongoose.Types.ObjectId(organizationId),
+    _id: new mongoose.Types.ObjectId(officeId),
+  }).select('-__v -updatedAt -createdAt').lean() as IOfficeDoc;
+
+
+  if (!office) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Office not found');
+  }
+
+  return office.attendanceConfig
 };
