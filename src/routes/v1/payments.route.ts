@@ -5,7 +5,7 @@ import { paymentsController } from '../../modules/payments';
 
 const router: Router = express.Router();
 
-router.post('/initiate', auth(), organizationMiddleware.organizationMiddleware, paymentsController.initiatePayment);
+router.post('/initiate', auth(), organizationMiddleware.organizationMiddlewareV2, paymentsController.initiatePayment);
 
 
 

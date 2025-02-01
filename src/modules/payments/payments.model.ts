@@ -43,6 +43,24 @@ const paymentsSchema = new Schema<IPaymentsDoc, IPaymentsModel>(
             enum: Object.values(AvailablePaymentProviders),
             required: true,
         },
+        errorReason: {
+            type: String, 
+            required: false,
+            default: null,
+            trim: true
+        }, 
+        errorDescription: {
+            type: String, 
+            required: false,
+            default: null,
+            trim: true
+        },
+        payment_group: {
+            type: String, 
+            required: false,
+            default: null,
+            trim: true
+        }
     },
     { timestamps: true }
 );
