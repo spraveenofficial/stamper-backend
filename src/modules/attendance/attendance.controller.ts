@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 import { attendanceServices } from '.';
+import { rolesEnum } from '../../config/roles';
 import { attendanceOfficeConfigService } from '../common/attendanceOfficeConfig';
 import { IEmployeeDoc } from '../employee/employee.interfaces';
 import { IOptions } from '../paginate/paginate';
@@ -50,7 +51,13 @@ export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res:
 });
 
 export const getClockinButtonStatus = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { id, role } = req.user;
+
+  if (role === rolesEnum.organization) {
+    const response = await attendanceServices.checkIfOrgUserCanClockInToday(id);
+    return res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
+  }
+
   const response = await attendanceServices.checkIfEmployeeCanClockInToday(id);
   return res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });

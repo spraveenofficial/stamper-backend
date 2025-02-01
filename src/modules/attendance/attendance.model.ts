@@ -14,7 +14,7 @@ const attendanceSchema = new Schema<IAttendanceDoc, IAttendanceModel>(
     officeId: {
       type: Schema.Types.ObjectId,
       ref: 'Office',
-      required: true,
+      required: false,
     },
     organizationId: {
       type: Schema.Types.ObjectId,

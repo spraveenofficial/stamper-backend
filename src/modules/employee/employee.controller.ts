@@ -59,7 +59,7 @@ export const reinviteEmployee = catchAsync(async (req: Request, res: Response) =
     throw new ApiError(httpStatus.BAD_REQUEST, 'User is not an employee');
   }
 
-  const employeeStatus = await employeeService.getEmployeeById(user.id);
+  const employeeStatus = await employeeService.getEmployeeByUserId(user._id);
   if (employeeStatus?.accountStatus === employeeAccountStatus.Active) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Employee account is already active');
   }

@@ -24,6 +24,7 @@ const allRoles = {
     'addHoliday',
     'editJobTitle',
     'sendMessage',
+    'getClockinButtonStatus'
   ],
   employee: ['profile', 'getClockinButtonStatus', 'getMyAttendance', 'clockin', 'clockout', 'sendMessage'],
   admin: ['profile'],
