@@ -1,17 +1,25 @@
 version: '3'
 
 services:
+  redis:
+    image: redis:alpine
+    labels:
+      - 'traefik.enable=false'
+    networks:
+      - devNet
+    ports:
+      - 6379
   mongo:
     container_name: mongo
     image: mongo:4.2.1-bionic
     restart: always
     ports:
-      - "27018:27017"
+      - '27018:27017'
     networks:
       - backend
   app:
     container_name: stamperBackend
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       target: base
@@ -21,16 +29,18 @@ services:
       - ${PORT}
     ports:
       - ${PORT}:${PORT}
-    environment: 
+    environment:
       - MONGODB_URL=mongodb://mongo:27017/Stamper
       - CLIENT_URL=${CLIENT_URL}
-    links: 
-      - mongo  
+    links:
+      - mongo
     depends_on:
-      - mongo  
+      - mongo
     networks:
       - backend
 
 networks:
   backend:
-    driver: bridge    
+    driver: bridge
+  devNet:
+    driver: bridge

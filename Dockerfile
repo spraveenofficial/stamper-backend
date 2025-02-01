@@ -6,7 +6,6 @@ WORKDIR /usr/src/app
 COPY package.json yarn.lock tsconfig.json ecosystem.config.json ./
 
 COPY ./src ./src
-
 RUN ls -a
 
 RUN npm install && npm run compile

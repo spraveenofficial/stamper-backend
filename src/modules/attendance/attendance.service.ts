@@ -31,10 +31,7 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
 
   // Early return if office config is missing
   if (!loadOfficeConfig) {
-    return {
-      isOfficeConfigAdded: false,
-      message: 'Office configuration not found',
-    };
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Office config not found');
   }
 
   const [timezone, _offset] = office.timezone.split(' - ') ?? [null, null];
