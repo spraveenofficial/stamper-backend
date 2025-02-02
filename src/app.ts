@@ -9,8 +9,9 @@ import httpStatus from 'http-status';
 import xss from 'xss-clean';
 import config from './config/config';
 import { i18n } from './i18n/init';
+import { stamperCronService } from './modules/cronjobs/cron.services';
 import { ApiError, errorConverter, errorHandler } from './modules/errors';
-import { morgan } from './modules/logger';
+import { logger, morgan } from './modules/logger';
 import { authLimiter } from './modules/utils';
 import routes from './routes/v1';
 // import { connectRedis } from './modules/redis/init';
@@ -111,5 +112,11 @@ app.use(errorConverter);
 
 // Handle errors
 app.use(errorHandler);
+
+
+// Cron Jobs
+
+stamperCronService.startAllCronJobs();
+logger.info("✅ Cron jobs initialized.");
 
 export default app;

@@ -117,6 +117,7 @@
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "cron": "^3.5.0",
     "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
     "exceljs": "^4.4.0",
