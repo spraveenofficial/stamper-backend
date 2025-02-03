@@ -1,6 +1,7 @@
 import { CronJob } from 'cron';
 import { logger } from '../logger';
 import { Subscription } from '../subscriptions';
+import { SubscriptionStatusEnum } from '../subscriptions/subscriptions.interfaces';
 
 class StamperCronServices {
     private cronJobs: CronJob[] = [];
@@ -19,8 +20,14 @@ class StamperCronServices {
             today.setHours(0, 0, 0, 0);
 
             for (const plan of activePlans) {
-                if (plan.endDate.getTime() === today.getTime()) {
+                const planEndDate = new Date(plan.endDate);
+                planEndDate.setHours(0, 0, 0, 0);
+                if (planEndDate.getTime() === today.getTime()) {
                     // Update the plan status to expired
+                    await Subscription.updateOne(
+                        { _id: plan._id }, 
+                        { $set: { status: SubscriptionStatusEnum.EXPIRED } } 
+                    );
                     logger.info(`Plan ${plan._id} has expired.`);
                 }
             }
@@ -43,7 +50,7 @@ class StamperCronServices {
 
     /**
      * Initialize and start all cron jobs
-     */
+        */
     public startAllCronJobs() {
         // Add all cron jobs to the array
         this.cronJobs.push(
