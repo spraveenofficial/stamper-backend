@@ -102,6 +102,14 @@ export const checkIfEmployeeCanClockInToday = async (employeeId: mongoose.Types.
       }
       : null,
     officeLocationText: loadOfficeConfig.officeLocationText,
+    todayWorkingDayHoursCount:
+      isWorkingDay && loadOfficeConfig.scheduleType === attendanceConfigInterface.OfficeScheduleTypeEnum.DURATION
+        ? todayWorkingDayConfig?.schedule?.hours // Return total working hours if schedule type is DURATION
+        : moment.duration(
+          moment(todayWorkingDayConfig?.schedule.endTime, "HH:mm").diff(
+            moment(todayWorkingDayConfig?.schedule.startTime, "HH:mm")
+          )
+        ).asHours(),
     officeUTCConfig: {
       timezone,
       _offset,
