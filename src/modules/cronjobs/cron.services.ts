@@ -24,10 +24,7 @@ class StamperCronServices {
                 planEndDate.setHours(0, 0, 0, 0);
                 if (planEndDate.getTime() === today.getTime()) {
                     // Update the plan status to expired
-                    await Subscription.updateOne(
-                        { _id: plan._id }, 
-                        { $set: { status: SubscriptionStatusEnum.EXPIRED } } 
-                    );
+                    await Subscription.updateOne({ _id: plan._id }, { $set: { status: SubscriptionStatusEnum.EXPIRED } });
                     logger.info(`Plan ${plan._id} has expired.`);
                 }
             }
@@ -37,25 +34,12 @@ class StamperCronServices {
     }
 
     /**
-     * Example cron job that runs every minute
-     */
-    private async callEveryMinute() {
-        try {
-            logger.info('Running every minute...');
-            // Add your logic here
-        } catch (error) {
-            logger.error('Error in callEveryMinute:', error);
-        }
-    }
-
-    /**
      * Initialize and start all cron jobs
         */
     public startAllCronJobs() {
         // Add all cron jobs to the array
         this.cronJobs.push(
-            new CronJob('0 0 0 * * *', this.checkForOrganizationPlanExpiry.bind(this)), // Daily at 12:00 AM
-            new CronJob('* * * * *', this.callEveryMinute.bind(this)) // Every minute
+            new CronJob('0 0 0 * * *', this.checkForOrganizationPlanExpiry.bind(this)) // Daily at 12:00 AM
         );
 
         // Start all cron jobs

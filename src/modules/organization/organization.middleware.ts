@@ -23,15 +23,6 @@ const organizationMiddleware = async (req: Request, res: Response, next: NextFun
     if (!organization) {
       return res.status(httpStatus.BAD_REQUEST).json({ message: 'Please add organization first' });
     }
-
-    // Narrow down to check if it's IEmployeeDoc or IOrganizationDoc
-    if ('officeId' in organization) {
-      console.log("Employee's office ID:", organization.officeId); // Access fields specific to IEmployeeDoc
-    } else {
-      console.log('Organization-specific data:', organization.companyName); // Access fields specific to IOrganizationDoc
-    }
-
-    console.log('Console log organization middleware:', organization);
     req.organization = organization;
     return next();
   } catch (error) {

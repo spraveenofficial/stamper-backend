@@ -1,6 +1,6 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { logger } from '../logger';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import config from '../../config/config';
+import { logger } from '../logger';
 
 // Initialize the S3 Client
 const s3Client = new S3Client({
