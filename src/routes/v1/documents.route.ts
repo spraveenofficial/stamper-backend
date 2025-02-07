@@ -1,3 +1,4 @@
+import { organizationMiddleware } from '../../modules/organization';
 import express, { Router } from 'express';
 import { auth } from '../../modules/auth';
 import { documentController, documentValidations } from '../../modules/documents';
@@ -11,7 +12,7 @@ router
 
 router
   .route('/folders')
-  .get(auth(), documentController.getFolders);
+  .get(auth(), organizationMiddleware.organizationMiddleware, documentController.getFolders);
 
 
 export default router;

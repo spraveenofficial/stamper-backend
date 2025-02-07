@@ -53,7 +53,7 @@ export const getAttendanceConfigForOffice = catchAsync(async (req: Request, res:
 
 export const getClockinButtonStatus = catchAsync(async (req: Request, res: Response) => {
   const { id, role } = req.user;
-  console.log("attendance.controller.ts -> getClockinButtonStatus -> id", id)
+
   if (role === rolesEnum.organization) {
     const response = await attendanceServices.checkIfOrgUserCanClockInToday(id);
     return res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
