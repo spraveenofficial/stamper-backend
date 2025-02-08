@@ -1,12 +1,14 @@
 import { IOfficeAttendanceConfig } from "../office/office.interfaces";
 import Office from "../office/office.model";
 
-const defaultAttendanceConfig: IOfficeAttendanceConfig = {
-    totalHoursCalculation: "Default", // Default to 'Default'
-    attendanceApprovalCycle: {
-        startDay: 1, // Default to the 1st day of the month
-        frequency: 'Monthly', // Default to 'Monthly'
-    }
+const defaultAttendanceConfig: Partial<IOfficeAttendanceConfig> = {
+    regularizationCycleType: 'Monthly',
+    regularizationCycleStartsOnDate: 1,
+    regularizationReasonRequired: true,
+    regularizationReasons: [],
+    regularizationAllowedTypes: [],
+    canEmployeeEditAttendance: true,
+    employeeCanEditAttendanceForLastDays: 7,
 };
 
 const migrateOffices = async () => {
@@ -15,7 +17,7 @@ const migrateOffices = async () => {
         console.log('Offices Found:', offices.length);
 
         for (const office of offices) {
-            office.attendanceConfig = defaultAttendanceConfig;
+            office.attendanceConfig = defaultAttendanceConfig as IOfficeAttendanceConfig;
             await office.save();
 
             console.log(`Updated office with ID: ${office._id}`);

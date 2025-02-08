@@ -1,4 +1,5 @@
 import mongoose, { Document, Model } from 'mongoose';
+import { attendanceConfigInterface } from '../common/attendanceOfficeConfig';
 import { QueryResult } from '../paginate/paginate';
 
 export interface IOfficeHRs {
@@ -10,11 +11,14 @@ export interface IOfficeHRs {
 export interface IOfficeAttendanceApprovalCycleFrequency { }
 
 export interface IOfficeAttendanceConfig {
-  totalHoursCalculation: String; // Add other options if needed
-  attendanceApprovalCycle: {
-    startDay: number | 'last'; // Day of the month (1-30) or 'last' for the last day
-    frequency: 'Monthly' | 'Weekly' | 'Custom'; // Repeat On
-  };
+  regularizationCycleType: 'Monthly' | 'Weekly',
+  regularizationCycleStartsOnDate: number,
+  regularizationCycleStartsOnDay: attendanceConfigInterface.OfficeWorkingDaysEnum,
+  regularizationReasonRequired: boolean,
+  regularizationReasons: string[],
+  regularizationAllowedTypes: string[],
+  canEmployeeEditAttendance: boolean,
+  employeeCanEditAttendanceForLastDays: number,
 }
 
 export interface IOffice {

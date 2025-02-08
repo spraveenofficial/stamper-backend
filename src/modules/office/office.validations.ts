@@ -23,16 +23,14 @@ const updateOfficeBody: Record<keyof UpdateOffice, any> = {
   contactEmail: Joi.string().optional(),
   companyOverview: Joi.string().optional(),
   attendanceConfig: Joi.object({
-    totalHoursCalculation: Joi.string().required(), // Add other options if needed
-    attendanceApprovalCycle: Joi.object({}).keys({
-      startDay: Joi.alternatives()
-        .try(
-          Joi.number().integer().min(1).max(31), // Day of the month (1-31)
-          Joi.string().valid('last') // 'last' for the last day of the month
-        )
-        .required(),
-      frequency: Joi.string().valid('Monthly', 'Weekly').required(), // Repeat On
-    }).required(),
+    regularizationCycleType: Joi.string().optional(),
+    regularizationCycleStartsOnDate: Joi.number().optional(),
+    regularizationCycleStartsOnDay: Joi.string().optional(),
+    regularizationReasonRequired: Joi.boolean().optional(),
+    regularizationReasons: Joi.array().items(Joi.string()).optional(),
+    regularizationAllowedTypes: Joi.array().items(Joi.string()).optional(),
+    canEmployeeEditAttendance: Joi.boolean().optional(),
+    employeeCanEditAttendanceForLastDays: Joi.number().optional(),
   }).optional(),
 };
 

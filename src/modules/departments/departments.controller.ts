@@ -10,9 +10,9 @@ import { catchAsync, pick } from '../utils';
 
 export const addDepartment = catchAsync(async (req: Request, res: Response) => {
   const { id, role } = req.user;
-  const { organizationId, officeId } = req.organizationContext;
+  const { organizationId, officeId: userOfficeId } = req.organizationContext;
 
-  if (role !== rolesEnum.organization && officeId?.toString() !== req.body.officeId.toString()) {
+  if (role !== rolesEnum.organization && userOfficeId?.toString() !== req.body.officeId.toString()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'You are not authorized to add department to this office');
   }
 
@@ -25,7 +25,7 @@ export const addDepartment = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.BAD_REQUEST, req.t('Departments.officeDoesNotOperational'));
   }
 
-  const department = await departmentService.createDepartment(req.body, id, office.id, organizationId);
+  const department = await departmentService.createDepartment(req.body, id, office._id, organizationId);
 
   res
     .status(httpStatus.CREATED)

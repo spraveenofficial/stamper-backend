@@ -1,6 +1,15 @@
 import mongoose from 'mongoose';
 import { AttendanceClockinAndClockoutMode } from '../common/attendanceOfficeConfig/attendanceOfficeConfig.interface';
 
+
+export enum IAttendanceStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
+}
+
+
 export interface IAttendance {
   employeeId: mongoose.Types.ObjectId;
   officeId: mongoose.Types.ObjectId;
@@ -33,9 +42,11 @@ export interface IAttendance {
   isClockedout: boolean;
   isHavingLunch: boolean;
   totalLoggedHours: number;
+  remark: string;
+  status: IAttendanceStatus;
 }
 
-export interface IAttendanceDoc extends IAttendance, mongoose.Document {}
+export interface IAttendanceDoc extends IAttendance, mongoose.Document { }
 
 export interface IAttendanceModel extends mongoose.Model<IAttendanceDoc> {
   isAttendanceAlreadyMarkedToday(employeeId: mongoose.Types.ObjectId, officeId: mongoose.Types.ObjectId): Promise<boolean>;
@@ -57,6 +68,8 @@ export type CreateClockinPayload = Omit<
   | 'clockoutBrowser'
   | 'clockoutOs'
   | 'totalLoggedHours'
+  | 'status'
+  | 'remark'
 >;
 
 export type CreateClockoutPayload = Omit<
@@ -74,4 +87,6 @@ export type CreateClockoutPayload = Omit<
   | 'clockinBrowser'
   | 'clockinOs'
   | 'totalLoggedHours'
+  | 'status'
+  | 'remark'
 >;

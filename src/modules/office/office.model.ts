@@ -1,8 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
 // import { userCapService } from '../common/userCap';
+import { attendanceConfigInterface } from '../common/attendanceOfficeConfig';
 import { paginate } from '../paginate';
 import { toJSON } from '../toJSON';
-import { IOfficeDoc, IOfficeHrDoc, IOfficeHrModel, IOfficeModel } from './office.interfaces';
+import { IOfficeAttendanceConfig, IOfficeDoc, IOfficeHrDoc, IOfficeHrModel, IOfficeModel } from './office.interfaces';
 
 const officeHrSchema = new Schema<IOfficeHrDoc, IOfficeHrModel>(
   {
@@ -27,23 +28,51 @@ const officeHrSchema = new Schema<IOfficeHrDoc, IOfficeHrModel>(
   }
 );
 
-const OfficeAttendanceConfigSchema = new Schema(
+const OfficeAttendanceConfigSchema = new Schema<IOfficeAttendanceConfig>(
   {
-    totalHoursCalculation: {
+    regularizationCycleType: {
       type: String,
+      enum: ['Monthly', 'Weekly'],
+      default: 'Monthly',
       required: true,
-      default: "Default", // Default to 'Default'
     },
-    attendanceApprovalCycle: {
-      startDay: {
-        type: Schema.Types.Mixed,
-        required: true,
-      },
-      frequency: {
-        type: String,
-        enum: ['Monthly', 'Weekly', 'Custom'],
-        required: true,
-      },
+    regularizationCycleStartsOnDate: {
+      type: Number,
+      default: 1,
+      required: true,
+    },
+    regularizationCycleStartsOnDay: {
+      type: String,
+      enum: Object.values(attendanceConfigInterface.OfficeWorkingDaysEnum),
+      default: attendanceConfigInterface.OfficeWorkingDaysEnum.Monday,
+      required: function (this: IOfficeAttendanceConfig) {
+        return this.regularizationCycleType === 'Weekly';
+      }
+    },
+    regularizationReasonRequired: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+    regularizationReasons: {
+      type: [String],
+      required: true,
+      default: [],
+    },
+    regularizationAllowedTypes: {
+      type: [String],
+      required: true,
+      default: [],
+    },
+    canEmployeeEditAttendance: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+    employeeCanEditAttendanceForLastDays: {
+      type: Number,
+      required: true,
+      default: 7,
     },
   },
   { _id: false } // Disable _id for subdocuments
@@ -110,7 +139,16 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
     },
     attendanceConfig: {
       type: OfficeAttendanceConfigSchema,
-      required: false,
+      required: true,
+      default: {
+        regularizationCycleType: 'Monthly',
+        regularizationCycleStartsOnDate: 1,
+        regularizationReasonRequired: true,
+        regularizationReasons: [],
+        regularizationAllowedTypes: [],
+        canEmployeeEditAttendance: true,
+        employeeCanEditAttendanceForLastDays: 7,
+      }
     },
   },
   {
