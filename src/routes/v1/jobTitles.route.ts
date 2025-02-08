@@ -15,7 +15,7 @@ router
     auth(),
     rbacMiddleware.checkPermission('jobtitle.create'),
     validate(jobTitleValidation.createJobTitleRequest),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     jobTitleController.addJobTitle
   );
 
@@ -25,3 +25,4 @@ router
     rbacMiddleware.checkPermission('jobtitle.update'),
     validate(jobTitleValidation.updateJobTitleRequest), jobTitleController.editJobTitle);
 export default router;
+  

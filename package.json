@@ -1,12 +1,12 @@
 {
   "name": "stamper-backend",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Node express mongoose typescript",
   "main": "dist/index.js",
   "bin": "bin/createNodetsApp.cjs",
   "repository": "https://github.com/saisilinus/node-express-mongoose-typescript-boilerplate.git",
   "bugs": {
-    "url": "https://github.com/saisilinus/node-express-mongoose-typescript-boilerplate/issues"
+    "url": "https://github.com/spraveenofficial/stamperBackend/issues"
   },
   "author": "Praveen Kumar Singh",
   "license": "MIT",

@@ -29,7 +29,7 @@ router.get(
   organizationController.getOrganizationEmployees
 );
 
-router.get('/org-chart', auth(), organizationMiddleware, organizationController.getOrganizationChart);
+router.get('/org-chart', auth(), organizationMiddlewareV2, organizationController.getOrganizationChart);
 
 router.get('/data', auth(), organizationController.getOrganizationData);
 

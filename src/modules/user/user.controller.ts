@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { rolesEnum } from '../../config/roles';
 import { userCapService } from '../common/userCap';
 import { ApiError } from '../errors';
 import { IOptions } from '../paginate/paginate';
@@ -60,20 +59,11 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
 });
 
 export const getUserCapLimits = catchAsync(async (req: Request, res: Response) => {
-  const { role } = req.user;
-
-  let orgId;
-  if (role === rolesEnum.organization) {
-    orgId = req.organization.id;
-  } else {
-    if ('officeId' in req.organization) {
-      orgId = req.organization.organizationId;
-    }
-  }
+  const { organizationId } = req.organizationContext;
 
   const [limit, subscription] = await Promise.all([
-    userCapService.getCapLimitsByOrgId(orgId),
-    subscriptionServices.getCurrentSubscriptionForOrganization(orgId),
+    userCapService.getCapLimitsByOrgId(organizationId),
+    subscriptionServices.getCurrentSubscriptionForOrganization(organizationId),
   ]);
 
   const response = {

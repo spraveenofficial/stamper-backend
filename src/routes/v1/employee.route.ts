@@ -9,7 +9,7 @@ const router: Router = express.Router();
 
 router
   .route('/directory')
-  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.getEmployeeDirectory);
+  .get(auth(), organizationMiddleware.organizationMiddlewareV2, employeeController.getEmployeeDirectory);
 
 router
   .route('/activate')
@@ -18,7 +18,7 @@ router
 //Employee Search
 router
   .route('/search')
-  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.searchEmployeeBasedOnNameAndEmail);
+  .get(auth(), organizationMiddleware.organizationMiddlewareV2, employeeController.searchEmployeeBasedOnNameAndEmail);
 
 router.route('/reinvite').post(auth(), validate(employeeValidation.reinviteEmployee), employeeController.reinviteEmployee);
 
@@ -32,11 +32,11 @@ router
 
 router
   .route('/bulk-upload/list')
-  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.myBulkUploads);
+  .get(auth(), employeeController.myBulkUploads);
 
 router
   .route('/bulk-upload/:id')
-  .get(auth(), organizationMiddleware.organizationMiddleware, employeeController.getEachBulkUploadInformation);
+  .get(auth(), employeeController.getEachBulkUploadInformation);
 
 router
   .route('/info/:id')

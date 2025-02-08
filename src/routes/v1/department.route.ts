@@ -33,7 +33,7 @@ router
     auth(),
     rbacMiddleware.checkPermission('department.update'),
     validate(departmentValidation.editDepartmentRequest),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     departmentController.editDepartment
   );
 

@@ -67,7 +67,7 @@ router
 
 router
   .route('/clockout')
-  .post(auth('clockout'), organizationMiddleware.organizationMiddleware, attendanceController.clockoutEmployee);
+  .post(auth('clockout'), organizationMiddleware.organizationMiddlewareV2, attendanceController.clockoutEmployee);
 
 router
   .route('/month-summary')

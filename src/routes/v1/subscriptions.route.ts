@@ -5,6 +5,6 @@ import { subscriptionControllers } from '../../modules/subscriptions';
 
 const router: Router = express.Router();
 
-router.route('/list').get(auth(), organizationMiddleware.organizationMiddleware, subscriptionControllers.getMySubscriptions);
+router.route('/list').get(auth(), organizationMiddleware.organizationMiddlewareV2, subscriptionControllers.getMySubscriptions);
 
 export default router;

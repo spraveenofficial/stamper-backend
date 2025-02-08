@@ -1,8 +1,8 @@
 import express, { Router } from 'express';
-import { validate } from '../../modules/validate';
 import { auth } from '../../modules/auth';
 import { newsController, newsValidation } from '../../modules/news';
 import { organizationMiddleware } from '../../modules/organization';
+import { validate } from '../../modules/validate';
 
 const router: Router = express.Router();
 
@@ -11,11 +11,11 @@ router
   .post(
     auth('createNews'),
     validate(newsValidation.createNewNewsBody),
-    organizationMiddleware.organizationMiddleware,
+    organizationMiddleware.organizationMiddlewareV2,
     newsController.createNews
-);
+  );
 
-router.route('/latest').get(auth(), organizationMiddleware.organizationMiddleware, newsController.getLatestNews);
+router.route('/latest').get(auth(), organizationMiddleware.organizationMiddlewareV2, newsController.getLatestNews);
 router.route('/:id').get(auth(), validate(newsValidation.getNewsByIdParams), newsController.getNewsById);
 router.route('/:id').delete(auth('deleteNews'), validate(newsValidation.getNewsByIdParams), newsController.deleteNewsById);
 router

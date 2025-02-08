@@ -105,32 +105,6 @@ export const getEmployeeDirectory = catchAsync(async (req: Request, res: Respons
     null,
     name as string
   )
-
-
-  // if (role === rolesEnum.organization) {
-  //   directory = await employeeService.getEmployeesByOrgId(
-  //     req.organization.id,
-  //     paginationOptions.page,
-  //     paginationOptions.limit,
-  //     null,
-  //     null,
-  //     null,
-  //     name as string
-  //   );
-  // } else {
-  //   if ('officeId' in req.organization) {
-  //     directory = await employeeService.getEmployeesByOrgId(
-  //       req.organization.organizationId,
-  //       paginationOptions.page,
-  //       paginationOptions.limit,
-  //       req.organization.officeId.toString(),
-  //       null,
-  //       null,
-  //       name as string
-  //     );
-  //   }
-  // }
-
   res.status(httpStatus.OK).json({ success: true, message: 'Employee directory fetched successfully', data: directory });
 });
 
@@ -234,37 +208,25 @@ export const getEachBulkUploadInformation = catchAsync(async (req: Request, res:
 });
 
 export const searchEmployeeBasedOnNameAndEmail = catchAsync(async (req: Request, res: Response) => {
-  const { role, id } = req.user;
+  const { id } = req.user;
   const { page, limit, search } = pick(req.query, ['page', 'limit', 'search']);
+
+  const { organizationId, officeId } = req.organizationContext;
 
   const paginationOptions = {
     page: Math.max(1, +page || 1),
     limit: Math.max(1, +limit || 10),
   };
 
-  let employees: any;
+  let employees = await employeeService.searchEmployeeByNameAndEmail(
+    organizationId,
+    id,
+    officeId,
+    paginationOptions.page,
+    paginationOptions.limit,
+    search as string
+  );
 
-  if (role === rolesEnum.organization) {
-    employees = await employeeService.searchEmployeeByNameAndEmail(
-      req.organization.id,
-      id,
-      null,
-      paginationOptions.page,
-      paginationOptions.limit,
-      search as string,
-    );
-  } else {
-    if ('officeId' in req.organization) {
-      employees = await employeeService.searchEmployeeByNameAndEmail(
-        req.organization.organizationId,
-        id,
-        req.organization.officeId,
-        paginationOptions.page,
-        paginationOptions.limit,
-        search as string
-      );
-    }
-  }
 
   res.status(httpStatus.OK).json({ success: true, message: 'Employee fetched successfully', data: employees });
 });

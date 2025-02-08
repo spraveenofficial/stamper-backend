@@ -116,9 +116,9 @@ export const getOrganizationEmployees = catchAsync(async (req: Request, res: Res
 });
 
 export const getOrganizationChart = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.organization;
+  const { organizationId } = req.organizationContext;
 
-  const data = await organizationService.getOrgChartById(id as mongoose.Types.ObjectId);
+  const data = await organizationService.getOrgChartById(organizationId as mongoose.Types.ObjectId);
 
   return res.status(httpStatus.OK).json({ success: true, message: 'Fetch Success', data });
 });

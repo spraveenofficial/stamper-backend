@@ -1,11 +1,10 @@
-import httpStatus from 'http-status';
 import { Request, Response } from 'express';
-import { catchAsync } from '../utils';
+import httpStatus from 'http-status';
 import { documentService } from '.';
-import { organizationService } from '../organization';
-import { ApiError } from '../errors';
 import { rolesEnum } from '../../config/roles';
-import { employeeService } from '../employee';
+import { ApiError } from '../errors';
+import { organizationService } from '../organization';
+import { catchAsync } from '../utils';
 
 export const createFolder = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -22,19 +21,7 @@ export const createFolder = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getFolders = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
-
-  let organizationId;
-  if (req.user.role === rolesEnum.organization) {
-    const organization = await organizationService.getOrganizationByUserId(id);
-    organizationId = organization?._id;
-  } else {
-    const organization = await employeeService.getEmployeeByUserId(id);
-    organizationId = organization?.organizationId;
-  }
-  if (!organizationId) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Add organization first');
-  }
+  const { organizationId } = req.organizationContext;
 
   const folders = await documentService.getFolders(organizationId, req.user.role as rolesEnum);
 

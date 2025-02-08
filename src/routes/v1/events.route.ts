@@ -7,6 +7,6 @@ import { organizationMiddleware } from '../../modules/organization';
 const router: Router = express.Router();
 
 router.route('/reserve').post(auth(), eventControllers.createEventFromCalendar);
-router.route('/calendar').get(auth(), organizationMiddleware.organizationMiddleware, eventControllers.getEvents);
+router.route('/calendar').get(auth(), organizationMiddleware.organizationMiddlewareV2, eventControllers.getEvents);
 
 export default router;
