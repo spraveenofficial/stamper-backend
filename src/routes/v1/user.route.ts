@@ -24,7 +24,7 @@ router
   .route('/change-password')
   .patch(auth('profile'), validate(userValidation.changePassword), userController.changePassword);
 
-router.route('/cap-check').get(auth(), organizationMiddleware.organizationMiddleware, userController.getUserCapLimits);
+router.route('/cap-check').get(auth(), organizationMiddleware.organizationMiddlewareV2, userController.getUserCapLimits);
 
 export default router;
 
