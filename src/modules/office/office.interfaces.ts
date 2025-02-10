@@ -19,6 +19,7 @@ export interface IOfficeAttendanceConfig {
   regularizationAllowedTypes: string[],
   canEmployeeEditAttendance: boolean,
   employeeCanEditAttendanceForLastDays: number,
+  isDocumentRequiredForRegularization: boolean,
 }
 
 export interface IOffice {

@@ -74,6 +74,11 @@ const OfficeAttendanceConfigSchema = new Schema<IOfficeAttendanceConfig>(
       required: true,
       default: 7,
     },
+    isDocumentRequiredForRegularization: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   { _id: false } // Disable _id for subdocuments
 );
@@ -148,6 +153,7 @@ const officeSchema = new Schema<IOfficeDoc, IOfficeModel>(
         regularizationAllowedTypes: [],
         canEmployeeEditAttendance: true,
         employeeCanEditAttendanceForLastDays: 7,
+        isDocumentRequiredForRegularization: false,
       }
     },
   },

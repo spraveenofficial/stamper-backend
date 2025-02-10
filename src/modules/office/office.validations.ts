@@ -31,6 +31,7 @@ const updateOfficeBody: Record<keyof UpdateOffice, any> = {
     regularizationAllowedTypes: Joi.array().items(Joi.string()).optional(),
     canEmployeeEditAttendance: Joi.boolean().optional(),
     employeeCanEditAttendanceForLastDays: Joi.number().optional(),
+    isDocumentRequiredForRegularization: Joi.boolean().optional(),
   }).optional(),
 };
 
