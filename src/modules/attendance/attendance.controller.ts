@@ -109,3 +109,9 @@ export const getOfficeAttendanceGeneralSettings = catchAsync(async (req: Request
 
   res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });
+
+export const getOrganizationEmployeesAttendence = catchAsync(async(req: Request, res: Response)=>{
+  const { organizationId } = req.organizationContext;
+  const response = await attendanceServices.getOrganizationEmployeeAttendence(organizationId);
+  res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
+});

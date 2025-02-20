@@ -513,3 +513,9 @@ export const getEmployeeAttendanceRecords = async (
 
   return attendanceRecords;
 };
+
+
+export const getOrganizationEmployeeAttendence = async(organizationId: mongoose.Types.ObjectId) => {
+    const attendence = await Attendance.find({organizationId});
+    return attendence;
+}
