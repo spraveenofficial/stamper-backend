@@ -513,3 +513,28 @@ export const getEmployeeAttendanceRecords = async (
 
   return attendanceRecords;
 };
+
+
+export const getOrganizationEmployeeAttendence = async(organizationId: mongoose.Types.ObjectId) => {
+  const orgId = typeof organizationId === 'string' 
+    ? new mongoose.Types.ObjectId(organizationId) 
+    : organizationId;
+  const attendanceData = await Attendance.aggregate([
+    {
+      $match: { organizationId:  orgId } // Filter by organization ID
+    },
+    {
+      $lookup: {
+        from: "users", 
+        localField: "employeeId",
+        foreignField: "_id", 
+        as: "employeeDetails" 
+      }
+    },
+    // {
+    //   $unwind: "$employeeDetails" 
+    // }
+  ]);
+  console.log(`Found ${attendanceData.length} records`);
+  return attendanceData;
+}

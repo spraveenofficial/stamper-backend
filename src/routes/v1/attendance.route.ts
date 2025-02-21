@@ -73,4 +73,6 @@ router
   .route('/month-summary')
   .get(auth(), organizationMiddleware.organizationMiddleware, attendanceController.getEmployeeMonthSummary);
 
+router.route("/get-attendence-in-organization").get(auth(), organizationMiddleware.organizationMiddlewareV2, attendanceController.getOrganizationEmployeesAttendence);
+
 export default router;
