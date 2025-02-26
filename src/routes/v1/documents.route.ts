@@ -10,9 +10,11 @@ router
   .route('/create-folder')
   .post(auth('createDocumentFolder'), validate(documentValidations.createNewFolderRequest), documentController.createFolder);
 
+router.route("/get-employee-email").post(auth(), documentController.getEmployee);
+
 router
   .route('/folders')
-  .get(auth(), organizationMiddleware.organizationMiddlewareV2, documentController.getFolders);
+  .post(auth(), organizationMiddleware.organizationMiddlewareV2, documentController.getFolders);
 
 
 export default router;

@@ -27,3 +27,13 @@ export const getFolders = catchAsync(async (req: Request, res: Response) => {
 
   res.status(httpStatus.OK).json({ success: true, data: folders });
 });
+
+
+export const getEmployee = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+
+
+  const relatedEmails = await documentService.getEmailMatched(payload.payload);
+
+  res.status(httpStatus.OK).json({ success: true, data: relatedEmails });
+})

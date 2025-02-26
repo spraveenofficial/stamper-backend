@@ -3,6 +3,7 @@ import { IDocumentDoc, NewDocumentType } from './documents.interfaces';
 import Document from './documents.model';
 import { ApiError } from '../errors';
 import { rolesEnum } from 'src/config/roles';
+import { User } from '../user';
 
 export const createFolder = async (
   payload: NewDocumentType,
@@ -35,3 +36,26 @@ export const getFolders = async (organizationId: mongoose.Types.ObjectId, role: 
   ]);
   return folders;
 };
+
+
+export const getEmailMatched = async (payload: string): Promise<any> => {
+
+  
+    const data = await User.aggregate([
+      {
+        $match: {
+          email: { $regex: `^${payload}`, $options: 'i' }
+        }
+      },
+      {
+        $project: {
+          email: 1
+        }
+      },
+      {
+        $limit: 10
+      }
+    ])
+
+    return data;
+}
