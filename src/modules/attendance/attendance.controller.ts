@@ -12,9 +12,7 @@ import { catchAsync, pick } from '../utils';
 export const createWorkScheduleByOfficeId = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
   const { organizationId } = req.organizationContext;
-
   const officeConfig = await attendanceOfficeConfigService.createNewWorkSchedule(req.body, organizationId, id);
-
   res.status(httpStatus.CREATED).json({ success: true, message: req.t('AttendanceConfig.added'), data: officeConfig });
 });
 
@@ -78,19 +76,31 @@ export const getMyAttendance = catchAsync(async (req: Request, res: Response) =>
 });
 
 export const clockinEmployee = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { id, role } = req.user;
   const { officeId, organizationId } = req.organizationContext;
+
+  if (role === rolesEnum.organization) {
+    const requestPayload = { ...req.body, organizationId };
+    const response = await attendanceServices.clockInOrganizationUser(id, requestPayload);
+    return res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
+  }
+
   const requestPayload = { ...req.body, officeId, organizationId };
 
   const response = await attendanceServices.clockinEmployee(id, requestPayload);
 
-  res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
+  return res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });
 
 export const clockoutEmployee = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.user;
+  const { id, role } = req.user;
+
+  if (role === rolesEnum.organization) {
+    const response = await attendanceServices.clockOutOrganizationUser(id, req.body);
+    return res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
+  }
   const response = await attendanceServices.clockoutEmployee(id, req.body);
-  res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
+  return res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });
 
 export const getEmployeeMonthSummary = catchAsync(async (req: Request, res: Response) => {
@@ -110,7 +120,7 @@ export const getOfficeAttendanceGeneralSettings = catchAsync(async (req: Request
   res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });
 });
 
-export const getOrganizationEmployeesAttendence = catchAsync(async(req: Request, res: Response)=>{
+export const getOrganizationEmployeesAttendence = catchAsync(async (req: Request, res: Response) => {
   const { organizationId } = req.organizationContext;
   const response = await attendanceServices.getOrganizationEmployeeAttendence(organizationId);
   res.status(httpStatus.OK).json({ success: true, message: req.t('Common.successRequest'), data: response });

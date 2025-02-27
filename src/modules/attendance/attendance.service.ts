@@ -146,6 +146,7 @@ export const checkIfOrgUserCanClockInToday = async (employeeId: mongoose.Types.O
     geofencingEnabled: false,
     officeLocation: null,
     officeLocationText: null,
+    todayWorkingDayHoursCount: 8,
     officeUTCConfig: {
       timezone: 'UTC',
       _offset: '+00:00',
@@ -379,6 +380,7 @@ export const clockinEmployee = async (
 
   return attendance;
 };
+
 export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payload: attendanceInterface.CreateClockoutPayload) => {
   const employee = await employeeService.getEmployeeByUserId(employeeId);
   if (!employee) {
@@ -421,6 +423,30 @@ export const clockoutEmployee = async (employeeId: mongoose.Types.ObjectId, payl
 
   return attendance;
 };
+
+export const clockOutOrganizationUser = async (userId: mongoose.Types.ObjectId, payload: attendanceInterface.CreateClockoutPayload) => {
+  const user = await userService.getUserById(userId);
+
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found');
+  }
+
+  const attendance = await Attendance.findOneAndUpdate(
+    {
+      employeeId: user?.id,
+      isClockedin: true,
+    },
+    {
+      ...payload,
+      isClockedout: true,
+      isClockedin: false,
+      clockoutTime: moment().toDate(),
+    },
+    { new: true }
+  );
+  return attendance;
+}
+
 
 export const getEmployeeMonthlySummary = async (
   employeeId: mongoose.Types.ObjectId
@@ -515,20 +541,20 @@ export const getEmployeeAttendanceRecords = async (
 };
 
 
-export const getOrganizationEmployeeAttendence = async(organizationId: mongoose.Types.ObjectId) => {
-  const orgId = typeof organizationId === 'string' 
-    ? new mongoose.Types.ObjectId(organizationId) 
+export const getOrganizationEmployeeAttendence = async (organizationId: mongoose.Types.ObjectId) => {
+  const orgId = typeof organizationId === 'string'
+    ? new mongoose.Types.ObjectId(organizationId)
     : organizationId;
   const attendanceData = await Attendance.aggregate([
     {
-      $match: { organizationId:  orgId } // Filter by organization ID
+      $match: { organizationId: orgId } // Filter by organization ID
     },
     {
       $lookup: {
-        from: "users", 
+        from: "users",
         localField: "employeeId",
-        foreignField: "_id", 
-        as: "employeeDetails" 
+        foreignField: "_id",
+        as: "employeeDetails"
       }
     },
     // {
@@ -537,4 +563,22 @@ export const getOrganizationEmployeeAttendence = async(organizationId: mongoose.
   ]);
   console.log(`Found ${attendanceData.length} records`);
   return attendanceData;
+}
+
+
+export const clockInOrganizationUser = async (userId: mongoose.Types.ObjectId, payload: attendanceInterface.CreateClockinPayloadForOrganizationUser) => {
+  const user = await userService.getUserById(userId);
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found');
+  }
+
+  const attendance = await Attendance.create({
+    employeeId: userId,
+    ...payload,
+    clockinTime: moment().toDate(),
+    isClockedin: true,
+  });
+
+  return attendance;
+
 }

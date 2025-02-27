@@ -72,6 +72,8 @@ export type CreateClockinPayload = Omit<
   | 'remark'
 >;
 
+export type CreateClockinPayloadForOrganizationUser = Omit<CreateClockinPayload, 'officeId'>;
+
 export type CreateClockoutPayload = Omit<
   IAttendance,
   | 'clockinTime'
