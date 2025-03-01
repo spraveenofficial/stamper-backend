@@ -9,6 +9,7 @@ const validate =
   (req: Request, _res: Response, next: NextFunction): void => {
     const validSchema = pick(schema, ['params', 'query', 'body']);
     const object = pick(req, Object.keys(validSchema));
+    console.log("Is all set")
     const { value, error } = Joi.compile(validSchema)
       .prefs({ errors: { label: 'key' } })
       .validate(object);
