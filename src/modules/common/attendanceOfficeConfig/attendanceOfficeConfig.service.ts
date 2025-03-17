@@ -60,153 +60,115 @@ export const getOrganizationOfficeConfig = async (
     filter._id = new mongoose.Types.ObjectId(officeId);
   }
 
-  const pipeline = [
-    {
-      $match: filter,
-    },
-    {
-      $lookup: {
-        from: 'offices',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'officeDetails',
-      },
-    },
-    {
-      $unwind: {
-        path: '$officeDetails',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: 'attendanceofficeconfigs',
-        let: { officeId: '$_id' },
-        pipeline: [
-          { $match: { $expr: { $eq: ['$officeId', '$$officeId'] } } },
-          {
-            $project: {
-              _id: 1,
-              officeLocation: 1,
-              geofencing: 1,
-              radius: 1,
-              isActive: 1,
-              officeLocationText: 1,
-              selfieRequired: 1,
-              effectiveFrom: 1,
-              qrEnabled: 1,
-              policyTitle: 1,
-              clockinMode: 1,
-            },
-          },
-        ],
-        as: 'officeConfig',
-      },
-    },
-    {
-      $unwind: {
-        path: '$officeConfig',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    // {
-    //   $addFields: {
-    //     workingDaysActiveCount: {
-    //       $cond: {
-    //         if: {
-    //           $gt: [
-    //             {
-    //               $size: {
-    //                 $ifNull: [
-    //                   {
-    //                     $filter: {
-    //                       input: '$officeConfig.workingDays',
-    //                       as: 'day',
-    //                       cond: { $eq: ['$$day.isActive', true] },
-    //                     },
-    //                   },
-    //                   [],
-    //                 ],
-    //               },
-    //             },
-    //             0,
-    //           ],
-    //         },
-    //         then: {
-    //           $size: {
-    //             $filter: {
-    //               input: '$officeConfig.workingDays',
-    //               as: 'day',
-    //               cond: { $eq: ['$$day.isActive', true] },
-    //             },
-    //           },
-    //         },
-    //         else: null,
-    //       },
-    //     },
-    //     workingDays: {
-    //       $map: {
-    //         input: '$officeConfig.workingDays',
-    //         as: 'day',
-    //         in: {
-    //           day: '$$day.day',
-    //           schedule: {
-    //             isActive: '$$day.schedule.isActive',
-    //             startTime: '$$day.schedule.startTime',
-    //             endTime: '$$day.schedule.endTime',
-    //             hours: '$$day.schedule.hours',
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
-    {
-      $project: {
-        _id: 0,
-        officeId: '$_id',
-        officeName: '$officeDetails.name',
-        officeTimeZone: '$officeDetails.timezone',
-        policyId: '$officeConfig._id',
-        isActive: '$officeConfig.isActive',
-        policyTitle: '$officeConfig.policyTitle',
-        clockinMode: '$officeConfig.clockinMode',
-        geofencing: '$officeConfig.geofencing',
-        radius: '$officeConfig.radius',
-        qrEnabled: '$officeConfig.qrEnabled',
-        selfieRequired: '$officeConfig.selfieRequired',
-        officeLocation: '$officeConfig.officeLocation',
-        officeLocationText: '$officeConfig.officeLocationText',
-        isWorkScheduleAdded: {
-          $cond: { if: { $eq: ['$officeConfig._id', null] }, then: false, else: true },
-        },
-      },
+  const officeDetailsLookup = {
+    $lookup: {
+      from: 'offices',
+      localField: '_id',
+      foreignField: '_id',
+      as: 'officeDetails'
+    }
+  };
 
-    },
-    {
-      $facet: {
-        metadata: [{ $count: 'totalCount' }, { $addFields: { page, limit } }],
-        data: [{ $skip: skip }, { $limit: limit }],
-      },
-    },
-    {
-      $unwind: '$metadata',
-    },
-    {
-      $project: {
-        results: '$data',
-        page: '$metadata.page',
-        limit: '$metadata.limit',
-        totalResults: '$metadata.totalCount',
-        totalPages: {
-          $ceil: { $divide: ['$metadata.totalCount', '$metadata.limit'] },
+  const officeConfigLookup = {
+    $lookup: {
+      from: 'attendanceofficeconfigs',
+      let: { officeId: '$_id' },
+      pipeline: [
+        { 
+          $match: { 
+            $expr: { 
+              $and: [
+                { $eq: ['$officeId', '$$officeId'] },
+                { $eq: ['$isActive', true] }
+              ]
+            } 
+          } 
         },
-      },
-    },
+        {
+          $project: {
+            _id: 1,
+            officeLocation: 1,
+            geofencing: 1,
+            radius: 1,
+            isActive: 1,
+            officeLocationText: 1,
+            selfieRequired: 1,
+            effectiveFrom: 1,
+            qrEnabled: 1,
+            policyTitle: 1,
+            clockinMode: 1
+          }
+        }
+      ],
+      as: 'officeConfig'
+    }
+  };
+
+  const mainProjection = {
+    $project: {
+      _id: 0,
+      officeId: '$_id',
+      officeName: { $arrayElemAt: ['$officeDetails.name', 0] },
+      officeTimeZone: { $arrayElemAt: ['$officeDetails.timezone', 0] },
+      policyId: { $arrayElemAt: ['$officeConfig._id', 0] },
+      isActive: { $arrayElemAt: ['$officeConfig.isActive', 0] },
+      policyTitle: { $arrayElemAt: ['$officeConfig.policyTitle', 0] },
+      clockinMode: { $arrayElemAt: ['$officeConfig.clockinMode', 0] },
+      geofencing: { $arrayElemAt: ['$officeConfig.geofencing', 0] },
+      radius: { $arrayElemAt: ['$officeConfig.radius', 0] },
+      qrEnabled: { $arrayElemAt: ['$officeConfig.qrEnabled', 0] },
+      selfieRequired: { $arrayElemAt: ['$officeConfig.selfieRequired', 0] },
+      officeLocation: { $arrayElemAt: ['$officeConfig.officeLocation', 0] },
+      officeLocationText: { $arrayElemAt: ['$officeConfig.officeLocationText', 0] },
+      isWorkScheduleAdded: {
+        $cond: {
+          if: { $gt: [{ $size: '$officeConfig' }, 0] },
+          then: true,
+          else: false
+        }
+      }
+    }
+  };
+
+  const paginationStage = {
+    $facet: {
+      metadata: [
+        { $count: 'totalCount' },
+        { $addFields: { page, limit } }
+      ],
+      data: [{ $skip: skip }, { $limit: limit }]
+    }
+  };
+
+  const finalProjection = {
+    $project: {
+      results: '$data',
+      page: { $ifNull: ['$metadata.page', page] },
+      limit: { $ifNull: ['$metadata.limit', limit] },
+      totalResults: { $ifNull: ['$metadata.totalCount', 0] },
+      totalPages: {
+        $ifNull: [
+          { $ceil: { $divide: ['$metadata.totalCount', limit] } },
+          0
+        ]
+      }
+    }
+  };
+
+  const pipeline = [
+    { $match: filter },
+    officeDetailsLookup,
+    officeConfigLookup,
+    mainProjection,
+    paginationStage,
+    { $unwind: { path: '$metadata', preserveNullAndEmptyArrays: true } },
+    finalProjection
   ];
 
-  const response = await Office.aggregate(pipeline);
-  return response.length ? response[0] : { results: [], page: 1, limit, totalResults: 0, totalPages: 0 };
+  const [result = { results: [], page, limit, totalResults: 0, totalPages: 0 }] = 
+    await Office.aggregate(pipeline);
+  
+  return result;
 };
 
 export const updateOfficeConfig = async (config: attendanceConfigInterface.UpdateAttendanceConfigPayload) => {
