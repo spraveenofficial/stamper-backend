@@ -1,7 +1,13 @@
-import { rolesEnum } from '../../config/roles';
+// import { rolesEnum } from '../../config/roles';
+// import { accessRoles } from './documents.interfaces';
 import { toJSON } from '../toJSON';
 import { IDocumentDoc, IDocumentModel } from './documents.interfaces';
 import mongoose, { Schema } from 'mongoose';
+
+const EmployeeSchema = new mongoose.Schema({
+  _id: { type: Schema.Types.ObjectId, ref: "user" }, 
+  email: { type: String, required: true }
+});
 
 const documentsSchema = new Schema<IDocumentDoc, IDocumentModel>(
   {
@@ -25,8 +31,15 @@ const documentsSchema = new Schema<IDocumentDoc, IDocumentModel>(
     },
     access: {
       type: [String],
-      enum: rolesEnum,
+      // enum: accessRoles[],
       required: true,
+    },
+    departmentId: {
+      type: Schema.Types.ObjectId,
+      ref: "Department"
+    },
+    employees: {
+      type: [EmployeeSchema]
     },
     documents: {
       type: [

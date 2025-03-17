@@ -39,10 +39,10 @@ const organizationMiddlewareV2 = async (req: Request, res: Response, next: NextF
     }
 
     const { id, role } = req.user;
-    let entity: IOrganizationDoc | IEmployeeDoc | null = null;
+    // let entity: IOrganizationDoc | IEmployeeDoc | null = null;
 
     // Fetch the appropriate entity based on role
-    entity = role === rolesEnum.organization
+    const entity = role === rolesEnum.organization
       ? await organizationService.getOrganizationByUserId(id)
       : await employeeService.getEmployeeByUserId(id);
 

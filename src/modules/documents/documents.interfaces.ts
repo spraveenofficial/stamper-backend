@@ -1,6 +1,6 @@
 import mongoose, { Model } from 'mongoose';
 import { QueryResult } from '../paginate/paginate';
-import { rolesEnum } from '../../config/roles';
+// import { rolesEnum } from '../../config/roles';
 
 interface FileInDocument {
   name: string;
@@ -8,12 +8,27 @@ interface FileInDocument {
   size: string;
 }
 
+export interface accessRoles{
+  everyone: string;
+  me: string;
+  department: string;
+  employee?: string[]
+}
+
+export interface EmployeesInterface {
+  _id: mongoose.Types.ObjectId; 
+  email: string;
+}
+
 export interface IDocument {
+  _id?: mongoose.Types.ObjectId;
   folderName: string;
   createdBy: mongoose.Types.ObjectId;
   organizationId: mongoose.Types.ObjectId;
   description: string;
-  access: rolesEnum[];
+  departmentId: mongoose.Types.ObjectId;
+  access: accessRoles[];
+  employees?: EmployeesInterface[];
   documents: FileInDocument[];
 }
 
